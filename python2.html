@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آموزش پایتون</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: Tahoma, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    direction: rtl;
+    padding: 15px;
+    min-height: 100vh;
+}
+.header {
+    text-align: center;
+    padding: 20px 0;
+    margin-bottom: 20px;
+}
+h1 { color: #ffd43b; font-size: 1.8em; margin-bottom: 8px; }
+.subtitle { color: #7d8590; font-size: 0.9em; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+.card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+.card-title { color: #ffd43b; font-size: 1.1em; margin-bottom: 12px; }
+
+.btn {
+    display: block;
+    width: 100%;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 1.05em;
+    font-family: inherit;
+    cursor: pointer;
+    margin-bottom: 12px;
+    text-align: right;
+}
+.btn.primary { background: #3776ab; border-color: #3776ab; color: white; font-weight: bold; }
+.btn:active { transform: scale(0.98); }
+
+.lesson {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.lesson:hover { border-color: #3776ab; }
+.lesson-title { font-weight: bold; color: #ffd43b; margin-bottom: 5px; }
+.lesson-desc { color: #7d8590; font-size: 0.85em; }
+
+.content { line-height: 1.9; font-size: 1.05em; }
+.content h3 { color: #ffd43b; margin: 15px 0 10px; }
+.content p { margin-bottom: 10px; }
+.content ul { margin-right: 25px; margin-bottom: 10px; }
+.content li { margin-bottom: 5px; }
+
+.code {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    line-height: 1.6;
+    color: #7ee787;
+    white-space: pre;
+}
+
+.back-btn {
+    background: #3776ab;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 15px;
+    width: 100%;
+}
+</style>
+</head>
+<body>
+
+<!-- صفحه اصلی -->
+<div id="home" class="page active">
+    <div class="header">
+        <h1>🐍 آموزش پایتون</h1>
+        <p class="subtitle">از صفر تا برنامه‌نویس حرفه‌ای</p>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">🎯 خوش آمدید!</div>
+        <p style="line-height:1.9;">اینجا می‌تونید پایتون رو گام‌به‌گام یاد بگیرید!</p>
+    </div>
+    
+    <button class="btn primary" onclick="go('lessons')">📚 شروع یادگیری</button>
+    <button class="btn" onclick="go('quiz')">❓ آزمون</button>
+    <button class="btn" onclick="go('about')">ℹ️ درباره ما</button>
+</div>
+
+<!-- لیست دروس -->
+<div id="lessons" class="page">
+    <div class="header">
+        <h1>📚 دروس</h1>
+        <p class="subtitle">روی هر درس بزن</p>
+    </div>
+    
+    <div id="lessonList"></div>
+    
+    <button class="back-btn" onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<!-- نمایش درس -->
+<div id="lessonView" class="page">
+    <div class="header">
+        <h1 id="lessonTitle">درس</h1>
+    </div>
+    <div class="card">
+        <div id="lessonContent" class="content"></div>
+    </div>
+    <button class="back-btn" onclick="go('lessons')">📚 لیست دروس</button>
+</div>
+
+<!-- آزمون -->
+<div id="quiz" class="page">
+    <div class="header">
+        <h1>❓ آزمون</h1>
+        <p class="subtitle" id="quizInfo">سوال ۱ از ۵</p>
+    </div>
+    <div id="quizContent"></div>
+    <button class="back-btn" onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<!-- درباره ما -->
+<div id="about" class="page">
+    <div class="header">
+        <h1>ℹ️ درباره ما</h1>
+    </div>
+    <div class="card">
+        <p style="line-height:1.9;">🐍 <strong>سایت آموزش پایتون</strong></p>
+        <p style="line-height:1.9;">این سایت برای یادگیری پایتون از صفر طراحی شده است.</p>
+        <hr style="border:none; border-top:1px solid #30363d; margin:15px 0;">
+        <p style="line-height:1.9;">🎯 <strong>امکانات:</strong></p>
+        <ul style="margin-right:25px; line-height:1.9;">
+            <li>📚 ۵ درس پایتون</li>
+            <li>💻 نمونه کدها</li>
+            <li>❓ آزمون چهارگزینه‌ای</li>
+        </ul>
+        <hr style="border:none; border-top:1px solid #30363d; margin:15px 0;">
+        <p style="text-align:center; color:#ffd43b;">👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
+    </div>
+    <button class="back-btn" onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<script>
+// ========== دروس ==========
+var lessons = [
+    {
+        title: "مقدمه پایتون",
+        desc: "پایتون چیست؟",
+        content: '<h3>🐍 پایتون چیست؟</h3><p>پایتون یک زبان برنامه‌نویسی ساده و قدرتمند است که در سال ۱۹۹۱ ساخته شد.</p><h3>✅ مزایا:</h3><ul><li>سادگی و خوانایی</li><li>کتابخانه‌های فراوان</li><li>استفاده در هوش مصنوعی</li></ul><h3>💻 اولین برنامه:</h3><div class="code">print("سلام دنیا!")</div><p>این کد عبارت «سلام دنیا!» را چاپ می‌کند.</p>'
+    },
+    {
+        title: "متغیرها",
+        desc: "تعریف متغیر و انواع داده",
+        content: '<h3>📦 متغیر چیست؟</h3><p>متغیر ظرفی برای ذخیره داده است.</p><div class="code">name = "علی"\nage = 25\nheight = 1.75\nis_student = True</div><h3>🔢 انواع داده:</h3><ul><li><strong>int</strong>: عدد صحیح</li><li><strong>float</strong>: عدد اعشاری</li><li><strong>str</strong>: متن</li><li><strong>bool</strong>: درست/غلط</li></ul>'
+    },
+    {
+        title: "عملگرها",
+        desc: "عملیات ریاضی",
+        content: '<h3>➗ عملگرهای ریاضی:</h3><div class="code">a = 10\nb = 3\nprint(a + b)   # 13\nprint(a - b)   # 7\nprint(a * b)   # 30\nprint(a / b)   # 3.33\nprint(a // b)  # 3\nprint(a % b)   # 1\nprint(a ** b)  # 1000</div>'
+    },
+    {
+        title: "شرط‌ها",
+        desc: "if و else",
+        content: '<h3>🤔 شرط چیست؟</h3><p>با شرط‌ها برنامه تصمیم می‌گیرد.</p><div class="code">age = 18\n\nif age >= 18:\n    print("بزرگسال")\nelse:\n    print("کودک")</div><h3>🔀 حالت‌های بیشتر:</h3><div class="code">score = 85\n\nif score >= 90:\n    print("عالی")\nelif score >= 75:\n    print("خوب")\nelse:\n    print("تلاش کن")</div>'
+    },
+    {
+        title: "حلقه‌ها",
+        desc: "for و while",
+        content: '<h3>🔄 حلقه for:</h3><div class="code">for i in range(5):\n    print(i)   # 0,1,2,3,4</div><h3>🔄 حلقه while:</h3><div class="code">i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</div><h3>⏹️ کنترل:</h3><ul><li><strong>break</strong>: خروج از حلقه</li><li><strong>continue</strong>: رد کردن</li></ul>'
+    }
+];
+
+// ========== آزمون ==========
+var quiz = [
+    { q: "کدام تابع برای چاپ استفاده می‌شود؟", opts: ["echo()", "print()", "log()", "printf()"], correct: 1 },
+    { q: "نوع داده عدد صحیح کدام است؟", opts: ["num", "int", "integer", "number"], correct: 1 },
+    { q: "خروجی 10 // 3 چیست؟", opts: ["3.33", "3", "4", "1"], correct: 1 },
+    { q: "کلمه کلیدی تعریف تابع؟", opts: ["function", "def", "func", "define"], correct: 1 },
+    { q: "متد اضافه کردن به لیست؟", opts: ["add()", "push()", "append()", "insert()"], correct: 2 }
+];
+
+var currentQuiz = 0;
+var quizScore = 0;
+
+// ========== ناوبری ==========
+function go(pageId) {
+    var pages = document.querySelectorAll('.page');
+    for (var i = 0; i < pages.length; i++) {
+        pages[i].classList.remove('active');
+    }
+    document.getElementById(pageId).classList.add('active');
+    window.scrollTo(0, 0);
+    
+    if (pageId === 'lessons') renderLessons();
+    if (pageId === 'quiz') startQuiz();
+}
+
+// ========== نمایش لیست دروس ==========
+function renderLessons() {
+    var list = document.getElementById('lessonList');
+    var html = '';
+    for (var i = 0; i < lessons.length; i++) {
+        html += '<div class="lesson" onclick="openLesson(' + i + ')">';
+        html += '<div class="lesson-title">📖 درس ' + (i+1) + ': ' + lessons[i].title + '</div>';
+        html += '<div class="lesson-desc">' + lessons[i].desc + '</div>';
+        html += '</div>';
+    }
+    list.innerHTML = html;
+}
+
+// ========== نمایش درس ==========
+function openLesson(idx) {
+    document.getElementById('lessonTitle').textContent = 'درس ' + (idx+1) + ': ' + lessons[idx].title;
+    document.getElementById('lessonContent').innerHTML = lessons[idx].content;
+    go('lessonView');
+}
+
+// ========== آزمون ==========
+function startQuiz() {
+    currentQuiz = 0;
+    quizScore = 0;
+    loadQuiz();
+}
+
+function loadQuiz() {
+    if (currentQuiz >= quiz.length) {
+        showQuizResult();
+        return;
+    }
+    
+    var q = quiz[currentQuiz];
+    document.getElementById('quizInfo').textContent = 'سوال ' + (currentQuiz + 1) + ' از ' + quiz.length;
+    
+    var html = '<div class="card"><div style="margin-bottom:15px; font-size:1.1em; line-height:1.8;">' + q.q + '</div>';
+    for (var i = 0; i < q.opts.length; i++) {
+        html += '<button class="btn" style="direction:ltr; text-align:left;" onclick="answerQuiz(' + i + ', this)">' + q.opts[i] + '</button>';
+    }
+    html += '</div>';
+    
+    document.getElementById('quizContent').innerHTML = html;
+}
+
+function answerQuiz(selected, btn) {
+    var q = quiz[currentQuiz];
+    var buttons = document.querySelectorAll('#quizContent .btn');
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].disabled = true;
+    }
+    
+    if (selected === q.correct) {
+        btn.style.background = '#2ea043';
+        btn.style.borderColor = '#2ea043';
+        btn.style.color = 'white';
+        quizScore += 10;
+    } else {
+        btn.style.background = '#f85149';
+        btn.style.borderColor = '#f85149';
+        btn.style.color = 'white';
+        buttons[q.correct].style.background = '#2ea043';
+        buttons[q.correct].style.borderColor = '#2ea043';
+        buttons[q.correct].style.color = 'white';
+    }
+    
+    setTimeout(function() {
+        currentQuiz++;
+        loadQuiz();
+    }, 1200);
+}
+
+function showQuizResult() {
+    var html = '<div class="card" style="text-align:center;">';
+    html += '<div style="font-size:3em; color:#ffd43b; margin:20px 0;">' + quizScore + '</div>';
+    html += '<div style="color:#7d8590; margin-bottom:20px;">امتیاز نهایی</div>';
+    html += '<p style="line-height:2;">' + (quizScore >= 40 ? '🎉 عالی! شما پایتون رو خوب یاد گرفتی!' : '💪 بازم تلاش کن!') + '</p>';
+    html += '</div>';
+    html += '<button class="back-btn" onclick="startQuiz()">🔄 آزمون دوباره</button>';
+    
+    document.getElementById('quizContent').innerHTML = html;
+    document.getElementById('quizInfo').textContent = 'پایان آزمون';
+}
+
+// ========== شروع ==========
+console.log('✅ سایت آماده است');
+</script>
+
+</body>
+</html>
