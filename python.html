@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>آموزش پایتون</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --card-hover: #1c2128;
+            --text: #e6edf3;
+            --text2: #7d8590;
+            --primary: #3776ab;
+            --primary-dark: #2a5a87;
+            --accent: #ffd43b;
+            --success: #2ea043;
+            --danger: #f85149;
+            --border: #30363d;
+            --code-bg: #0d1117;
+        }
+        
+        body {
+            font-family: 'B Nazanin', Tahoma, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            direction: rtl;
+            min-height: 100vh;
+            padding: 15px;
+            padding-bottom: 30px;
+            overflow-x: hidden;
+        }
+        
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .header { text-align: center; margin-bottom: 25px; padding: 20px 0; }
+        
+        h1 {
+            color: var(--accent);
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .py-logo { display: inline-block; font-size: 1.4em; }
+        .subtitle { color: var(--text2); font-size: 0.95em; }
+        
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+        
+        .card:hover { background: var(--card-hover); }
+        
+        .card-title {
+            color: var(--accent);
+            font-size: 1.15em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .menu-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        
+        .menu-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.05em;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: right;
+        }
+        
+        .menu-btn:hover { background: var(--card-hover); border-color: var(--primary); }
+        .menu-btn:active { transform: scale(0.98); }
+        
+        .menu-btn.primary {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            border-color: var(--primary);
+        }
+        
+        .menu-btn.primary:hover { background: var(--primary-dark); }
+        .btn-arrow { color: var(--accent); font-size: 1.2em; }
+        
+        .lesson-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        
+        @media (min-width: 500px) {
+            .lesson-grid { grid-template-columns: 1fr 1fr; }
+        }
+        
+        .lesson-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .lesson-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        
+        .lesson-num {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .lesson-title { font-size: 1.05em; font-weight: bold; margin-bottom: 6px; }
+        .lesson-desc { color: var(--text2); font-size: 0.85em; }
+        
+        .lesson-complete {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            color: var(--success);
+            font-size: 1.2em;
+        }
+        
+        .lesson-content { line-height: 2; font-size: 1.05em; }
+        .lesson-content h3 { color: var(--accent); margin: 20px 0 10px 0; font-size: 1.15em; }
+        .lesson-content p { margin-bottom: 12px; }
+        .lesson-content ul { margin-right: 25px; margin-bottom: 12px; }
+        .lesson-content li { margin-bottom: 6px; }
+        
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 12px 0;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.7;
+            color: #e6edf3;
+            white-space: pre;
+        }
+        
+        .kw { color: #ff7b72; }
+        .str { color: #a5d6ff; }
+        .num { color: #79c0ff; }
+        .fn { color: #d2a8ff; }
+        .cm { color: #8b949e; font-style: italic; }
+        .op { color: #ff7b72; }
+        .var { color: #ffa657; }
+        
+        .nav-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        
+        .nav-btn {
+            flex: 1;
+            min-width: 100px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-btn:hover { background: var(--card-hover); }
+        .nav-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-btn.primary:hover { background: var(--primary-dark); }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .quiz-question {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--card);
+            border-radius: 12px;
+            border-right: 4px solid var(--accent);
+        }
+        
+        .option {
+            background: var(--card);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1em;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: right;
+            width: 100%;
+            margin-bottom: 10px;
+            direction: ltr;
+        }
+        
+        .option:hover { border-color: var(--primary); }
+        .option.correct { background: var(--success); border-color: var(--success); color: white; }
+        .option.wrong { background: var(--danger); border-color: var(--danger); color: white; }
+        .option:disabled { cursor: not-allowed; }
+        
+        .progress-bar {
+            background: var(--card);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            color: var(--accent);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label { color: var(--text2); font-size: 0.9em; }
+        
+        .about-content { line-height: 2; }
+        .about-content hr { border: none; border-top: 1px solid var(--border); margin: 15px 0; }
+        .developer { text-align: center; color: var(--accent); margin-top: 15px; }
+        
+        @media (min-width: 600px) {
+            body { max-width: 700px; margin: 0 auto; }
+            h1 { font-size: 2.2em; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="page-home" class="page active">
+    <div class="header">
+        <h1><span class="py-logo">🐍</span> آموزش پایتون</h1>
+        <p class="subtitle">از صفر تا برنامه‌نویس حرفه‌ای</p>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">🎯 خوش آمدید!</div>
+        <p style="line-height: 2;">اینجا می‌تونید <strong>پایتون</strong> رو به صورت گام‌به‌گام یاد بگیرید. از مبانی تا مباحث پیشرفته!</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-number" id="statLessons">0</span>
+            <span class="stat-label">درس تکمیل شده</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" id="statScore">0</span>
+            <span class="stat-label">امتیاز آزمون</span>
+        </div>
+    </div>
+    
+    <div class="menu-buttons">
+        <button class="menu-btn primary" onclick="showPage('page-lessons')">
+            <span>📚 شروع یادگیری</span>
+            <span class="btn-arrow">←</span>
+        </button>
+        <button class="menu-btn" onclick="showPage('page-quiz')">
+            <span>❓ آزمون</span>
+            <span class="btn-arrow">←</span>
+        </button>
+        <button class="menu-btn" onclick="showPage('page-progress')">
+            <span>📊 پیشرفت من</span>
+            <span class="btn-arrow">←</span>
+        </button>
+        <button class="menu-btn" onclick="showPage('page-about')">
+            <span>ℹ️ درباره ما</span>
+            <span class="btn-arrow">←</span>
+        </button>
+    </div>
+</div>
+
+<div id="page-lessons" class="page">
+    <div class="header">
+        <h1>📚 دروس پایتون</h1>
+        <p class="subtitle">۱۰ درس از صفر تا پیشرفته</p>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="lessonsProgress"></div>
+    </div>
+    
+    <div id="lessonGrid" class="lesson-grid"></div>
+    
+    <button class="menu-btn" onclick="showPage('page-home')" style="margin-top:20px;">🏠 بازگشت به خانه</button>
+</div>
+
+<div id="page-lesson-view" class="page">
+    <div class="header">
+        <h1 id="lessonViewTitle">درس</h1>
+    </div>
+    <div class="card">
+        <div id="lessonViewContent" class="lesson-content"></div>
+    </div>
+    <div class="nav-buttons">
+        <button class="nav-btn" id="prevBtn" onclick="prevLesson()">← قبلی</button>
+        <button class="nav-btn primary" id="nextBtn" onclick="nextLesson()">بعدی →</button>
+    </div>
+    <button class="menu-btn" onclick="showPage('page-lessons')" style="margin-top:15px;">📚 لیست دروس</button>
+</div>
+
+<div id="page-quiz" class="page">
+    <div class="header">
+        <h1>❓ آزمون پایتون</h1>
+        <p class="subtitle" id="quizInfo">سوال ۱ از ۵</p>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="quizProgress"></div>
+    </div>
+    <div id="quizContent"></div>
+    <button class="menu-btn" onclick="showPage('page-home')" style="margin-top:20px;">🏠 بازگشت به خانه</button>
+</div>
+
+<div id="page-progress" class="page">
+    <div class="header">
+        <h1>📊 پیشرفت من</h1>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-number" id="progLessons">0</span>
+            <span class="stat-label">درس تکمیل شده</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" id="progTotal">10</span>
+            <span class="stat-label">کل دروس</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" id="progScore">0</span>
+            <span class="stat-label">امتیاز آزمون</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" id="progPercent">0%</span>
+            <span class="stat-label">درصد یادگیری</span>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">🎯 وضعیت شما</div>
+        <div id="progressMessage" style="line-height:2;"></div>
+    </div>
+    <button class="menu-btn" onclick="resetProgress()" style="margin-top:10px; border-color: var(--danger);">🗑️ پاک کردن پیشرفت</button>
+    <button class="menu-btn" onclick="showPage('page-home')" style="margin-top:10px;">🏠 بازگشت به خانه</button>
+</div>
+
+<div id="page-about" class="page">
+    <div class="header">
+        <h1>ℹ️ درباره ما</h1>
+    </div>
+    <div class="card about-content">
+        <p>🐍 <strong>سایت آموزش پایتون</strong></p>
+        <p>این سایت برای یادگیری زبان برنامه‌نویسی پایتون از صفر طراحی شده است.</p>
+        <hr>
+        <p>🎯 <strong>امکانات:</strong></p>
+        <ul>
+            <li>📚 ۱۰ درس از صفر تا پیشرفته</li>
+            <li>💻 نمونه کدهای عملی</li>
+            <li>❓ آزمون چهارگزینه‌ای</li>
+            <li>📊 ذخیره پیشرفت</li>
+            <li>🎨 طراحی زیبا و ساده</li>
+        </ul>
+        <hr>
+        <p class="developer">👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
+    </div>
+    <button class="menu-btn" onclick="showPage('page-home')">🏠 بازگشت به خانه</button>
+</div>
+
+<script>
+const lessons = [
+    {
+        num: 1,
+        title: "مقدمه و نصب",
+        desc: "پایتون چیست و چطور نصب کنیم؟",
+        content: `
+            <h3>🐍 پایتون چیست؟</h3>
+            <p>پایتون یک زبان برنامه‌نویسی سطح بالا، تفسیری و شی‌گرا است که توسط <strong>گیدو ون روسوم</strong> در سال ۱۹۹۱ ساخته شد.</p>
+            
+            <h3>✅ مزایای پایتون:</h3>
+            <ul>
+                <li>سادگی و خوانایی بالا</li>
+                <li>کتابخانه‌های فراوان</li>
+                <li>استفاده در هوش مصنوعی، علم داده، وب و...</li>
+                <li>رایگان و متن‌باز</li>
+            </ul>
+            
+            <h3>💻 اولین برنامه:</h3>
+            <div class="code-block"><code><span class="fn">print</span>(<span class="str">"سلام دنیا!"</span>)</code></div>
+            
+            <p>این کد عبارت «سلام دنیا!» را چاپ می‌کند.</p>
+        `
+    },
+    {
+        num: 2,
+        title: "متغیرها و انواع داده",
+        desc: "تعریف متغیرها و انواع داده‌ها",
+        content: `
+            <h3>📦 متغیر چیست؟</h3>
+            <p>متغیر یک ظرف برای ذخیره داده است.</p>
+            
+            <div class="code-block"><code><span class="var">name</span> <span class="op">=</span> <span class="str">"علی"</span>
+<span class="var">age</span> <span class="op">=</span> <span class="num">25</span>
+<span class="var">height</span> <span class="op">=</span> <span class="num">1.75</span>
+<span class="var">is_student</span> <span class="op">=</span> <span class="kw">True</span></code></div>
+            
+            <h3>🔢 انواع داده:</h3>
+            <ul>
+                <li><strong>int</strong>: اعداد صحیح (مثل 25)</li>
+                <li><strong>float</strong>: اعداد اعشاری (مثل 1.75)</li>
+                <li><strong>str</strong>: رشته متنی (مثل "علی")</li>
+                <li><strong>bool</strong>: درست/غلط (True/False)</li>
+            </ul>
+            
+            <h3>📝 نکات مهم:</h3>
+            <ul>
+                <li>نام متغیر نباید با عدد شروع شود</li>
+                <li>حروف بزرگ و کوچک فرق دارند</li>
+                <li>می‌توان از _ استفاده کرد</li>
+            </ul>
+        `
+    },
+    {
+        num: 3,
+        title: "عملگرها",
+        desc: "عملیات ریاضی و منطقی",
+        content: `
+            <h3>➗ عملگرهای ریاضی:</h3>
+            <div class="code-block"><code><span class="var">a</span> <span class="op">=</span> <span class="num">10</span>
+<span class="var">b</span> <span class="op">=</span> <span class="num">3</span>
+
+<span class="fn">print</span>(<span class="var">a</span> <span class="op">+</span> <span class="var">b</span>)   <span class="cm"># جمع: 13</span>
+<span class="fn">print</span>(<span class="var">a</span> <span class="op">-</span> <span class="var">b</span>)   <span class="cm"># تفریق: 7</span>
+<span class="fn">print</span>(<span class="var">a</span> <span class="op">*</span> <span class="var">b</span>)   <span class="cm"># ضرب: 30</span>
+<span class="fn">print</span>(<span class="var">a</span> <span class="op">/</span> <span class="var">b</span>)   <span class="cm"># تقسیم: 3.33</span>
+<span class="fn">print</span>(<span class="var">a</span> <span class="op">//</span> <span class="var">b</span>)  <span class="cm"># تقسیم صحیح: 3</span>
+<span class="fn">print</span>(<span class="var">a</span> <span class="op">%</span> <span class="var">b</span>)   <span class="cm"># باقیمانده: 1</span>
+<span class="fn">print</span>(<span class="var">a</span> <span class="op">**</span> <span class="var">b</span>)  <span class="cm"># توان: 1000</span></code></div>
+            
+            <h3>🔍 عملگرهای مقایسه:</h3>
+            <ul>
+                <li><code>==</code> مساوی</li>
+                <li><code>!=</code> نامساوی</li>
+                <li><code>&gt;</code> بزرگتر</li>
+                <li><code>&lt;</code> کوچکتر</li>
+                <li><code>&gt;=</code> بزرگتر یا مساوی</li>
+                <li><code>&lt;=</code> کوچکتر یا مساوی</li>
+            </ul>
+        `
+    },
+    {
+        num: 4,
+        title: "شرط‌ها (if/else)",
+        desc: "تصمیم‌گیری در برنامه",
+        content: `
+            <h3>🤔 شرط چیست؟</h3>
+            <p>با شرط‌ها می‌توانید برنامه را وادار کنید بر اساس موقعیت‌های مختلف، تصمیم بگیرد.</p>
+            
+            <div class="code-block"><code><span class="var">age</span> <span class="op">=</span> <span class="num">18</span>
+
+<span class="kw">if</span> <span class="var">age</span> <span class="op">&gt;=</span> <span class="num">18</span>:
+    <span class="fn">print</span>(<span class="str">"بزرگسال هستید"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"کودک هستید"</span>)</code></div>
+            
+            <h3>🔀 حالت‌های بیشتر:</h3>
+            <div class="code-block"><code><span class="var">score</span> <span class="op">=</span> <span class="num">85</span>
+
+<span class="kw">if</span> <span class="var">score</span> <span class="op">&gt;=</span> <span class="num">90</span>:
+    <span class="fn">print</span>(<span class="str">"عالی"</span>)
+<span class="kw">elif</span> <span class="var">score</span> <span class="op">&gt;=</span> <span class="num">75</span>:
+    <span class="fn">print</span>(<span class="str">"خوب"</span>)
+<span class="kw">elif</span> <span class="var">score</span> <span class="op">&gt;=</span> <span class="num">50</span>:
+    <span class="fn">print</span>(<span class="str">"قابل قبول"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"نیاز به تلاش"</span>)</code></div>
+            
+            <p><strong>⚠️ نکته:</strong> در پایتون، فاصله‌گذاری (ایندنت) بسیار مهم است.</p>
+        `
+    },
+    {
+        num: 5,
+        title: "حلقه‌ها (for/while)",
+        desc: "تکرار کارها",
+        content: `
+            <h3>🔄 حلقه for:</h3>
+            <p>برای تکرار روی یک لیست یا بازه مشخص:</p>
+            
+            <div class="code-block"><code><span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="nu
