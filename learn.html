@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آموزش پایتون</title>
+<style>
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:20px;margin:0}
+h1{color:#ffd43b;text-align:center}
+.card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:20px;margin:15px 0}
+button{background:#3776ab;color:#fff;border:none;padding:15px 25px;border-radius:10px;font-size:16px;font-family:Tahoma;cursor:pointer;width:100%;margin:5px 0}
+button:hover{background:#2a5a87}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:15px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<h1>🐍 آموزش پایتون</h1>
+
+<div id="menu">
+    <div class="card">
+        <h3 style="color:#ffd43b">🎯 خوش آمدید!</h3>
+        <p>برای شروع، روی دکمه‌های زیر بزن:</p>
+    </div>
+    <button onclick="showLesson()">📚 شروع یادگیری</button>
+    <button onclick="showAbout()">ℹ️ درباره ما</button>
+</div>
+
+<div id="lesson" class="hidden">
+    <div class="card">
+        <h3 style="color:#ffd43b">📖 درس ۱: مقدمه</h3>
+        <p>پایتون یک زبان برنامه‌نویسی ساده و قدرتمند است.</p>
+        <p><strong>اولین برنامه:</strong></p>
+        <pre>print("سلام دنیا!")</pre>
+        <p>این کد عبارت «سلام دنیا!» را چاپ می‌کند.</p>
+    </div>
+    <button onclick="showMenu()">🏠 بازگشت</button>
+</div>
+
+<div id="about" class="hidden">
+    <div class="card">
+        <h3 style="color:#ffd43b">ℹ️ درباره ما</h3>
+        <p>سایت آموزش پایتون</p>
+        <p>👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
+    </div>
+    <button onclick="showMenu()">🏠 بازگشت</button>
+</div>
+
+<script>
+function showMenu() {
+    document.getElementById('menu').classList.remove('hidden');
+    document.getElementById('lesson').classList.add('hidden');
+    document.getElementById('about').classList.add('hidden');
+}
+function showLesson() {
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('lesson').classList.remove('hidden');
+    document.getElementById('about').classList.add('hidden');
+}
+function showAbout() {
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('lesson').classList.add('hidden');
+    document.getElementById('about').classList.remove('hidden');
+}
+console.log('سایت آماده است');
+</script>
+
+</body>
+</html>
