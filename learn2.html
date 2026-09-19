@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آموزش پایتون</title>
+<style>
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
+h1{color:#ffd43b;text-align:center;font-size:1.6em}
+.subtitle{text-align:center;color:#7d8590;font-size:0.9em;margin-bottom:20px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:20px;margin:15px 0}
+.card h3{color:#ffd43b;margin-bottom:10px}
+button{background:#3776ab;color:#fff;border:none;padding:15px;border-radius:12px;font-size:16px;font-family:Tahoma;cursor:pointer;width:100%;margin:6px 0;text-align:right}
+button:hover{background:#2a5a87}
+button.green{background:#2ea043}
+button.green:hover{background:#238636}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:15px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace;font-size:14px;line-height:1.6}
+.hidden{display:none}
+.lesson-item{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:15px;margin:10px 0;cursor:pointer}
+.lesson-item:hover{border-color:#3776ab}
+.lesson-num{display:inline-block;background:#3776ab;color:#fff;width:28px;height:28px;border-radius:50%;text-align:center;line-height:28px;font-size:14px;font-weight:bold;margin-left:8px}
+.lesson-title{font-weight:bold;color:#ffd43b;font-size:1.05em}
+.lesson-desc{color:#7d8590;font-size:0.85em;margin-top:5px}
+ul{margin-right:25px}
+li{margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<!-- صفحه اصلی -->
+<div id="home">
+    <h1>🐍 آموزش پایتون</h1>
+    <p class="subtitle">از صفر تا برنامه‌نویس حرفه‌ای</p>
+    
+    <div class="card">
+        <h3>🎯 خوش آمدید!</h3>
+        <p>اینجا می‌تونید پایتون رو گام‌به‌گام یاد بگیرید!</p>
+    </div>
+    
+    <button class="green" onclick="showPage('lessons')">📚 شروع یادگیری</button>
+    <button onclick="showPage('quiz')">❓ آزمون</button>
+    <button onclick="showPage('about')">ℹ️ درباره ما</button>
+</div>
+
+<!-- لیست دروس -->
+<div id="lessons" class="hidden">
+    <h1>📚 دروس پایتون</h1>
+    <p class="subtitle">روی هر درس بزن</p>
+    <div id="lessonList"></div>
+    <button onclick="showPage('home')">🏠 بازگشت به خانه</button>
+</div>
+
+<!-- نمایش درس -->
+<div id="lessonView" class="hidden">
+    <h1 id="lessonTitle">درس</h1>
+    <div class="card" id="lessonContent"></div>
+    <button onclick="showPage('lessons')">📚 لیست دروس</button>
+</div>
+
+<!-- آزمون -->
+<div id="quiz" class="hidden">
+    <h1>❓ آزمون پایتون</h1>
+    <p class="subtitle" id="quizInfo">سوال ۱ از ۵</p>
+    <div id="quizContent"></div>
+    <button onclick="showPage('home')">🏠 بازگشت به خانه</button>
+</div>
+
+<!-- درباره ما -->
+<div id="about" class="hidden">
+    <h1>ℹ️ درباره ما</h1>
+    <div class="card">
+        <h3>🐍 سایت آموزش پایتون</h3>
+        <p>این سایت برای یادگیری پایتون از صفر طراحی شده است.</p>
+        <p><strong>🎯 امکانات:</strong></p>
+        <ul>
+            <li>📚 ۵ درس پایتون</li>
+            <li>💻 نمونه کدها</li>
+            <li>❓ آزمون چهارگزینه‌ای</li>
+        </ul>
+        <p style="text-align:center;color:#ffd43b;margin-top:15px">👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
+    </div>
+    <button onclick="showPage('home')">🏠 بازگشت به خانه</button>
+</div>
+
+<script>
+var lessons = [
+    {
+        title: "مقدمه پایتون",
+        desc: "پایتون چیست و چرا یاد بگیریم؟",
+        html: '<h3>🐍 پایتون چیست؟</h3><p>پایتون یک زبان برنامه‌نویسی سطح بالا، تفسیری و شی‌گرا است که توسط گیدو ون روسوم در سال ۱۹۹۱ ساخته شد.</p><h3>✅ مزایای پایتون:</h3><ul><li>سادگی و خوانایی بالا</li><li>کتابخانه‌های فراوان</li><li>استفاده در هوش مصنوعی و علم داده</li><li>رایگان و متن‌باز</li></ul><h3>💻 اولین برنامه:</h3><pre>print("سلام دنیا!")</pre><p>این کد عبارت «سلام دنیا!» را چاپ می‌کند.</p>'
+    },
+    {
+        title: "متغیرها و انواع داده",
+        desc: "تعریف متغیر و انواع داده‌ها",
+        html: '<h3>📦 متغیر چیست؟</h3><p>متغیر یک ظرف برای ذخیره داده است.</p><pre>name = "علی"\nage = 25\nheight = 1.75\nis_student = True</pre><h3>🔢 انواع داده:</h3><ul><li><strong>int</strong>: اعداد صحیح (مثل 25)</li><li><strong>float</strong>: اعداد اعشاری (مثل 1.75)</li><li><strong>str</strong>: رشته متنی (مثل "علی")</li><li><strong>bool</strong>: درست یا غلط (True/False)</li></ul><h3>📝 نکات:</h3><ul><li>نام متغیر نباید با عدد شروع شود</li><li>حروف بزرگ و کوچک فرق دارند</li></ul>'
+    },
+    {
+        title: "عملگرها",
+        desc: "عملیات ریاضی و منطقی",
+        html: '<h3>➗ عملگرهای ریاضی:</h3><pre>a = 10\nb = 3\n\nprint(a + b)   # جمع: 13\nprint(a - b)   # تفریق: 7\nprint(a * b)   # ضرب: 30\nprint(a / b)   # تقسیم: 3.33\nprint(a // b)  # تقسیم صحیح: 3\nprint(a % b)   # باقیمانده: 1\nprint(a ** b)  # توان: 1000</pre><h3>🔍 عملگرهای مقایسه:</h3><ul><li>== مساوی</li><li>!= نامساوی</li><li>&gt; بزرگتر</li><li>&lt; کوچکتر</li></ul>'
+    },
+    {
+        title: "شرط‌ها (if/else)",
+        desc: "تصمیم‌گیری در برنامه",
+        html: '<h3>🤔 شرط چیست؟</h3><p>با شرط‌ها برنامه بر اساس موقعیت تصمیم می‌گیرد.</p><pre>age = 18\n\nif age >= 18:\n    print("بزرگسال هستید")\nelse:\n    print("کودک هستید")</pre><h3>🔀 حالت‌های بیشتر:</h3><pre>score = 85\n\nif score >= 90:\n    print("عالی")\nelif score >= 75:\n    print("خوب")\nelif score >= 50:\n    print("قابل قبول")\nelse:\n    print("تلاش کن")</pre>'
+    },
+    {
+        title: "حلقه‌ها",
+        desc: "for و while",
+        html: '<h3>🔄 حلقه for:</h3><p>برای تکرار روی یک بازه:</p><pre>for i in range(5):\n    print(i)   # 0, 1, 2, 3, 4</pre><h3>🔄 حلقه while:</h3><p>تا وقتی شرط برقرار است:</p><pre>i = 1\nwhile i &lt;= 5:\n    print(i)\n    i += 1</pre><h3>⏹️ کنترل حلقه:</h3><ul><li><strong>break</strong>: خارج شدن از حلقه</li><li><strong>continue</strong>: رد کردن تکرار جاری</li></ul>'
+    }
+];
+
+var quizData = [
+    { q: "کدام تابع برای چاپ در پایتون استفاده می‌شود؟", opts: ["echo()", "print()", "console.log()", "printf()"], correct: 1 },
+    { q: "کدامیک نوع داده صحیح در پایتون است؟", opts: ["number", "int", "integer", "num"], correct: 1 },
+    { q: "خروجی print(10 // 3) چیست؟", opts: ["3.33", "3", "4", "1"], correct: 1 },
+    { q: "کدام کلمه کلیدی برای تعریف تابع است؟", opts: ["function", "def", "func", "define"], correct: 1 },
+    { q: "متد اضافه کردن به لیست کدام است؟", opts: ["add()", "push()", "append()", "insert()"], correct: 2 }
+];
+
+var quizIndex = 0;
+var quizScore = 0;
+
+function showPage(id) {
+    var pages = ['home', 'lessons', 'lessonView', 'quiz', 'about'];
+    for (var i = 0; i < pages.length; i++) {
+        document.getElementById(pages[i]).classList.add('hidden');
+    }
+    document.getElementById(id).classList.remove('hidden');
+    window.scrollTo(0, 0);
+    
+    if (id === 'lessons') renderLessons();
+    if (id === 'quiz') startQuiz();
+}
+
+function renderLessons() {
+    var html = '';
+    for (var i = 0; i < lessons.length; i++) {
+        html += '<div class="lesson-item" onclick="openLesson(' + i + ')">';
+        html += '<span class="lesson-num">' + (i+1) + '</span>';
+        html += '<span class="lesson-title">' + lessons[i].title + '</span>';
+        html += '<div class="lesson-desc">' + lessons[i].desc + '</div>';
+        html += '</div>';
+    }
+    document.getElementById('lessonList').innerHTML = html;
+}
+
+function openLesson(idx) {
+    document.getElementById('lessonTitle').textContent = 'درس ' + (idx+1) + ': ' + lessons[idx].title;
+    document.getElementById('lessonContent').innerHTML = lessons[idx].html;
+    showPage('lessonView');
+}
+
+function startQuiz() {
+    quizIndex = 0;
+    quizScore = 0;
+    loadQuiz();
+}
+
+function loadQuiz() {
+    if (quizIndex >= quizData.length) {
+        showResult();
+        return;
+    }
+    
+    var q = quizData[quizIndex];
+    document.getElementById('quizInfo').textContent = 'سوال ' + (quizIndex + 1) + ' از ' + quizData.length;
+    
+    var html = '<div class="card"><p style="font-size:1.1em;margin-bottom:15px"><strong>' + q.q + '</strong></p>';
+    for (var i = 0; i < q.opts.length; i++) {
+        html += '<button onclick="answer(' + i + ', this)">' + q.opts[i] + '</button>';
+    }
+    html += '</div>';
+    
+    document.getElementById('quizContent').innerHTML = html;
+}
+
+function answer(selected, btn) {
+    var q = quizData[quizIndex];
+    var buttons = document.querySelectorAll('#quizContent button');
+    
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].disabled = true;
+    }
+    
+    if (selected === q.correct) {
+        btn.style.background = '#2ea043';
+        quizScore += 10;
+    } else {
+        btn.style.background = '#f85149';
+        buttons[q.correct].style.background = '#2ea043';
+    }
+    
+    setTimeout(function() {
+        quizIndex++;
+        loadQuiz();
+    }, 1200);
+}
+
+function showResult() {
+    var html = '<div class="card" style="text-align:center">';
+    html += '<div style="font-size:3em;color:#ffd43b;margin:20px 0">' + quizScore + '</div>';
+    html += '<div style="color:#7d8590;margin-bottom:20px">امتیاز نهایی</div>';
+    html += '<p>' + (quizScore >= 40 ? '🎉 عالی! شما پایتون رو خوب یاد گرفتی!' : '💪 بازم تلاش کن!') + '</p>';
+    html += '</div>';
+    html += '<button class="green" onclick="startQuiz()">🔄 آزمون دوباره</button>';
+    
+    document.getElementById('quizContent').innerHTML = html;
+    document.getElementById('quizInfo').textContent = 'پایان آزمون';
+}
+
+console.log('✅ سایت آموزش پایتون آماده است');
+</script>
+
+</body>
+</html>
