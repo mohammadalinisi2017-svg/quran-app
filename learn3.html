@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آموزش کامل پایتون</title>
+<style>
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
+h1{color:#ffd43b;text-align:center;font-size:1.6em}
+h2{color:#ffd43b;text-align:center;font-size:1.3em}
+.subtitle{text-align:center;color:#7d8590;font-size:0.9em;margin-bottom:20px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:20px;margin:15px 0}
+.card h3{color:#ffd43b;margin-bottom:10px}
+button{background:#3776ab;color:#fff;border:none;padding:15px;border-radius:12px;font-size:16px;font-family:Tahoma;cursor:pointer;width:100%;margin:6px 0;text-align:right}
+button:hover{background:#2a5a87}
+button.green{background:#2ea043}
+button.green:hover{background:#238636}
+button.gray{background:#30363d}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:15px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace;font-size:14px;line-height:1.6;white-space:pre}
+.hidden{display:none}
+.lesson-item{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:15px;margin:10px 0;cursor:pointer}
+.lesson-item:hover{border-color:#3776ab;background:#1c2128}
+.lesson-num{display:inline-block;background:#3776ab;color:#fff;width:30px;height:30px;border-radius:50%;text-align:center;line-height:30px;font-size:13px;font-weight:bold;margin-left:8px}
+.lesson-title{font-weight:bold;color:#ffd43b;font-size:1.05em}
+.lesson-desc{color:#7d8590;font-size:0.85em;margin-top:5px;margin-right:38px}
+ul{margin-right:25px}
+li{margin-bottom:6px}
+.nav-buttons{display:flex;gap:10px;margin-top:15px}
+.nav-buttons button{margin:0;flex:1}
+</style>
+</head>
+<body>
+
+<!-- صفحه اصلی -->
+<div id="home">
+    <h1>🐍 آموزش کامل پایتون</h1>
+    <p class="subtitle">۲۰ درس از صفر تا پیشرفته</p>
+    
+    <div class="card">
+        <h3>🎯 خوش آمدید!</h3>
+        <p>اینجا می‌تونید پایتون رو به صورت کامل و گام‌به‌گام یاد بگیرید. از مبانی تا مباحث پیشرفته!</p>
+        <p style="margin-top:10px;color:#7d8590;font-size:0.9em">📖 ۲۰ درس | 💻 نمونه کدها | ❓ آزمون</p>
+    </div>
+    
+    <button class="green" onclick="showPage('lessons')">📚 شروع یادگیری</button>
+    <button onclick="showPage('quiz')">❓ آزمون</button>
+    <button onclick="showPage('about')">ℹ️ درباره ما</button>
+</div>
+
+<!-- لیست دروس -->
+<div id="lessons" class="hidden">
+    <h1>📚 لیست دروس</h1>
+    <p class="subtitle">روی هر درس بزن تا باز بشه</p>
+    <div id="lessonList"></div>
+    <button onclick="showPage('home')">🏠 بازگشت به خانه</button>
+</div>
+
+<!-- نمایش درس -->
+<div id="lessonView" class="hidden">
+    <h1 id="lessonTitle">درس</h1>
+    <div class="card" id="lessonContent"></div>
+    <div class="nav-buttons">
+        <button onclick="prevLesson()" id="prevBtn">← قبلی</button>
+        <button class="green" onclick="nextLesson()" id="nextBtn">بعدی →</button>
+    </div>
+    <button class="gray" onclick="showPage('lessons')" style="margin-top:10px">📚 لیست دروس</button>
+</div>
+
+<!-- آزمون -->
+<div id="quiz" class="hidden">
+    <h1>❓ آزمون پایتون</h1>
+    <p class="subtitle" id="quizInfo">سوال ۱ از ۱۰</p>
+    <div id="quizContent"></div>
+    <button onclick="showPage('home')">🏠 بازگشت به خانه</button>
+</div>
+
+<!-- درباره ما -->
+<div id="about" class="hidden">
+    <h1>ℹ️ درباره ما</h1>
+    <div class="card">
+        <h3>🐍 آموزش کامل پایتون</h3>
+        <p>این سایت برای یادگیری زبان برنامه‌نویسی پایتون از صفر طراحی شده است.</p>
+        <p style="margin-top:10px"><strong>🎯 امکانات:</strong></p>
+        <ul>
+            <li>📚 ۲۰ درس از صفر تا پیشرفته</li>
+            <li>💻 نمونه کدهای عملی</li>
+            <li>❓ آزمون چهارگزینه‌ای</li>
+            <li>🎨 طراحی زیبا و ساده</li>
+        </ul>
+        <p style="text-align:center;color:#ffd43b;margin-top:15px">👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
+    </div>
+    <button onclick="showPage('home')">🏠 بازگشت به خانه</button>
+</div>
+
+<script>
+var lessons = [
+    {
+        title: "مقدمه و آشنایی با پایتون",
+        desc: "پایتون چیست و چرا یاد بگیریم؟",
+        html: '<h3>🐍 پایتون چیست؟</h3><p>پایتون یک زبان برنامه‌نویسی سطح بالا، تفسیری و شی‌گرا است که توسط گیدو ون روسوم در سال ۱۹۹۱ ساخته شد. نام آن از گروه کمدی «مونتی پایتون» گرفته شده است.</p><h3>✅ مزایای پایتون:</h3><ul><li>سادگی و خوانایی بالا</li><li>کتابخانه‌های فراوان و متنوع</li><li>استفاده در هوش مصنوعی، علم داده، وب</li><li>رایگان و متن‌باز</li><li>جامعه کاربری بزرگ</li></ul><h3>🎯 کاربردهای پایتون:</h3><ul><li>هوش مصنوعی و یادگیری ماشین</li><li>تحلیل داده و علم داده</li><li>توسعه وب (Django, Flask)</li><li>اتوماسیون و اسکریپت‌نویسی</li><li>بازی‌سازی</li></ul><h3>💻 اولین برنامه:</h3><pre>print("سلام دنیا!")</pre><p>این کد عبارت «سلام دنیا!» را چاپ می‌کند.</p>'
+    },
+    {
+        title: "نصب و راه‌اندازی",
+        desc: "نصب پایتون روی کامپیوتر و موبایل",
+        html: '<h3>💻 نصب پایتون روی کامپیوتر:</h3><p>مراحل نصب:</p><ul><li>برو به سایت python.org</li><li>آخرین نسخه را دانلود کن</li><li>نصب کن (تیک Add to PATH را بزن)</li><li>در ترمینال بنویس: python --version</li></ul><h3>📱 نصب روی موبایل:</h3><ul><li><strong>اندروید</strong>: Pydroid 3 یا QPython</li><li><strong>آیفون</strong>: Pythonista یا Pyto</li></ul><h3>✏️ اولین کد:</h3><pre>print("سلام!")\nprint("به پایتون خوش آمدید")\nprint(2 + 3)</pre><h3>📝 نکات مهم:</h3><ul><li>پسوند فایل‌های پایتون .py است</li><li>پایتون به حروف بزرگ/کوچک حساس است</li><li>فاصله‌گذاری (ایندنت) مهم است</li></ul>'
+    },
+    {
+        title: "متغیرها و انواع داده",
+        desc: "ذخیره داده در متغیرها",
+        html: '<h3>📦 متغیر چیست؟</h3><p>متغیر یک ظرف برای ذخیره داده در حافظه است.</p><pre>name = "علی"\nage = 25\nheight = 1.75\nis_student = True</pre><h3>🔢 انواع داده اصلی:</h3><ul><li><strong>int</strong>: اعداد صحیح (مثل 25, -10, 0)</li><li><strong>float</strong>: اعداد اعشاری (مثل 1.75, 3.14)</li><li><strong>str</strong>: رشته متنی (مثل "علی", \'سلام\')</li><li><strong>bool</strong>: درست/غلط (True, False)</li><li><strong>None</strong>: مقدار خالی</li></ul><h3>🔍 بررسی نوع داده:</h3><pre>x = 5\nprint(type(x))   # &lt;class \'int\'&gt;\n\ny = "سلام"\nprint(type(y))   # &lt;class \'str\'&gt;</pre><h3>📝 قوانین نام‌گذاری:</h3><ul><li>نباید با عدد شروع شود</li><li>فقط حروف، عدد و _ مجاز است</li><li>حروف بزرگ و کوچک فرق دارند</li><li>از کلمات رزرو شده استفاده نکن</li></ul><h3>🔄 تبدیل نوع:</h3><pre>a = "25"\nb = int(a)     # تبدیل به عدد\nprint(b + 5)   # 30</pre>'
+    },
+    {
+        title: "رشته‌ها (Strings)",
+        desc: "کار با متن‌ها در پایتون",
+        html: '<h3>📝 رشته چیست؟</h3><p>رشته یک متن است که بین " یا \' قرار می‌گیرد.</p><pre>name = "علی"\nmessage = \'سلام\'</pre><h3>🔧 عملیات روی رشته:</h3><pre>text = "سلام دنیا"\n\nprint(len(text))         # طول رشته\nprint(text[0])           # اولین حرف\nprint(text[-1])          # آخرین حرف\nprint(text[0:4])         # برش\nprint(text.upper())      # حروف بزرگ\nprint(text.lower())      # حروف کوچک\nprint(text.replace("دنیا", "جهان"))</pre><h3>➕ اتصال رشته‌ها:</h3><pre>first = "سلام "\nsecond = "دنیا"\nresult = first + second\nprint(result)</pre><h3>💡 f-string (روش مدرن):</h3><pre>name = "علی"\nage = 25\nprint(f"اسم من {name} است و {age} ساله هستم")</pre><h3>📌 متدهای پرکاربرد:</h3><ul><li>strip() - حذف فاصله اضافی</li><li>split() - تقسیم رشته</li><li>find() - پیدا کردن</li><li>count() - شمارش</li></ul>'
+    },
+    {
+        title: "عملگرها",
+        desc: "عملیات ریاضی و منطقی",
+        html: '<h3>➗ عملگرهای ریاضی:</h3><pre>a = 10\nb = 3\n\nprint(a + b)   # جمع: 13\nprint(a - b)   # تفریق: 7\nprint(a * b)   # ضرب: 30\nprint(a / b)   # تقسیم: 3.33\nprint(a // b)  # تقسیم صحیح: 3\nprint(a % b)   # باقیمانده: 1\nprint(a ** b)  # توان: 1000</pre><h3>🔍 عملگرهای مقایسه:</h3><ul><li>== مساوی</li><li>!= نامساوی</li><li>&gt; بزرگتر</li><li>&lt; کوچکتر</li><li>&gt;= بزرگتر یا مساوی</li><li>&lt;= کوچکتر یا مساوی</li></ul><h3>🧠 عملگرهای منطقی:</h3><pre>a = True\nb = False\n\nprint(a and b)   # False\nprint(a or b)    # True\nprint(not a)     # False</pre><h3>📌 عملگرهای انتساب:</h3><pre>x = 5\nx += 3     # x = x + 3\nx -= 2     # x = x - 2\nx *= 2     # x = x * 2\nx /= 4     # x = x / 4</pre>'
+    },
+    {
+        title: "ورودی و خروجی",
+        desc: "گرفتن ورودی از کاربر",
+        html: '<h3>📤 خروجی با print:</h3><pre>print("سلام")\nprint("سلام", "دنیا")\nprint(10, 20, 30)</pre><h3>📥 ورودی با input:</h3><pre>name = input("اسمت چیه؟ ")\nprint("سلام " + name)</pre><h3>⚠️ نکته مهم:</h3><p>خروجی input همیشه <strong>رشته</strong> است. برای عدد باید تبدیل کنی.</p><pre>age = input("سن: ")\nage = int(age)     # تبدیل به عدد\nprint(age + 1)</pre><h3>🎨 قالب‌بندی خروجی:</h3><pre>name = "علی"\nage = 25\nprint(f"اسم: {name}, سن: {age}")\nprint("اسم: {}, سن: {}".format(name, age))\nprint("اسم:", name, "سن:", age)</pre><h3>📌 جداکننده و پایان:</h3><pre>print("الف", "ب", "ج", sep="-")\n# الف-ب-ج\n\nprint("سلام", end=" ")\nprint("دنیا")\n# سلام دنیا</pre>'
+    },
+    {
+        title: "شرط‌ها (if/else)",
+        desc: "تصمیم‌گیری در برنامه",
+        html: '<h3>🤔 شرط چیست؟</h3><p>با شرط‌ها برنامه بر اساس موقعیت تصمیم می‌گیرد.</p><pre>age = 18\n\nif age >= 18:\n    print("بزرگسال هستید")\nelse:\n    print("کودک هستید")</pre><h3>🔀 حالت‌های بیشتر (elif):</h3><pre>score = 85\n\nif score >= 90:\n    print("عالی")\nelif score >= 75:\n    print("خوب")\nelif score >= 50:\n    print("قابل قبول")\nelse:\n    print("نیاز به تلاش")</pre><h3>🎯 شرط‌های تودرتو:</h3><pre>age = 20\nhas_license = True\n\nif age >= 18:\n    if has_license:\n        print("می‌تونی رانندگی کنی")\n    else:\n        print("اول گواهینامه بگیر")\nelse:\n    print("هنوز کوچیکی")</pre><h3>⚡ شرط کوتاه:</h3><pre>x = 10\nresult = "مثبت" if x > 0 else "منفی"\nprint(result)</pre><h3>⚠️ ایندنت (فاصله‌گذاری):</h3><p>در پایتون باید بعد از if و else، ۴ فاصله بذاری.</p>'
+    },
+    {
+        title: "حلقه‌ها (for/while)",
+        desc: "تکرار کارها",
+        html: '<h3>🔄 حلقه for:</h3><p>برای تکرار روی یک بازه یا لیست:</p><pre>for i in range(5):\n    print(i)\n# 0, 1, 2, 3, 4</pre><h3>📌 range با شروع و پایان:</h3><pre>for i in range(2, 8):\n    print(i)\n# 2, 3, 4, 5, 6, 7\n\nfor i in range(0, 10, 2):\n    print(i)\n# 0, 2, 4, 6, 8</pre><h3>🔄 حلقه while:</h3><p>تا وقتی شرط برقرار است:</p><pre>i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</pre><h3>⏹️ کنترل حلقه:</h3><pre># break: خروج از حلقه\nfor i in range(10):\n    if i == 5:\n        break\n    print(i)\n\n# continue: رد کردن تکرار\nfor i in range(5):\n    if i == 2:\n        continue\n    print(i)</pre><h3>🔁 حلقه تودرتو:</h3><pre>for i in range(3):\n    for j in range(3):\n        print(i, j)</pre>'
+    },
+    {
+        title: "لیست‌ها (Lists)",
+        desc: "ذخیره چند مقدار در یک متغیر",
+        html: '<h3>📋 لیست چیست؟</h3><p>لیست مجموعه‌ای مرتب از مقادیر است.</p><pre>numbers = [1, 2, 3, 4, 5]\nnames = ["علی", "رضا", "سارا"]\nmixed = [1, "سلام", True, 3.14]\nempty = []</pre><h3>🔧 دسترسی به اعضا:</h3><pre>fruits = ["سیب", "موز", "پرتقال"]\n\nprint(fruits[0])     # سیب\nprint(fruits[-1])    # پرتقال (آخرین)\nprint(fruits[0:2])   # ["سیب", "موز"]</pre><h3>➕ اضافه کردن:</h3><pre>fruits.append("انگور")      # به آخر\nfruits.insert(1, "گلابی")   # در مکان خاص</pre><h3>➖ حذف کردن:</h3><pre>fruits.remove("موز")   # حذف با مقدار\nfruits.pop()           # حذف آخرین\nfruits.pop(0)          # حذف اولین\ndel fruits[0]          # حذف با ایندکس</pre><h3>🔧 متدهای مهم:</h3><pre>nums = [3, 1, 4, 1, 5]\n\nprint(len(nums))         # تعداد\nprint(nums.count(1))     # شمارش\nnums.sort()              # مرتب‌سازی\nnums.reverse()           # برعکس\nprint(sum(nums))         # مجموع\nprint(max(nums))         # بیشترین\nprint(min(nums))         # کمترین</pre>'
+    },
+    {
+        title: "تاپل‌ها (Tuples)",
+        desc: "لیست‌های غیرقابل تغییر",
+        html: '<h3>📦 تاپل چیست؟</h3><p>تاپل مثل لیست است ولی <strong>غیرقابل تغییر</strong> (immutable).</p><pre>point = (3, 5)\ncolors = ("قرمز", "سبز", "آبی")\nsingle = (42,)   # تک عضوی (با کاما)</pre><h3>🔍 دسترسی:</h3><pre>print(point[0])    # 3\nprint(colors[-1])  # آبی</pre><h3>❓ چرا تاپل؟</h3><ul><li>سریع‌تر از لیست</li><li>امن‌تر (تغییر نمی‌کند)</li><li>می‌تواند کلید دیکشنری باشد</li></ul><h3>🔄 تفکیک (Unpacking):</h3><pre>x, y = (3, 5)\nprint(x)   # 3\nprint(y)   # 5\n\na, b, c = colors\nprint(a)   # قرمز</pre><h3>🔧 عملیات:</h3><pre>nums = (1, 2, 3, 2, 4)\n\nprint(len(nums))         # 5\nprint(nums.count(2))     # 2\nprint(nums.index(3))     # 2\nprint(2 in nums)         # True</pre><h3>🔁 تبدیل:</h3><pre>list1 = list((1, 2, 3))    # تاپل به لیست\ntuple1 = tuple([1, 2, 3])  # لیست به تاپل</pre>'
+    },
+    {
+        title: "دیکشنری‌ها (Dictionaries)",
+        desc: "ذخیره داده به صورت کلید-مقدار",
+        html: '<h3>📖 دیکشنری چیست؟</h3><p>مجموعه‌ای از <strong>کلید-مقدار</strong> که بسیار سریع است.</p><pre>person = {\n    "name": "علی",\n    "age": 25,\n    "city": "تهران"\n}\n\nempty = {}</pre><h3>🔍 دسترسی:</h3><pre>print(person["name"])       # علی\nprint(person.get("age"))    # 25\nprint(person.get("job", "ندارد"))  # ندارد</pre><h3>➕ اضافه/تغییر:</h3><pre>person["age"] = 26          # تغییر\nperson["job"] = "برنامه‌نویس"  # اضافه</pre><h3>➖ حذف:</h3><pre>del person["city"]\nperson.pop("age")\nperson.clear()      # پاک کردن همه</pre><h3>🔧 متدهای مهم:</h3><pre>person = {"name": "علی", "age": 25}\n\nprint(person.keys())     # کلیدها\nprint(person.values())   # مقادیر\nprint(person.items())    # جفت‌ها</pre><h3>🔁 پیمایش:</h3><pre>for key in person:\n    print(key)\n\nfor key, value in person.items():\n    print(key, ":", value)</pre>'
+    },
+    {
+        title: "مجموعه‌ها (Sets)",
+        desc: "مجموعه بدون تکرار",
+        html: '<h3>🎯 مجموعه چیست؟</h3><p>مجموعه‌ای از اعضای <strong>یکتا</strong> و <strong>بدون ترتیب</strong>.</p><pre>numbers = {1, 2, 3, 4, 5}\nfruits = {"سیب", "موز", "پرتقال"}\n\n# حذف تکراری‌ها\nnums = {1, 2, 2, 3, 3, 3}\nprint(nums)   # {1, 2, 3}</pre><h3>➕ اضافه کردن:</h3><pre>fruits.add("انگور")\nfruits.update(["کیوی", "هلو"])</pre><h3>➖ حذف کردن:</h3><pre>fruits.remove("موز")     # خطا اگه نبود\nfruits.discard("گلابی")  # بدون خطا</pre><h3>🔧 عملیات مجموعه:</h3><pre>a = {1, 2, 3, 4}\nb = {3, 4, 5, 6}\n\nprint(a | b)   # اجتماع: {1,2,3,4,5,6}\nprint(a & b)   # اشتراک: {3,4}\nprint(a - b)   # تفاضل: {1,2}\nprint(a ^ b)   # تفاوت متقارن: {1,2,5,6}</pre><h3>💡 کاربرد:</h3><p>برای حذف تکراری‌ها و مقایسه مجموعه‌ها</p>'
+    },
+    {
+        title: "توابع (Functions)",
+        desc: "ساختاردهی به کد",
+        html: '<h3>🎯 تابع چیست؟</h3><p>تابع یک بلوک کد است که چندین بار قابل فراخوانی است.</p><pre>def greet():\n    print("سلام!")\n\ngreet()   # سلام!\ngreet()   # سلام!</pre><h3>📥 تابع با پارامتر:</h3><pre>def greet(name):\n    print("سلام " + name)\n\ngreet("علی")   # سلام علی\ngreet("رضا")   # سلام رضا</pre><h3>📤 تابع با return:</h3><pre>def add(a, b):\n    return a + b\n\nresult = add(5, 3)\nprint(result)   # 8</pre><h3>🎁 مقدار پیش‌فرض:</h3><pre>def greet(name="دوست"):\n    print("سلام " + name)\n\ngreet()         # سلام دوست\ngreet("علی")    # سلام علی</pre><h3>🔢 آرگومان‌های نامحدود:</h3><pre>def total(*numbers):\n    return sum(numbers)\n\nprint(total(1, 2, 3, 4))   # 10</pre><h3>📚 چند مقدار بازگشتی:</h3><pre>def info():\n    return "علی", 25\n\nname, age = info()</pre>'
+    },
+    {
+        title: "توابع پیشرفته",
+        desc: "Lambda و توابع تودرتو",
+        html: '<h3>⚡ تابع Lambda:</h3><p>تابع یک‌خطی و بدون نام:</p><pre>square = lambda x: x * x\nprint(square(5))   # 25\n\nadd = lambda a, b: a + b\nprint(add(3, 4))   # 7</pre><h3>🎯 کاربرد Lambda:</h3><pre>numbers = [3, 1, 4, 1, 5]\n\n# مرتب‌سازی\nsorted_nums = sorted(numbers)\n\n# استفاده در map\nsquares = list(map(lambda x: x**2, numbers))\nprint(squares)   # [9, 1, 16, 1, 25]\n\n# استفاده در filter\nevens = list(filter(lambda x: x % 2 == 0, numbers))\nprint(evens)   # [4]</pre><h3>🪆 تابع تودرتو:</h3><pre>def outer(x):\n    def inner(y):\n        return y * 2\n    return inner(x) + 1\n\nprint(outer(5))   # 11</pre><h3>🎁 Decorator:</h3><pre>def my_decorator(func):\n    def wrapper():\n        print("قبل")\n        func()\n        print("بعد")\n    return wrapper\n\n@my_decorator\ndef say_hello():\n    print("سلام")</pre>'
+    },
+    {
+        title: "کلاس‌ها و شی‌گرایی",
+        desc: "برنامه‌نویسی شی‌گرا",
+        html: '<h3>🏗️ کلاس چیست؟</h3><p>کلاس یک الگو برای ساخت اشیاء است.</p><pre>class Person:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n    \n    def introduce(self):\n        return f"من {self.name} هستم، {self.age} ساله"\n\n# ساخت شیء\np1 = Person("علی", 25)\nprint(p1.introduce())\nprint(p1.name)   # علی\nprint(p1.age)    # 25</pre><h3>🔑 مفاهیم کلیدی:</h3><ul><li><strong>class</strong>: تعریف کلاس</li><li><strong>__init__</strong>: سازنده</li><li><strong>self</strong>: اشاره به خود شیء</li><li><strong>متد</strong>: تابع داخل کلاس</li></ul><h3>✏️ تغییر ویژگی:</h3><pre>p1.age = 26\np1.name = "علی رضایی"</pre><h3>➕ متدهای بیشتر:</h3><pre>class Counter:\n    def __init__(self):\n        self.count = 0\n    \n    def increment(self):\n        self.count += 1\n    \n    def reset(self):\n        self.count = 0\n\nc = Counter()\nc.increment()\nc.increment()\nprint(c.count)   # 2</pre>'
+    },
+    {
+        title: "ارث‌بری (Inheritance)",
+        desc: "توسعه کلاس‌ها",
+        html: '<h3>🧬 ارث‌بری چیست؟</h3><p>کلاس فرزند ویژگی‌های کلاس پدر را به ارث می‌برد.</p><pre>class Animal:\n    def __init__(self, name):\n        self.name = name\n    \n    def sound(self):\n        return "صدایی می‌دهد"\n\nclass Dog(Animal):\n    def sound(self):\n        return "واق واق!"\n\nclass Cat(Animal):\n    def sound(self):\n        return "میو میو!"\n\ndog = Dog("رکس")\ncat = Cat("پیشی")\n\nprint(dog.name)      # رکس\nprint(dog.sound())   # واق واق!\nprint(cat.sound())   # میو میو!</pre><h3>🔧 استفاده از super():</h3><pre>class Animal:\n    def __init__(self, name):\n        self.name = name\n\nclass Dog(Animal):\n    def __init__(self, name, breed):\n        super().__init__(name)\n        self.breed = breed\n\nd = Dog("رکس", "ژرمن")\nprint(d.name)     # رکس\nprint(d.breed)    # ژرمن</pre><h3>✅ بررسی نوع:</h3><pre>print(isinstance(d, Dog))      # True\nprint(isinstance(d, Animal))   # True\nprint(issubclass(Dog, Animal)) # True</pre>'
+    },
+    {
+        title: "فایل‌ها",
+        desc: "خواندن و نوشتن فایل",
+        html: '<h3>📁 نوشتن در فایل:</h3><pre>with open("test.txt", "w") as f:\n    f.write("سلام دنیا!")\n    f.write("\\nخط دوم")</pre><h3>📖 خواندن از فایل:</h3><pre>with open("test.txt", "r") as f:\n    content = f.read()\n    print(content)</pre><h3>📝 حالت‌های باز کردن:</h3><ul><li><strong>"r"</strong>: خواندن (پیش‌فرض)</li><li><strong>"w"</strong>: نوشتن (پاک می‌کند)</li><li><strong>"a"</strong>: اضافه کردن</li><li><strong>"x"</strong>: ساخت جدید</li></ul><h3>🔁 خواندن خط‌به‌خط:</h3><pre>with open("test.txt", "r") as f:\n    for line in f:\n        print(line)</pre><h3>📋 لیست خطوط:</h3><pre>with open("test.txt", "r") as f:\n    lines = f.readlines()\n    print(lines)</pre><h3>⚠️ چرا with؟</h3><p>خودش فایل را می‌بندد و مدیریت خطا داره.</p><h3>📂 مسیر فایل:</h3><pre># مسیر نسبی\nwith open("data/info.txt") as f:\n    pass\n\n# مسیر مطلق (ویندوز)\nwith open("C:/Users/name/file.txt") as f:\n    pass</pre>'
+    },
+    {
+        title: "مدیریت خطا",
+        desc: "try/except",
+        html: '<h3>⚠️ خطا چیست؟</h3><p>گاهی برنامه با خطا مواجه می‌شود و باید آن را مدیریت کنیم.</p><h3>🛡️ try/except:</h3><pre>try:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print("تقسیم بر صفر ممکن نیست!")</pre><h3>🎯 انواع خطا:</h3><ul><li><strong>ZeroDivisionError</strong>: تقسیم بر صفر</li><li><strong>ValueError</strong>: مقدار نامعتبر</li><li><strong>TypeError</strong>: نوع نادرست</li><li><strong>KeyError</strong>: کلید ناموجود</li><li><strong>IndexError</strong>: ایندکس نامعتبر</li><li><strong>FileNotFoundError</strong>: فایل پیدا نشد</li></ul><h3>🎣 گرفتن چند خطا:</h3><pre>try:\n    n
