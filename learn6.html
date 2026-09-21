@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>آموزش پایتون</title>
+<style>
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
+h1{color:#ffd43b;text-align:center;font-size:1.5em}
+.card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:15px;margin:12px 0}
+button{background:#3776ab;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-family:Tahoma;cursor:pointer;width:100%;margin:5px 0;text-align:right}
+button:hover{background:#2a5a87}
+button.g{background:#2ea043}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace;font-size:13px;white-space:pre}
+.hide{display:none}
+.item{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px;margin:8px 0;cursor:pointer}
+.item:hover{border-color:#3776ab}
+.num{display:inline-block;background:#3776ab;color:#fff;width:28px;height:28px;border-radius:50%;text-align:center;line-height:28px;font-size:12px;font-weight:bold;margin-left:6px}
+.title{font-weight:bold;color:#ffd43b}
+.desc{color:#7d8590;font-size:0.8em;margin-right:34px}
+ul{margin-right:22px}
+li{margin-bottom:5px}
+</style>
+</head>
+<body>
+
+<div id="home">
+<h1>🐍 آموزش کامل پایتون</h1>
+<p style="text-align:center;color:#7d8590">۲۰ درس از صفر تا پیشرفته</p>
+<div class="card">
+<h3 style="color:#ffd43b">🎯 خوش آمدید!</h3>
+<p>اینجا می‌تونید پایتون رو کامل یاد بگیرید!</p>
+</div>
+<button class="g" onclick="go('lessons')">📚 شروع یادگیری</button>
+<button onclick="go('quiz')">❓ آزمون</button>
+<button onclick="go('about')">ℹ️ درباره ما</button>
+</div>
+
+<div id="lessons" class="hide">
+<h1>📚 لیست دروس</h1>
+<div id="list"></div>
+<button onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<div id="view" class="hide">
+<h1 id="vt">درس</h1>
+<div class="card" id="vc"></div>
+<button onclick="prev()" id="pb">← قبلی</button>
+<button class="g" onclick="next()" id="nb">بعدی →</button>
+<button onclick="go('lessons')">📚 لیست دروس</button>
+</div>
+
+<div id="quiz" class="hide">
+<h1>❓ آزمون</h1>
+<p style="text-align:center;color:#7d8590" id="qi">سوال ۱</p>
+<div id="qc"></div>
+<button onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<div id="about" class="hide">
+<h1>ℹ️ درباره ما</h1>
+<div class="card">
+<h3 style="color:#ffd43b">🐍 آموزش پایتون</h3>
+<p>سایت یادگیری پایتون از صفر تا پیشرفته.</p>
+<p><strong>امکانات:</strong></p>
+<ul>
+<li>📚 ۲۰ درس</li>
+<li>💻 نمونه کد</li>
+<li>❓ آزمون ۱۰ سوالی</li>
+</ul>
+<p style="text-align:center;color:#ffd43b">👤 محمد علی نیسی</p>
+</div>
+<button onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<script>
+var L = [];
+L.push(["مقدمه پایتون","پایتون چیست؟",'<h3>🐍 پایتون</h3><p>یک زبان برنامه‌نویسی سطح بالا و شی‌گرا.</p><h3>مزایا:</h3><ul><li>سادگی</li><li>کتابخانه‌های فراوان</li><li>هوش مصنوعی</li></ul><h3>اولین کد:</h3><pre>print("سلام دنیا!")</pre>']);
+L.push(["نصب پایتون","نصب روی موبایل و کامپیوتر",'<h3>💻 کامپیوتر:</h3><ul><li>python.org</li><li>تیک Add to PATH</li></ul><h3>📱 موبایل:</h3><ul><li>Pydroid 3</li><li>QPython</li></ul><pre>print("سلام!")\nprint(2 + 3)</pre>']);
+L.push(["متغیرها","ذخیره داده",'<h3>📦 متغیر:</h3><pre>name = "علی"\nage = 25\nheight = 1.75</pre><h3>انواع:</h3><ul><li>int: عدد</li><li>float: اعشاری</li><li>str: متن</li><li>bool: بله/خیر</li></ul><pre>print(type(5))  # int</pre>']);
+L.push(["رشته‌ها","کار با متن",'<h3>📝 رشته:</h3><pre>t = "سلام دنیا"\nprint(len(t))\nprint(t[0])\nprint(t.upper())\nprint(t.replace("دنیا","جهان"))</pre><h3>f-string:</h3><pre>name = "علی"\nprint(f"سلام {name}")</pre>']);
+L.push(["عملگرها","ریاضی و منطقی",'<h3>➗ ریاضی:</h3><pre>a = 10\nb = 3\nprint(a + b)   # 13\nprint(a - b)   # 7\nprint(a * b)   # 30\nprint(a / b)   # 3.33\nprint(a // b)  # 3\nprint(a % b)   # 1\nprint(a ** b)  # 1000</pre>']);
+L.push(["ورودی و خروجی","input و print",'<h3>📤 print:</h3><pre>print("سلام")</pre><h3>📥 input:</h3><pre>name = input("اسم: ")\nprint("سلام " + name)</pre><pre>age = int(input("سن: "))</pre>']);
+L.push(["شرط‌ها","if/else",'<h3>🤔 شرط:</h3><pre>age = 18\nif age >= 18:\n    print("بزرگسال")\nelse:\n    print("کودک")</pre><h3>elif:</h3><pre>s = 85\nif s >= 90:\n    print("عالی")\nelif s >= 75:\n    print("خوب")\nelse:\n    print("تلاش کن")</pre>']);
+L.push(["حلقه‌ها","for و while",'<h3>🔄 for:</h3><pre>for i in range(5):\n    print(i)</pre><h3>🔄 while:</h3><pre>i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</pre><h3>break:</h3><pre>for i in range(10):\n    if i == 5:\n        break</pre>']);
+L.push(["لیست‌ها","ذخیره چند مقدار",'<h3>📋 لیست:</h3><pre>nums = [1, 2, 3, 4, 5]\nfruits = ["سیب", "موز"]</pre><h3>دسترسی:</h3><pre>print(fruits[0])\nprint(fruits[-1])</pre><h3>اضافه:</h3><pre>fruits.append("انگور")</pre><h3>حذف:</h3><pre>fruits.remove("موز")</pre>']);
+L.push(["تاپل‌ها","غیرقابل تغییر",'<h3>📦 تاپل:</h3><pre>point = (3, 5)\ncolors = ("قرمز", "سبز")</pre><h3>تفکیک:</h3><pre>x, y = (3, 5)\nprint(x)\nprint(y)</pre>']);
+L.push(["دیکشنری‌ها","کلید-مقدار",'<h3>📖 دیکشنری:</h3><pre>person = {\n    "name": "علی",\n    "age": 25\n}</pre><h3>دسترسی:</h3><pre>print(person["name"])</pre><h3>پیمایش:</h3><pre>for k, v in person.items():\n    print(k, v)</pre>']);
+L.push(["مجموعه‌ها","بدون تکرار",'<h3>🎯 مجموعه:</h3><pre>nums = {1, 2, 3, 4, 5}</pre><h3>حذف تکراری:</h3><pre>n = {1, 2, 2, 3, 3}\nprint(n)  # {1, 2, 3}</pre><h3>عملیات:</h3><pre>a = {1, 2, 3}\nb = {3, 4, 5}\nprint(a | b)\nprint(a & b)</pre>']);
+L.push(["توابع","def و return",'<h3>🎯 تابع:</h3><pre>def greet():\n    print("سلام!")\n\ngreet()</pre><h3>با پارامتر:</h3><pre>def greet(name):\n    print("سلام " + name)\n\ngreet("علی")</pre><h3>return:</h3><pre>def add(a, b):\n    return a + b\n\nprint(add(5, 3))</pre>']);
+L.push(["توابع پیشرفته","Lambda",'<h3>⚡ Lambda:</h3><pre>sq = lambda x: x * x\nprint(sq(5))  # 25</pre><h3>با map:</h3><pre>nums = [1, 2, 3, 4]\nsq = list(map(lambda x: x**2, nums))\nprint(sq)</pre>']);
+L.push(["کلاس‌ها","شی‌گرایی",'<h3>🏗️ کلاس:</h3><pre>class Person:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n    \n    def intro(self):\n        return "من " + self.name\n\np = Person("علی", 25)\nprint(p.intro())</pre>']);
+L.push(["ارث‌بری","توسعه کلاس",'<h3>🧬 ارث‌بری:</h3><pre>class Animal:\n    def sound(self):\n        return "صدا"\n\nclass Dog(Animal):\n    def sound(self):\n        return "واق!"\n\nd = Dog()\nprint(d.sound())</pre>']);
+L.push(["فایل‌ها","خواندن و نوشتن",'<h3>📁 نوشتن:</h3><pre>with open("f.txt", "w") as f:\n    f.write("سلام!")</pre><h3>📖 خواندن:</h3><pre>with open("f.txt", "r") as f:\n    print(f.read())</pre>']);
+L.push(["مدیریت خطا","try/except",'<h3>⚠️ مدیریت خطا:</h3><pre>try:\n    r = 10 / 0\nexcept ZeroDivisionError:\n    print("خطا!")</pre><h3>انواع خطا:</h3><ul><li>ZeroDivisionError</li><li>ValueError</li><li>TypeError</li><li>KeyError</li></ul>']);
+L.push(["کتابخانه‌ها","کدهای آماده",'<h3>📚 ماژول:</h3><pre>import math\nprint(math.pi)\nprint(math.sqrt(16))</pre><h3>random:</h3><pre>import random\nprint(random.randint(1, 10))</pre><h3>datetime:</h3><pre>from datetime import datetime\nprint(datetime.now().year)</pre>']);
+L.push(["پروژه عملی","ماشین حساب و بازی",'<h3>🎯 ماشین حساب:</h3><pre>a = float(input("عدد: "))\nop = input("عملگر: ")\nb = float(input("عدد: "))\nif op == "+":\n    print(a + b)</pre><h3>🎮 حدس عدد:</h3><pre>import random\nn = random.randint(1, 100)\nwhile True:\n    g = int(input("حدس: "))\n    if g == n:\n        print("درست!")\n        break</pre><h3>🎉 تبریک!</h3>']);
+
+var Q = [
+["کدام تابع برای چاپ است؟",["echo()","print()","log()","printf()"],1],
+["نوع داده صحیح؟",["number","int","integer","num"],1],
+["خروجی 10 // 3؟",["3.33","3","4","1"],1],
+["کلمه کلیدی تابع؟",["function","def","func","define"],1],
+["متد اضافه به لیست؟",["add()","push()","append()","insert()"],2],
+["نوع غیرقابل تغییر؟",["list","dict","tuple","set"],2],
+["تابع ورودی؟",["get()","scan()","read()","input()"],3],
+["خروجی len([1,2,3])؟",["2","3","4","6"],1],
+["تعریف کلاس؟",["def","class","object","struct"],1],
+["حذف آخرین لیست؟",["remove()","delete()","pop()","drop()"],2]
+];
+
+var ci = 0, qi = 0, qs = 0;
+
+function go(id) {
+    var p = ['home','lessons','view','quiz','about'];
+    for (var i = 0; i < p.length; i++) document.getElementById(p[i]).classList.add('hide');
+    document.getElementById(id).classList.remove('hide');
+    window.scrollTo(0,0);
+    if (id === 'lessons') rl();
+    if (id === 'quiz') sq();
+}
+
+function rl() {
+    var h = '';
+    for (var i = 0; i < L.length; i++) {
+        h += '<div class="item" onclick="ol(' + i + ')">';
+        h += '<span class="num">' + (i+1) + '</span>';
+        h += '<span class="title">' + L[i][0] + '</span>';
+        h += '<div class="desc">' + L[i][1] + '</div></div>';
+    }
+    document.getElementById('list').innerHTML = h;
+}
+
+function ol(i) {
+    ci = i;
+    document.getElementById('vt').textContent = 'درس ' + (i+1) + ': ' + L[i][0];
+    document.getElementById('vc').innerHTML = L[i][2];
+    document.getElementById('pb').style.opacity = (i === 0) ? '0.5' : '1';
+    document.getElementById('nb').style.opacity = (i === L.length-1) ? '0.5' : '1';
+    go('view');
+}
+
+function prev() { if (ci > 0) ol(ci - 1); }
+function next() { if (ci < L.length - 1) ol(ci + 1); }
+
+function sq() { qi = 0; qs = 0; lq(); }
+
+function lq() {
+    if (qi >= Q.length) { sr(); return; }
+    var q = Q[qi];
+    document.getElementById('qi').textContent = 'سوال ' + (qi+1) + ' از ' + Q.length;
+    var h = '<div class="card"><p style="margin-bottom:12px"><strong>' + q[0] + '</strong></p>';
+    for (var i = 0; i < q[1].length; i++) {
+        h += '<button onclick="aq(' + i + ',this)">' + q[1][i] + '</button>';
+    }
+    h += '</div>';
+    document.getElementById('qc').innerHTML = h;
+}
+
+function aq(s, b) {
+    var q = Q[qi];
+    var bs = document.querySelectorAll('#qc button');
+    for (var i = 0; i < bs.length; i++) bs[i].disabled = true;
+    if (s === q[2]) { b.style.background = '#2ea043'; qs += 10; }
+    else { b.style.background = '#f85149'; bs[q[2]].style.background = '#2ea043'; }
+    setTimeout(function() { qi++; lq(); }, 1000);
+}
+
+function sr() {
+    var m = (qs/100)*100;
+    var t = '';
+    if (qs === 100) t = '🎉 عالی!';
+    else if (qs >= 80) t = '🌟 خیلی خوب!';
+    else if (qs >= 60) t = '👍 خوب!';
+    else if (qs >= 40) t = '📚 قابل قبول!';
+    else t = '💪 تلاش کن!';
+    var h = '<div class="card" style="text-align:center">';
+    h += '<div style="font-size:3em;color:#ffd43b">' + qs + '</div>';
+    h += '<p>' + t + '</p></div>';
+    h += '<button class="g" onclick="sq()">🔄 دوباره</button>';
+    document.getElementById('qc').innerHTML = h;
+    document.getElementById('qi').textContent = 'پایان';
+}
+
+console.log('✅ آماده');
+</script>
+</body>
+</html>
