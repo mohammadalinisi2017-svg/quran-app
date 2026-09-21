@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>آموزش پایتون</title>
+<style>
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
+h1{color:#ffd43b;text-align:center}
+button{background:#3776ab;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-family:Tahoma;cursor:pointer;width:100%;margin:5px 0}
+button.g{background:#2ea043}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto}
+.hide{display:none}
+.card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:15px;margin:12px 0}
+</style>
+</head>
+<body>
+
+<div id="home">
+<h1>🐍 آموزش پایتون</h1>
+<div class="card">
+<p>۵ درس برای شروع!</p>
+</div>
+<button class="g" onclick="show('list')">📚 شروع</button>
+</div>
+
+<div id="list" class="hide">
+<h1>📚 دروس</h1>
+<div id="items"></div>
+<button onclick="show('home')">🏠 بازگشت</button>
+</div>
+
+<div id="view" class="hide">
+<h1 id="vt"></h1>
+<div class="card" id="vc"></div>
+<button onclick="show('list')">📚 لیست</button>
+</div>
+
+<script>
+var L = [
+["مقدمه","<h3>🐍 پایتون چیست؟</h3><p>زبان برنامه‌نویسی ساده و قدرتمند.</p><h3>اولین کد:</h3><pre>print(\"سلام دنیا!\")</pre>"],
+["متغیرها","<h3>📦 متغیر:</h3><pre>name = \"علی\"\nage = 25</pre><h3>انواع:</h3><ul><li>int: عدد</li><li>str: متن</li><li>bool: بله/خیر</li></ul>"],
+["رشته‌ها","<h3>📝 رشته:</h3><pre>t = \"سلام\"\nprint(len(t))\nprint(t[0])\nprint(t.upper())</pre>"],
+["شرط‌ها","<h3>🤔 if/else:</h3><pre>age = 18\nif age >= 18:\n    print(\"بزرگسال\")\nelse:\n    print(\"کودک\")</pre>"],
+["حلقه‌ها","<h3>🔄 for:</h3><pre>for i in range(5):\n    print(i)</pre><h3>while:</h3><pre>i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</pre>"]
+];
+
+function show(id) {
+    var p = ['home','list','view'];
+    for (var i = 0; i < p.length; i++) document.getElementById(p[i]).classList.add('hide');
+    document.getElementById(id).classList.remove('hide');
+    window.scrollTo(0,0);
+    if (id === 'list') render();
+}
+
+function render() {
+    var h = '';
+    for (var i = 0; i < L.length; i++) {
+        h += '<div class="card" onclick="open(' + i + ')" style="cursor:pointer">';
+        h += '<strong style="color:#ffd43b">درس ' + (i+1) + ': ' + L[i][0] + '</strong>';
+        h += '</div>';
+    }
+    document.getElementById('items').innerHTML = h;
+}
+
+function open(i) {
+    document.getElementById('vt').textContent = 'درس ' + (i+1) + ': ' + L[i][0];
+    document.getElementById('vc').innerHTML = L[i][1];
+    show('view');
+}
+</script>
+</body>
+</html>
