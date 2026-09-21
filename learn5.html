@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آموزش پایتون</title>
+<style>
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
+h1{color:#ffd43b;text-align:center;font-size:1.6em}
+.subtitle{text-align:center;color:#7d8590;font-size:0.9em;margin-bottom:20px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:20px;margin:15px 0}
+.card h3{color:#ffd43b;margin-bottom:10px}
+button{background:#3776ab;color:#fff;border:none;padding:15px;border-radius:12px;font-size:16px;font-family:Tahoma;cursor:pointer;width:100%;margin:6px 0;text-align:right}
+button:hover{background:#2a5a87}
+button.green{background:#2ea043}
+button.gray{background:#30363d}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:15px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace;font-size:14px;line-height:1.6;white-space:pre}
+.hidden{display:none}
+.lesson-item{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:15px;margin:10px 0;cursor:pointer}
+.lesson-item:hover{border-color:#3776ab}
+.lesson-num{display:inline-block;background:#3776ab;color:#fff;width:30px;height:30px;border-radius:50%;text-align:center;line-height:30px;font-size:13px;font-weight:bold;margin-left:8px}
+.lesson-title{font-weight:bold;color:#ffd43b;font-size:1.05em}
+.lesson-desc{color:#7d8590;font-size:0.85em;margin-top:5px;margin-right:38px}
+ul{margin-right:25px}
+li{margin-bottom:6px}
+.nav-buttons{display:flex;gap:10px;margin-top:15px}
+.nav-buttons button{margin:0;flex:1}
+.loading{text-align:center;padding:30px;color:#7d8590}
+</style>
+</head>
+<body>
+
+<div id="home">
+<h1>🐍 آموزش کامل پایتون</h1>
+<p class="subtitle">۲۰ درس از صفر تا پیشرفته</p>
+<div class="card">
+<h3>🎯 خوش آمدید!</h3>
+<p>اینجا می‌تونید پایتون رو کامل یاد بگیرید!</p>
+<p style="margin-top:10px;color:#7d8590;font-size:0.9em">📖 ۲۰ درس | 💻 نمونه کدها | ❓ آزمون ۱۰ سوالی</p>
+</div>
+<button class="green" onclick="showPage('lessons')">📚 شروع یادگیری</button>
+<button onclick="showPage('quiz')">❓ آزمون</button>
+<button onclick="showPage('about')">ℹ️ درباره ما</button>
+</div>
+
+<div id="lessons" class="hidden">
+<h1>📚 لیست دروس</h1>
+<p class="subtitle">روی هر درس بزن</p>
+<div id="lessonList" class="loading">⏳ در حال بارگذاری...</div>
+<button onclick="showPage('home')">🏠 بازگشت</button>
+</div>
+
+<div id="lessonView" class="hidden">
+<h1 id="lessonTitle">درس</h1>
+<div class="card" id="lessonContent"></div>
+<div class="nav-buttons">
+<button onclick="prevLesson()" id="prevBtn">← قبلی</button>
+<button class="green" onclick="nextLesson()" id="nextBtn">بعدی →</button>
+</div>
+<button class="gray" onclick="showPage('lessons')" style="margin-top:10px">📚 لیست دروس</button>
+</div>
+
+<div id="quiz" class="hidden">
+<h1>❓ آزمون پایتون</h1>
+<p class="subtitle" id="quizInfo">سوال ۱ از ۱۰</p>
+<div id="quizContent" class="loading">⏳ در حال بارگذاری...</div>
+<button onclick="showPage('home')">🏠 بازگشت</button>
+</div>
+
+<div id="about" class="hidden">
+<h1>ℹ️ درباره ما</h1>
+<div class="card">
+<h3>🐍 آموزش کامل پایتون</h3>
+<p>سایت یادگیری پایتون از صفر تا پیشرفته.</p>
+<p style="margin-top:10px"><strong>🎯 امکانات:</strong></p>
+<ul>
+<li>📚 ۲۰ درس کامل</li>
+<li>💻 نمونه کدهای عملی</li>
+<li>❓ آزمون ۱۰ سوالی</li>
+</ul>
+<p style="text-align:center;color:#ffd43b;margin-top:15px">👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
+</div>
+<button onclick="showPage('home')">🏠 بازگشت</button>
+</div>
+
+<script src="lessons.js"></script>
+<script src="app.js"></script>
+</body>
+  </html>
