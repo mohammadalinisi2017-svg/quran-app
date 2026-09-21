@@ -2,12 +2,93 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>تست</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>آموزش پایتون</title>
+<style>
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
+h1{color:#ffd43b;text-align:center}
+button{background:#3776ab;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-family:Tahoma;cursor:pointer;width:100%;margin:5px 0}
+button.g{background:#2ea043}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace}
+.hide{display:none}
+.card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:15px;margin:12px 0}
+.item{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px;margin:8px 0;cursor:pointer}
+.item:hover{border-color:#3776ab}
+ul{margin-right:22px}
+li{margin-bottom:5px}
+</style>
 </head>
-<body style="background:#0d1117;color:#fff;font-family:Tahoma;padding:20px;direction:rtl">
+<body>
+
+<div id="home">
 <h1>🐍 آموزش پایتون</h1>
-<p>اگه این متن رو می‌بینی، یعنی فایل جدید کار می‌کنه!</p>
-<p>تاریخ: ۱۴۰۳</p>
-<button onclick="alert('کار می‌کنه!')">کلیک کن</button>
+<div class="card">
+<h3 style="color:#ffd43b">🎯 خوش آمدید!</h3>
+<p>۵ درس برای شروع یادگیری پایتون!</p>
+</div>
+<button class="g" onclick="go('list')">📚 شروع یادگیری</button>
+<button onclick="go('about')">ℹ️ درباره ما</button>
+</div>
+
+<div id="list" class="hide">
+<h1>📚 لیست دروس</h1>
+<div id="items"></div>
+<button onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<div id="view" class="hide">
+<h1 id="vt">درس</h1>
+<div class="card" id="vc"></div>
+<button onclick="go('list')">📚 لیست دروس</button>
+</div>
+
+<div id="about" class="hide">
+<h1>ℹ️ درباره ما</h1>
+<div class="card">
+<h3 style="color:#ffd43b">🐍 آموزش پایتون</h3>
+<p>سایت یادگیری پایتون از صفر.</p>
+<p><strong>امکانات:</strong></p>
+<ul>
+<li>📚 ۵ درس</li>
+<li>💻 نمونه کد</li>
+</ul>
+<p style="text-align:center;color:#ffd43b">👤 محمد علی نیسی</p>
+</div>
+<button onclick="go('home')">🏠 بازگشت</button>
+</div>
+
+<script>
+var L = [
+["مقدمه پایتون","<h3>🐍 پایتون چیست؟</h3><p>یک زبان برنامه‌نویسی سطح بالا و شی‌گرا که در سال ۱۹۹۱ ساخته شد.</p><h3>مزایا:</h3><ul><li>سادگی و خوانایی</li><li>کتابخانه‌های فراوان</li><li>استفاده در هوش مصنوعی</li></ul><h3>اولین کد:</h3><pre>print(\"سلام دنیا!\")</pre>"],
+["متغیرها","<h3>📦 متغیر چیست؟</h3><p>ظرفی برای ذخیره داده.</p><pre>name = \"علی\"\nage = 25\nheight = 1.75\nis_student = True</pre><h3>انواع داده:</h3><ul><li>int: عدد صحیح</li><li>float: عدد اعشاری</li><li>str: متن</li><li>bool: درست/غلط</li></ul><pre>print(type(5))  # int</pre>"],
+["رشته‌ها","<h3>📝 رشته:</h3><pre>text = \"سلام دنیا\"\nprint(len(text))\nprint(text[0])\nprint(text.upper())\nprint(text.replace(\"دنیا\",\"جهان\"))</pre><h3>f-string:</h3><pre>name = \"علی\"\nprint(f\"سلام {name}\")</pre>"],
+["شرط‌ها","<h3>🤔 if/else:</h3><pre>age = 18\nif age >= 18:\n    print(\"بزرگسال\")\nelse:\n    print(\"کودک\")</pre><h3>elif:</h3><pre>score = 85\nif score >= 90:\n    print(\"عالی\")\nelif score >= 75:\n    print(\"خوب\")\nelse:\n    print(\"تلاش کن\")</pre>"],
+["حلقه‌ها","<h3>🔄 حلقه for:</h3><pre>for i in range(5):\n    print(i)</pre><h3>🔄 حلقه while:</h3><pre>i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</pre><h3>break:</h3><pre>for i in range(10):\n    if i == 5:\n        break\n    print(i)</pre>"]
+];
+
+function go(id) {
+    var p = ['home','list','view','about'];
+    for (var i = 0; i < p.length; i++) document.getElementById(p[i]).classList.add('hide');
+    document.getElementById(id).classList.remove('hide');
+    window.scrollTo(0,0);
+    if (id === 'list') render();
+}
+
+function render() {
+    var h = '';
+    for (var i = 0; i < L.length; i++) {
+        h += '<div class="item" onclick="open(' + i + ')">';
+        h += '<strong style="color:#ffd43b">📖 درس ' + (i+1) + ': ' + L[i][0] + '</strong>';
+        h += '</div>';
+    }
+    document.getElementById('items').innerHTML = h;
+}
+
+function open(i) {
+    document.getElementById('vt').textContent = 'درس ' + (i+1) + ': ' + L[i][0];
+    document.getElementById('vc').innerHTML = L[i][1];
+    go('view');
+}
+</script>
 </body>
 </html>
