@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>آموزش کامل پایتون</title>
+<title>پایتون برای همه</title>
 <style>
-body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
+body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:2;font-size:16px}
 h1{color:#ffd43b;text-align:center;font-size:1.5em;border-bottom:2px solid #3776ab;padding-bottom:10px}
 h2{color:#58a6ff;font-size:1.15em;margin-top:25px;background:#161b22;padding:12px;border-radius:10px;border-right:4px solid #3776ab}
-h3{color:#ffd43b}
-pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace;font-size:13px}
+h3{color:#ffd43b;font-size:1.05em}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace;font-size:14px}
 .card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:15px;margin:12px 0}
+.note{background:#1c2128;border-right:3px solid #ffd43b;padding:10px;margin:10px 0;border-radius:8px}
 ul{margin-right:22px}
 li{margin-bottom:5px}
 .top-link{display:block;text-align:center;color:#58a6ff;text-decoration:none;margin:15px 0;padding:10px;background:#161b22;border-radius:10px}
@@ -18,449 +19,269 @@ li{margin-bottom:5px}
 </head>
 <body>
 
-<h1>🐍 آموزش کامل پایتون</h1>
+<h1>🐍 پایتون برای همه</h1>
 
 <div class="card">
-<h3>🎯 خوش آمدید!</h3>
-<p>۲۰ درس پایتون از صفر تا پیشرفته — فقط اسکرول کن و یاد بگیر!</p>
+<h3>🎯 سلام!</h3>
+<p>این آموزش <strong>خیلی ساده</strong> نوشته شده. حتی اگه هیچ چیزی از برنامه‌نویسی نمی‌دونی، می‌تونی یاد بگیری!</p>
+<p>فقط کافیه <strong>اسکرول کنی</strong> و بخونی.</p>
 </div>
 
 <!-- درس ۱ -->
-<h2>📖 درس ۱: مقدمه پایتون</h2>
+<h2>📖 درس ۱: پایتون چیه؟</h2>
 <div class="card">
-<h3>🐍 پایتون چیست؟</h3>
-<p>یک زبان برنامه‌نویسی سطح بالا، تفسیری و شی‌گرا که توسط گیدو ون روسوم در سال ۱۹۹۱ ساخته شد.</p>
-<h3>مزایا:</h3>
-<ul>
-<li>سادگی و خوانایی بالا</li>
-<li>کتابخانه‌های فراوان</li>
-<li>استفاده در هوش مصنوعی</li>
-<li>رایگان و متن‌باز</li>
-</ul>
-<h3>اولین کد:</h3>
-<pre>print("سلام دنیا!")</pre>
+<p>پایتون یه <strong>زبون برنامه‌نویسی</strong> هست. یعنی یه زبون که با کامپیوتر حرف می‌زنی.</p>
+<p>مثل اینکه با یه دوست خارجی حرف می‌زنی، ولی این بار با کامپیوتر.</p>
+
+<div class="note">
+<strong>💡 چرا پایتون؟</strong><br>
+چون <strong>ساده‌ست</strong> و خیلی <strong>راحت</strong> یاد می‌گیری!
+</div>
+
+<h3>اولین برنامه:</h3>
+<pre>print("سلام")</pre>
+<p>این کد، کلمه <strong>«سلام»</strong> رو چاپ می‌کنه.</p>
+<p>بذار یه چیز دیگه هم چاپ کنیم:</p>
+<pre>print("اسم من علی است")</pre>
+<p>همین! به همین سادگی!</p>
 </div>
 
 <!-- درس ۲ -->
-<h2>📖 درس ۲: نصب پایتون</h2>
+<h2>📖 درس ۲: چاپ کردن</h2>
 <div class="card">
-<h3>💻 نصب روی کامپیوتر:</h3>
-<ul>
-<li>برو به python.org</li>
-<li>آخرین نسخه را دانلود کن</li>
-<li>تیک Add to PATH را بزن</li>
-<li>نصب کن</li>
-</ul>
-<h3>📱 نصب روی موبایل:</h3>
-<ul>
-<li>اندروید: Pydroid 3</li>
-<li>آیفون: Pythonista</li>
-</ul>
-<h3>✏️ تست:</h3>
-<pre>print("سلام!")
-print(2 + 3)</pre>
+<p>کلمه <code>print</code> یعنی <strong>«چاپ کن»</strong>. هرچی توی پرانتز بذاری، چاپ می‌شه.</p>
+
+<h3>مثال‌ها:</h3>
+<pre>print("سلام دنیا")</pre>
+<pre>print("من پایتون یاد می‌گیرم")</pre>
+<pre>print(5)</pre>
+<pre>print(10 + 20)</pre>
+<p>خروجی آخری می‌شه: <strong>30</strong></p>
+
+<div class="note">
+<strong>💡 نکته:</strong><br>
+اگه <strong>متن</strong> باشه، باید بین " بذاری. مثل: <code>"سلام"</code><br>
+اگه <strong>عدد</strong> باشه، نیازی به " نیست. مثل: <code>5</code>
+</div>
 </div>
 
 <!-- درس ۳ -->
-<h2>📖 درس ۳: متغیرها</h2>
+<h2>📖 درس ۳: ذخیره کردن (متغیر)</h2>
 <div class="card">
-<h3>📦 متغیر چیست؟</h3>
-<p>ظرفی برای ذخیره داده در حافظه.</p>
+<p>تصور کن یه <strong>جعبه</strong> داری که هرچی می‌خوای توش بذاری. به این جعبه می‌گن <strong>متغیر</strong>.</p>
+
+<h3>مثال:</h3>
+<pre>name = "علی"
+print(name)</pre>
+<p>اینجا <strong>«علی»</strong> رو توی جعبه‌ای به اسم <code>name</code> گذاشتیم.</p>
+<p>بعدش با <code>print</code> نشونش دادیم.</p>
+
+<h3>چند تا جعبه:</h3>
 <pre>name = "علی"
 age = 25
-height = 1.75
-is_student = True</pre>
-<h3>انواع داده:</h3>
-<ul>
-<li>int: عدد صحیح (25, -10)</li>
-<li>float: عدد اعشاری (1.75)</li>
-<li>str: متن ("علی")</li>
-<li>bool: درست/غلط (True/False)</li>
-</ul>
-<h3>بررسی نوع:</h3>
-<pre>x = 5
-print(type(x))   # int</pre>
+print(name)
+print(age)</pre>
+
+<div class="note">
+<strong>💡 یعنی چی؟</strong><br>
+<code>name</code> = اسم<br>
+<code>age</code> = سن<br>
+اسم جعبه رو <strong>خودت</strong> انتخاب می‌کنی.
+</div>
 </div>
 
 <!-- درس ۴ -->
-<h2>📖 درس ۴: رشته‌ها</h2>
+<h2>📖 درس ۴: حساب کردن</h2>
 <div class="card">
-<h3>📝 رشته چیست؟</h3>
-<pre>name = "علی"
-message = 'سلام'</pre>
-<h3>عملیات روی رشته:</h3>
-<pre>text = "سلام دنیا"
-print(len(text))         # طول
-print(text[0])           # اولین حرف
-print(text[-1])          # آخرین حرف
-print(text.upper())      # حروف بزرگ
-print(text.replace("دنیا","جهان"))</pre>
-<h3>f-string:</h3>
-<pre>name = "علی"
-age = 25
-print(f"اسم من {name} است")</pre>
+<p>پایتون مثل ماشین حساب کار می‌کنه!</p>
+
+<h3>جمع و تفریق:</h3>
+<pre>print(5 + 3)    # می‌شه 8
+print(10 - 4)   # می‌شه 6</pre>
+
+<h3>ضرب و تقسیم:</h3>
+<pre>print(4 * 3)    # می‌شه 12
+print(10 / 2)   # می‌شه 5</pre>
+
+<h3>با متغیر:</h3>
+<pre>a = 10
+b = 5
+print(a + b)    # می‌شه 15
+print(a - b)    # می‌شه 5</pre>
+
+<div class="note">
+<strong>💡 علامت‌ها:</strong><br>
+➕ <code>+</code> جمع<br>
+➖ <code>-</code> تفریق<br>
+✖️ <code>*</code> ضرب<br>
+➗ <code>/</code> تقسیم
+</div>
 </div>
 
 <!-- درس ۵ -->
-<h2>📖 درس ۵: عملگرها</h2>
+<h2>📖 درس ۵: نظر دادن (کامنت)</h2>
 <div class="card">
-<h3>➗ عملگرهای ریاضی:</h3>
-<pre>a = 10
-b = 3
-print(a + b)   # جمع: 13
-print(a - b)   # تفریق: 7
-print(a * b)   # ضرب: 30
-print(a / b)   # تقسیم: 3.33
-print(a // b)  # تقسیم صحیح: 3
-print(a % b)   # باقیمانده: 1
-print(a ** b)  # توان: 1000</pre>
-<h3>مقایسه:</h3>
-<ul>
-<li>== مساوی</li>
-<li>!= نامساوی</li>
-<li>&gt; بزرگتر</li>
-<li>&lt; کوچکتر</li>
-<li>&gt;= بزرگتر یا مساوی</li>
-<li>&lt;= کوچکتر یا مساوی</li>
-</ul>
+<p>گاهی می‌خوای یه <strong>توضیح</strong> بنویسی، ولی نمی‌خوای پایتون اجراش کنه.</p>
+<p>با علامت <code>#</code> این کار رو می‌کنی.</p>
+
+<pre># این یه توضیحه
+print("سلام")   # این چاپ می‌شه</pre>
+
+<div class="note">
+<strong>💡 فایده‌ش چیه؟</strong><br>
+بعداً که کدت رو می‌بینی، می‌فهمی هر قسمت چیکار می‌کنه!
+</div>
 </div>
 
 <!-- درس ۶ -->
-<h2>📖 درس ۶: ورودی و خروجی</h2>
+<h2>📖 درس ۶: گرفتن ورودی</h2>
 <div class="card">
-<h3>📤 print:</h3>
-<pre>print("سلام")
-print(10, 20, 30)</pre>
-<h3>📥 input:</h3>
+<p>می‌خوای از کاربر سوال بپرسی؟ از <code>input</code> استفاده کن!</p>
+
 <pre>name = input("اسمت چیه؟ ")
 print("سلام " + name)</pre>
-<h3>⚠️ نکته:</h3>
-<p>خروجی input همیشه رشته است.</p>
-<pre>age = int(input("سن: "))
-print(age + 1)</pre>
+
+<p>وقتی اجرا کنی:</p>
+<ul>
+<li>می‌پرسه: <strong>اسمت چیه؟</strong></li>
+<li>کاربر جواب می‌ده: مثلاً <strong>علی</strong></li>
+<li>بعد چاپ می‌شه: <strong>سلام علی</strong></li>
+</ul>
+
+<div class="note">
+<strong>💡 نکته:</strong><br>
+خروجی <code>input</code> همیشه <strong>متن</strong> هست.
+</div>
 </div>
 
 <!-- درس ۷ -->
-<h2>📖 درس ۷: شرط‌ها (if/else)</h2>
+<h2>📖 درس ۷: تصمیم گرفتن (if)</h2>
 <div class="card">
-<h3>🤔 شرط:</h3>
-<pre>age = 18
+<p>گاهی می‌خوای برنامه <strong>تصمیم</strong> بگیره. مثلاً:</p>
+<ul>
+<li>اگه سن بالای ۱۸ بود → بزرگسال</li>
+<li>اگه نبود → کودک</li>
+</ul>
+
+<pre>age = 20
 if age >= 18:
     print("بزرگسال")
 else:
     print("کودک")</pre>
-<h3>elif:</h3>
+
+<div class="note">
+<strong>💡 یعنی چی؟</strong><br>
+<code>if</code> = اگه<br>
+<code>else</code> = وگرنه<br>
+<strong>⚠️ نکته مهم:</strong> خط زیر if باید ۴ تا فاصله داشته باشه!
+</div>
+
+<h3>مثال دیگه:</h3>
 <pre>score = 85
 if score >= 90:
     print("عالی")
-elif score >= 75:
-    print("خوب")
-elif score >= 50:
-    print("قابل قبول")
 else:
-    print("تلاش کن")</pre>
-<h3>شرط کوتاه:</h3>
-<pre>x = 10
-result = "مثبت" if x > 0 else "منفی"</pre>
+    print("خوب")</pre>
 </div>
 
 <!-- درس ۸ -->
-<h2>📖 درس ۸: حلقه‌ها (for/while)</h2>
+<h2>📖 درس ۸: تکرار کردن (حلقه)</h2>
 <div class="card">
-<h3>🔄 حلقه for:</h3>
+<p>می‌خوای یه کار رو <strong>چند بار</strong> تکرار کنی؟ از <code>for</code> استفاده کن!</p>
+
+<h3>مثال:</h3>
 <pre>for i in range(5):
-    print(i)
-# 0, 1, 2, 3, 4</pre>
-<h3>range با شروع:</h3>
-<pre>for i in range(2, 8):
-    print(i)
-# 2 تا 7</pre>
-<h3>🔄 حلقه while:</h3>
-<pre>i = 1
-while i <= 5:
-    print(i)
-    i += 1</pre>
-<h3>کنترل حلقه:</h3>
-<pre>for i in range(10):
-    if i == 5:
-        break
     print(i)</pre>
+
+<p>خروجی:</p>
+<pre>0
+1
+2
+3
+4</pre>
+
+<div class="note">
+<strong>💡 یعنی چی؟</strong><br>
+<code>range(5)</code> یعنی از 0 تا 4 (۵ تا عدد)
+</div>
+
+<h3>مثال دیگه:</h3>
+<pre>for i in range(3):
+    print("سلام")</pre>
+<p>خروجی: سه بار «سلام» چاپ می‌شه.</p>
 </div>
 
 <!-- درس ۹ -->
-<h2>📖 درس ۹: لیست‌ها (Lists)</h2>
+<h2>📖 درس ۹: لیست (چند تا چیز توی یه جعبه)</h2>
 <div class="card">
-<h3>📋 لیست:</h3>
-<pre>numbers = [1, 2, 3, 4, 5]
-names = ["علی", "رضا", "سارا"]</pre>
-<h3>دسترسی:</h3>
-<pre>fruits = ["سیب", "موز", "پرتقال"]
-print(fruits[0])     # سیب
-print(fruits[-1])    # پرتقال</pre>
+<p>فرض کن می‌خوای چند تا اسم ذخیره کنی. به جای چند تا متغیر، از <strong>لیست</strong> استفاده کن!</p>
+
+<pre>names = ["علی", "رضا", "سارا"]
+print(names)</pre>
+
+<p>خروجی: <code>['علی', 'رضا', 'سارا']</code></p>
+
+<h3>دسترسی به هر کدوم:</h3>
+<pre>names = ["علی", "رضا", "سارا"]
+print(names[0])   # علی
+print(names[1])   # رضا
+print(names[2])   # سارا</pre>
+
+<div class="note">
+<strong>💡 نکته:</strong><br>
+شماره‌گذاری از <strong>0</strong> شروع می‌شه، نه 1!
+</div>
+
 <h3>اضافه کردن:</h3>
-<pre>fruits.append("انگور")
-fruits.insert(1, "گلابی")</pre>
-<h3>حذف کردن:</h3>
-<pre>fruits.remove("موز")
-fruits.pop()</pre>
-<h3>متدهای مهم:</h3>
-<pre>nums = [3, 1, 4, 1, 5]
-print(len(nums))     # تعداد
-nums.sort()          # مرتب‌سازی
-print(sum(nums))     # مجموع
-print(max(nums))     # بیشترین</pre>
+<pre>names = ["علی", "رضا"]
+names.append("سارا")
+print(names)   # ['علی', 'رضا', 'سارا']</pre>
 </div>
 
 <!-- درس ۱۰ -->
-<h2>📖 درس ۱۰: تاپل‌ها (Tuples)</h2>
+<h2>📖 درس ۱۰: تمرین! 🎯</h2>
 <div class="card">
-<h3>📦 تاپل:</h3>
-<p>مثل لیست ولی غیرقابل تغییر.</p>
-<pre>point = (3, 5)
-colors = ("قرمز", "سبز", "آبی")</pre>
-<h3>دسترسی:</h3>
-<pre>print(point[0])    # 3
-print(colors[-1])  # آبی</pre>
-<h3>تفکیک:</h3>
-<pre>x, y = (3, 5)
-print(x)   # 3
-print(y)   # 5</pre>
-<h3>چرا تاپل؟</h3>
-<ul>
-<li>سریع‌تر از لیست</li>
-<li>امن‌تر (تغییر نمی‌کند)</li>
-</ul>
+<p>حالا وقت تمرینه! اینا رو خودت امتحان کن:</p>
+
+<h3>تمرین ۱: چاپ اسم خودت</h3>
+<pre>print("اسم من ___ است")</pre>
+<p>جای خالی رو با اسم خودت پر کن.</p>
+
+<h3>تمرین ۲: جمع دو عدد</h3>
+<pre>a = 10
+b = 20
+print(a + b)</pre>
+<p>خروجی چیه؟</p>
+
+<h3>تمرین ۳: سوال از کاربر</h3>
+<pre>name = input("اسمت چیه؟ ")
+print("سلام " + name)</pre>
+
+<h3>تمرین ۴: تصمیم</h3>
+<pre>age = 15
+if age >= 18:
+    print("بزرگسال")
+else:
+    print("کودک")</pre>
+<p>خروجی چیه؟</p>
+
+<div class="note">
+<strong>🎉 تبریک!</strong><br>
+تو الان پایه‌های پایتون رو یاد گرفتی!<br>
+حالا می‌تونی بری سراغ پروژه‌های واقعی!
 </div>
-
-<!-- درس ۱۱ -->
-<h2>📖 درس ۱۱: دیکشنری‌ها</h2>
-<div class="card">
-<h3>📖 دیکشنری:</h3>
-<pre>person = {
-    "name": "علی",
-    "age": 25,
-    "city": "تهران"
-}</pre>
-<h3>دسترسی:</h3>
-<pre>print(person["name"])       # علی
-print(person.get("age"))    # 25</pre>
-<h3>اضافه/تغییر:</h3>
-<pre>person["age"] = 26
-person["job"] = "برنامه‌نویس"</pre>
-<h3>حذف:</h3>
-<pre>del person["city"]</pre>
-<h3>پیمایش:</h3>
-<pre>for key, value in person.items():
-    print(key, ":", value)</pre>
-</div>
-
-<!-- درس ۱۲ -->
-<h2>📖 درس ۱۲: مجموعه‌ها (Sets)</h2>
-<div class="card">
-<h3>🎯 مجموعه:</h3>
-<p>مجموعه‌ای بدون تکرار و بدون ترتیب.</p>
-<pre>numbers = {1, 2, 3, 4, 5}
-nums = {1, 2, 2, 3, 3}
-print(nums)   # {1, 2, 3}</pre>
-<h3>اضافه کردن:</h3>
-<pre>numbers.add(6)</pre>
-<h3>عملیات مجموعه:</h3>
-<pre>a = {1, 2, 3}
-b = {3, 4, 5}
-print(a | b)   # اجتماع
-print(a & b)   # اشتراک
-print(a - b)   # تفاضل</pre>
-</div>
-
-<!-- درس ۱۳ -->
-<h2>📖 درس ۱۳: توابع (Functions)</h2>
-<div class="card">
-<h3>🎯 تابع چیست؟</h3>
-<pre>def greet():
-    print("سلام!")
-
-greet()</pre>
-<h3>با پارامتر:</h3>
-<pre>def greet(name):
-    print("سلام " + name)
-
-greet("علی")</pre>
-<h3>با return:</h3>
-<pre>def add(a, b):
-    return a + b
-
-print(add(5, 3))   # 8</pre>
-<h3>مقدار پیش‌فرض:</h3>
-<pre>def greet(name="دوست"):
-    print("سلام " + name)</pre>
-</div>
-
-<!-- درس ۱۴ -->
-<h2>📖 درس ۱۴: توابع پیشرفته</h2>
-<div class="card">
-<h3>⚡ Lambda:</h3>
-<pre>square = lambda x: x * x
-print(square(5))   # 25</pre>
-<h3>با map:</h3>
-<pre>nums = [1, 2, 3, 4]
-squares = list(map(lambda x: x**2, nums))
-print(squares)   # [1, 4, 9, 16]</pre>
-<h3>با filter:</h3>
-<pre>evens = list(filter(lambda x: x % 2 == 0, nums))
-print(evens)   # [2, 4]</pre>
-</div>
-
-<!-- درس ۱۵ -->
-<h2>📖 درس ۱۵: کلاس‌ها و شی‌گرایی</h2>
-<div class="card">
-<h3>🏗️ کلاس:</h3>
-<pre>class Person:
-    def __init__(self, name, age):
-        self.name = name
-        self.age = age
-    
-    def introduce(self):
-        return "من " + self.name + " هستم"
-
-p1 = Person("علی", 25)
-print(p1.introduce())</pre>
-<h3>مفاهیم کلیدی:</h3>
-<ul>
-<li>class: تعریف کلاس</li>
-<li>__init__: سازنده</li>
-<li>self: اشاره به شیء</li>
-</ul>
-</div>
-
-<!-- درس ۱۶ -->
-<h2>📖 درس ۱۶: ارث‌بری</h2>
-<div class="card">
-<h3>🧬 ارث‌بری:</h3>
-<pre>class Animal:
-    def __init__(self, name):
-        self.name = name
-    
-    def sound(self):
-        return "صدا"
-
-class Dog(Animal):
-    def sound(self):
-        return "واق واق!"
-
-dog = Dog("رکس")
-print(dog.name)      # رکس
-print(dog.sound())   # واق واق!</pre>
-<h3>استفاده از super():</h3>
-<pre>class Dog(Animal):
-    def __init__(self, name, breed):
-        super().__init__(name)
-        self.breed = breed</pre>
-</div>
-
-<!-- درس ۱۷ -->
-<h2>📖 درس ۱۷: فایل‌ها</h2>
-<div class="card">
-<h3>📁 نوشتن در فایل:</h3>
-<pre>with open("test.txt", "w") as f:
-    f.write("سلام دنیا!")</pre>
-<h3>📖 خواندن از فایل:</h3>
-<pre>with open("test.txt", "r") as f:
-    content = f.read()
-    print(content)</pre>
-<h3>حالت‌های باز کردن:</h3>
-<ul>
-<li>"r": خواندن</li>
-<li>"w": نوشتن (پاک می‌کند)</li>
-<li>"a": اضافه کردن</li>
-</ul>
-</div>
-
-<!-- درس ۱۸ -->
-<h2>📖 درس ۱۸: مدیریت خطا</h2>
-<div class="card">
-<h3>⚠️ try/except:</h3>
-<pre>try:
-    result = 10 / 0
-except ZeroDivisionError:
-    print("تقسیم بر صفر!")</pre>
-<h3>انواع خطا:</h3>
-<ul>
-<li>ZeroDivisionError</li>
-<li>ValueError</li>
-<li>TypeError</li>
-<li>KeyError</li>
-<li>IndexError</li>
-</ul>
-<h3>چند خطا:</h3>
-<pre>try:
-    num = int(input("عدد: "))
-except ValueError:
-    print("عدد معتبر وارد کن")</pre>
-</div>
-
-<!-- درس ۱۹ -->
-<h2>📖 درس ۱۹: کتابخانه‌ها</h2>
-<div class="card">
-<h3>📚 ماژول math:</h3>
-<pre>import math
-print(math.pi)
-print(math.sqrt(16))</pre>
-<h3>🎲 ماژول random:</h3>
-<pre>import random
-print(random.randint(1, 10))
-print(random.choice(["الف", "ب", "ج"]))</pre>
-<h3>⏰ ماژول datetime:</h3>
-<pre>from datetime import datetime
-now = datetime.now()
-print(now.year)</pre>
-</div>
-
-<!-- درس ۲۰ -->
-<h2>📖 درس ۲۰: پروژه‌های عملی</h2>
-<div class="card">
-<h3>🎯 پروژه ۱: ماشین حساب:</h3>
-<pre>a = float(input("عدد اول: "))
-op = input("عملگر: ")
-b = float(input("عدد دوم: "))
-if op == "+":
-    print(a + b)
-elif op == "-":
-    print(a - b)
-elif op == "*":
-    print(a * b)
-elif op == "/":
-    print(a / b)</pre>
-<h3>🎮 پروژه ۲: بازی حدس عدد:</h3>
-<pre>import random
-number = random.randint(1, 100)
-while True:
-    guess = int(input("حدس: "))
-    if guess < number:
-        print("بالاتر!")
-    elif guess > number:
-        print("پایین‌تر!")
-    else:
-        print("درست!")
-        break</pre>
-<h3>🎉 تبریک!</h3>
-<p>حالا می‌تونید پروژه‌های واقعی پایتون بسازید!</p>
 </div>
 
 <!-- درباره ما -->
 <h2>ℹ️ درباره ما</h2>
 <div class="card">
-<h3>🐍 آموزش کامل پایتون</h3>
-<p>سایت یادگیری پایتون از صفر تا پیشرفته.</p>
-<p><strong>امکانات:</strong></p>
-<ul>
-<li>📚 ۲۰ درس کامل</li>
-<li>💻 نمونه کدهای عملی</li>
-<li>🎨 طراحی ساده و زیبا</li>
-</ul>
+<h3>🐍 پایتون برای همه</h3>
+<p>این آموزش مخصوص <strong>مبتدی‌های مطلق</strong> نوشته شده.</p>
+<p>هدفم اینه که <strong>هرکسی</strong> بتونه برنامه‌نویسی یاد بگیره!</p>
 <p style="text-align:center;color:#ffd43b;margin-top:15px">👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
 </div>
 
 <a href="#" class="top-link">⬆️ بازگشت به بالا</a>
 
 </body>
-                      </html>
+</html>
