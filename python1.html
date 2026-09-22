@@ -47,24 +47,23 @@ li{margin-bottom:5px}
 <div class="card">
 <h3 style="color:#ffd43b">🐍 آموزش پایتون</h3>
 <p>سایت یادگیری پایتون از صفر.</p>
-<p><strong>امکانات:</strong></p>
-<ul>
-<li>📚 ۵ درس</li>
-<li>💻 نمونه کد</li>
-</ul>
 <p style="text-align:center;color:#ffd43b">👤 محمد علی نیسی</p>
 </div>
 <button onclick="go('home')">🏠 بازگشت</button>
 </div>
 
 <script>
-var L = [
-["مقدمه پایتون","<h3>🐍 پایتون چیست؟</h3><p>یک زبان برنامه‌نویسی سطح بالا و شی‌گرا که در سال ۱۹۹۱ ساخته شد.</p><h3>مزایا:</h3><ul><li>سادگی و خوانایی</li><li>کتابخانه‌های فراوان</li><li>استفاده در هوش مصنوعی</li></ul><h3>اولین کد:</h3><pre>print(\"سلام دنیا!\")</pre>"],
-["متغیرها","<h3>📦 متغیر چیست؟</h3><p>ظرفی برای ذخیره داده.</p><pre>name = \"علی\"\nage = 25\nheight = 1.75\nis_student = True</pre><h3>انواع داده:</h3><ul><li>int: عدد صحیح</li><li>float: عدد اعشاری</li><li>str: متن</li><li>bool: درست/غلط</li></ul><pre>print(type(5))  # int</pre>"],
-["رشته‌ها","<h3>📝 رشته:</h3><pre>text = \"سلام دنیا\"\nprint(len(text))\nprint(text[0])\nprint(text.upper())\nprint(text.replace(\"دنیا\",\"جهان\"))</pre><h3>f-string:</h3><pre>name = \"علی\"\nprint(f\"سلام {name}\")</pre>"],
-["شرط‌ها","<h3>🤔 if/else:</h3><pre>age = 18\nif age >= 18:\n    print(\"بزرگسال\")\nelse:\n    print(\"کودک\")</pre><h3>elif:</h3><pre>score = 85\nif score >= 90:\n    print(\"عالی\")\nelif score >= 75:\n    print(\"خوب\")\nelse:\n    print(\"تلاش کن\")</pre>"],
-["حلقه‌ها","<h3>🔄 حلقه for:</h3><pre>for i in range(5):\n    print(i)</pre><h3>🔄 حلقه while:</h3><pre>i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</pre><h3>break:</h3><pre>for i in range(10):\n    if i == 5:\n        break\n    print(i)</pre>"]
-];
+var L = [];
+
+L[0] = ['مقدمه پایتون', '<h3>🐍 پایتون چیست؟</h3><p>یک زبان برنامه‌نویسی سطح بالا و شی‌گرا.</p><h3>مزایا:</h3><ul><li>سادگی</li><li>کتابخانه‌های فراوان</li><li>هوش مصنوعی</li></ul><h3>اولین کد:</h3><pre>print("سلام دنیا!")</pre>'];
+
+L[1] = ['متغیرها', '<h3>📦 متغیر:</h3><pre>name = "علی"\nage = 25\nheight = 1.75</pre><h3>انواع داده:</h3><ul><li>int: عدد صحیح</li><li>float: عدد اعشاری</li><li>str: متن</li><li>bool: درست/غلط</li></ul><pre>print(type(5))</pre>'];
+
+L[2] = ['رشته‌ها', '<h3>📝 رشته:</h3><pre>text = "سلام دنیا"\nprint(len(text))\nprint(text[0])\nprint(text.upper())</pre><h3>f-string:</h3><pre>name = "علی"\nprint(f"سلام {name}")</pre>'];
+
+L[3] = ['شرط‌ها', '<h3>🤔 if/else:</h3><pre>age = 18\nif age >= 18:\n    print("بزرگسال")\nelse:\n    print("کودک")</pre><h3>elif:</h3><pre>score = 85\nif score >= 90:\n    print("عالی")\nelif score >= 75:\n    print("خوب")\nelse:\n    print("تلاش کن")</pre>'];
+
+L[4] = ['حلقه‌ها', '<h3>🔄 for:</h3><pre>for i in range(5):\n    print(i)</pre><h3>🔄 while:</h3><pre>i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</pre><h3>break:</h3><pre>for i in range(10):\n    if i == 5:\n        break</pre>'];
 
 function go(id) {
     var p = ['home','list','view','about'];
