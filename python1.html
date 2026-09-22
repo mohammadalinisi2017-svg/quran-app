@@ -6,88 +6,116 @@
 <title>آموزش پایتون</title>
 <style>
 body{font-family:Tahoma;background:#0d1117;color:#fff;direction:rtl;padding:15px;margin:0;line-height:1.9}
-h1{color:#ffd43b;text-align:center}
-button{background:#3776ab;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-family:Tahoma;cursor:pointer;width:100%;margin:5px 0}
-button.g{background:#2ea043}
-pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace}
-.hide{display:none}
+h1{color:#ffd43b;text-align:center;font-size:1.5em;border-bottom:2px solid #3776ab;padding-bottom:10px}
+h2{color:#58a6ff;font-size:1.2em;margin-top:25px;background:#161b22;padding:12px;border-radius:10px}
+h3{color:#ffd43b}
+pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;color:#7ee787;direction:ltr;text-align:left;overflow-x:auto;font-family:Courier New,monospace;font-size:13px}
 .card{background:#161b22;border:1px solid #30363d;border-radius:15px;padding:15px;margin:12px 0}
-.item{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px;margin:8px 0;cursor:pointer}
-.item:hover{border-color:#3776ab}
 ul{margin-right:22px}
 li{margin-bottom:5px}
+.top-link{display:block;text-align:center;color:#58a6ff;text-decoration:none;margin:15px 0;padding:10px;background:#161b22;border-radius:10px}
 </style>
 </head>
 <body>
 
-<div id="home">
-<h1>🐍 آموزش پایتون</h1>
+<h1>🐍 آموزش کامل پایتون</h1>
+
 <div class="card">
-<h3 style="color:#ffd43b">🎯 خوش آمدید!</h3>
-<p>۵ درس برای شروع یادگیری پایتون!</p>
-</div>
-<button class="g" onclick="go('list')">📚 شروع یادگیری</button>
-<button onclick="go('about')">ℹ️ درباره ما</button>
+<h3>🎯 خوش آمدید!</h3>
+<p>۵ درس پایتون — فقط اسکرول کن و یاد بگیر!</p>
 </div>
 
-<div id="list" class="hide">
-<h1>📚 لیست دروس</h1>
-<div id="items"></div>
-<button onclick="go('home')">🏠 بازگشت</button>
-</div>
-
-<div id="view" class="hide">
-<h1 id="vt">درس</h1>
-<div class="card" id="vc"></div>
-<button onclick="go('list')">📚 لیست دروس</button>
-</div>
-
-<div id="about" class="hide">
-<h1>ℹ️ درباره ما</h1>
+<!-- درس ۱ -->
+<h2>📖 درس ۱: مقدمه پایتون</h2>
 <div class="card">
-<h3 style="color:#ffd43b">🐍 آموزش پایتون</h3>
-<p>سایت یادگیری پایتون از صفر.</p>
-<p style="text-align:center;color:#ffd43b">👤 محمد علی نیسی</p>
+<h3>🐍 پایتون چیست؟</h3>
+<p>یک زبان برنامه‌نویسی سطح بالا و شی‌گرا که در سال ۱۹۹۱ ساخته شد.</p>
+<h3>مزایا:</h3>
+<ul>
+<li>سادگی و خوانایی</li>
+<li>کتابخانه‌های فراوان</li>
+<li>استفاده در هوش مصنوعی</li>
+</ul>
+<h3>اولین کد:</h3>
+<pre>print("سلام دنیا!")</pre>
 </div>
-<button onclick="go('home')">🏠 بازگشت</button>
+
+<!-- درس ۲ -->
+<h2>📖 درس ۲: متغیرها</h2>
+<div class="card">
+<h3>📦 متغیر چیست؟</h3>
+<p>ظرفی برای ذخیره داده.</p>
+<pre>name = "علی"
+age = 25
+height = 1.75</pre>
+<h3>انواع داده:</h3>
+<ul>
+<li>int: عدد صحیح</li>
+<li>float: عدد اعشاری</li>
+<li>str: متن</li>
+<li>bool: درست/غلط</li>
+</ul>
+<pre>print(type(5))</pre>
 </div>
 
-<script>
-var L = [];
+<!-- درس ۳ -->
+<h2>📖 درس ۳: رشته‌ها</h2>
+<div class="card">
+<h3>📝 رشته چیست؟</h3>
+<pre>text = "سلام دنیا"
+print(len(text))
+print(text[0])
+print(text.upper())</pre>
+<h3>f-string:</h3>
+<pre>name = "علی"
+print(f"سلام {name}")</pre>
+</div>
 
-L[0] = ['مقدمه پایتون', '<h3>🐍 پایتون چیست؟</h3><p>یک زبان برنامه‌نویسی سطح بالا و شی‌گرا.</p><h3>مزایا:</h3><ul><li>سادگی</li><li>کتابخانه‌های فراوان</li><li>هوش مصنوعی</li></ul><h3>اولین کد:</h3><pre>print("سلام دنیا!")</pre>'];
+<!-- درس ۴ -->
+<h2>📖 درس ۴: شرط‌ها</h2>
+<div class="card">
+<h3>🤔 if/else:</h3>
+<pre>age = 18
+if age >= 18:
+    print("بزرگسال")
+else:
+    print("کودک")</pre>
+<h3>elif:</h3>
+<pre>score = 85
+if score >= 90:
+    print("عالی")
+elif score >= 75:
+    print("خوب")
+else:
+    print("تلاش کن")</pre>
+</div>
 
-L[1] = ['متغیرها', '<h3>📦 متغیر:</h3><pre>name = "علی"\nage = 25\nheight = 1.75</pre><h3>انواع داده:</h3><ul><li>int: عدد صحیح</li><li>float: عدد اعشاری</li><li>str: متن</li><li>bool: درست/غلط</li></ul><pre>print(type(5))</pre>'];
+<!-- درس ۵ -->
+<h2>📖 درس ۵: حلقه‌ها</h2>
+<div class="card">
+<h3>🔄 حلقه for:</h3>
+<pre>for i in range(5):
+    print(i)</pre>
+<h3>🔄 حلقه while:</h3>
+<pre>i = 1
+while i <= 5:
+    print(i)
+    i += 1</pre>
+<h3>break:</h3>
+<pre>for i in range(10):
+    if i == 5:
+        break</pre>
+</div>
 
-L[2] = ['رشته‌ها', '<h3>📝 رشته:</h3><pre>text = "سلام دنیا"\nprint(len(text))\nprint(text[0])\nprint(text.upper())</pre><h3>f-string:</h3><pre>name = "علی"\nprint(f"سلام {name}")</pre>'];
+<!-- درباره ما -->
+<h2>ℹ️ درباره ما</h2>
+<div class="card">
+<h3>🐍 آموزش پایتون</h3>
+<p>سایت یادگیری پایتون از صفر تا پیشرفته.</p>
+<p style="text-align:center;color:#ffd43b;margin-top:15px">👤 توسعه‌دهنده: <strong>محمد علی نیسی</strong></p>
+</div>
 
-L[3] = ['شرط‌ها', '<h3>🤔 if/else:</h3><pre>age = 18\nif age >= 18:\n    print("بزرگسال")\nelse:\n    print("کودک")</pre><h3>elif:</h3><pre>score = 85\nif score >= 90:\n    print("عالی")\nelif score >= 75:\n    print("خوب")\nelse:\n    print("تلاش کن")</pre>'];
+<a href="#" class="top-link">⬆️ بازگشت به بالا</a>
 
-L[4] = ['حلقه‌ها', '<h3>🔄 for:</h3><pre>for i in range(5):\n    print(i)</pre><h3>🔄 while:</h3><pre>i = 1\nwhile i <= 5:\n    print(i)\n    i += 1</pre><h3>break:</h3><pre>for i in range(10):\n    if i == 5:\n        break</pre>'];
-
-function go(id) {
-    var p = ['home','list','view','about'];
-    for (var i = 0; i < p.length; i++) document.getElementById(p[i]).classList.add('hide');
-    document.getElementById(id).classList.remove('hide');
-    window.scrollTo(0,0);
-    if (id === 'list') render();
-}
-
-function render() {
-    var h = '';
-    for (var i = 0; i < L.length; i++) {
-        h += '<div class="item" onclick="open(' + i + ')">';
-        h += '<strong style="color:#ffd43b">📖 درس ' + (i+1) + ': ' + L[i][0] + '</strong>';
-        h += '</div>';
-    }
-    document.getElementById('items').innerHTML = h;
-}
-
-function open(i) {
-    document.getElementById('vt').textContent = 'درس ' + (i+1) + ': ' + L[i][0];
-    document.getElementById('vc').innerHTML = L[i][1];
-    go('view');
-}
-</script>
 </body>
 </html>
