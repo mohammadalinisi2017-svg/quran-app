@@ -3,28 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>پیام‌رسان من</title>
+<title>واتساپ من</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma;-webkit-tap-highlight-color:transparent}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
-body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition:background 0.3s}
+body{background:#0b141a;color:#fff;display:flex;flex-direction:column}
 
 /* ورود */
-.login{position:fixed;inset:0;background:linear-gradient(135deg,#0b141a,#1a2a3a);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;z-index:9999}
-.login h1{color:#00a884;font-size:2.5em;margin-bottom:15px}
-.login p{color:#8696a0;margin-bottom:25px;text-align:center;line-height:1.8}
-.login input{background:#2a3942;border:1px solid #00a884;padding:15px;border-radius:25px;color:#fff;font-size:16px;font-family:Tahoma;outline:none;text-align:center;margin-bottom:15px;width:100%;max-width:300px}
-.login button{background:#00a884;color:#fff;border:none;padding:15px;border-radius:25px;font-size:16px;font-weight:bold;cursor:pointer;width:100%;max-width:300px}
+.login{position:fixed;inset:0;background:linear-gradient(135deg,#075e54,#128c7e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;z-index:9999}
+.login .logo{font-size:80px;margin-bottom:15px}
+.login h1{color:#fff;font-size:2em;margin-bottom:10px}
+.login p{color:#d1f4e0;margin-bottom:30px;text-align:center;line-height:1.8}
+.login input{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);padding:15px;border-radius:30px;color:#fff;font-size:16px;font-family:Tahoma;outline:none;text-align:center;margin-bottom:15px;width:100%;max-width:300px}
+.login input::placeholder{color:rgba(255,255,255,0.7)}
+.login button{background:#25d366;color:#fff;border:none;padding:16px;border-radius:30px;font-size:16px;font-weight:bold;cursor:pointer;width:100%;max-width:300px;box-shadow:0 4px 15px rgba(37,211,102,0.4)}
+.login button:active{transform:scale(0.97)}
 
 /* هدر */
-.header{background:#202c33;padding:12px 15px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,0.3)}
-.back-btn{background:none;border:none;color:#00a884;font-size:22px;cursor:pointer;padding:5px}
-.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-size:18px}
+.header{background:#202c33;padding:12px 15px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.3);z-index:10}
+.back-btn{background:none;border:none;color:#00a884;font-size:24px;cursor:pointer;padding:5px;display:none}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-size:16px;position:relative}
+.avatar .status-dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#00a884;border:2px solid #202c33}
+.avatar .status-dot.offline{background:#8696a0}
 .info{flex:1;min-width:0}
 .info h2{font-size:16px;color:#e9edef;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.info p{font-size:12px;color:#00a884;display:flex;align-items:center;gap:4px}
-.info p.offline{color:#8696a0}
-.info p.typing{color:#ffd700}
+.info p{font-size:12px;color:#8696a0;display:flex;align-items:center;gap:4px}
+.info p.online{color:#00a884}
+.info p.typing{color:#ffd700;font-style:italic}
 .header-btn{background:none;border:none;color:#8696a0;font-size:20px;cursor:pointer;padding:5px}
 
 /* محتوا */
@@ -32,89 +37,105 @@ body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition
 .page{position:absolute;inset:0;display:none;flex-direction:column}
 .page.active{display:flex}
 
-/* چت */
-.chat-list{flex:1;overflow-y:auto;padding:15px;background:#0b141a}
-.msg{max-width:80%;padding:10px 14px;border-radius:12px;margin-bottom:10px;word-wrap:break-word;font-size:15px;line-height:1.4;position:relative;animation:slide 0.3s}
-@keyframes slide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* چت‌لیست */
+.chat-list{flex:1;overflow-y:auto;background:#0b141a}
+
+.chat-item{padding:12px 15px;display:flex;gap:12px;align-items:center;cursor:pointer;border-bottom:1px solid #1f2c33}
+.chat-item:active{background:#202c33}
+.chat-item .avatar{width:50px;height:50px;font-size:18px}
+.chat-item .body{flex:1;min-width:0}
+.chat-item h3{font-size:16px;color:#e9edef;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.chat-item h3 .time{font-size:11px;color:#8696a0;font-weight:normal}
+.chat-item h3 .time.unread{color:#00a884;font-weight:bold}
+.chat-item p{font-size:13px;color:#8696a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;justify-content:space-between;align-items:center}
+.chat-item .badge{background:#00a884;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:bold;min-width:20px;text-align:center}
+
+/* پیام‌ها */
+.messages-area{flex:1;overflow-y:auto;padding:15px;background:#0b141a;background-image:radial-gradient(circle at 20% 20%, rgba(0,168,132,0.03) 0%, transparent 50%),radial-gradient(circle at 80% 80%, rgba(0,168,132,0.03) 0%, transparent 50%)}
+.msg{max-width:80%;padding:8px 12px 6px;border-radius:10px;margin-bottom:8px;word-wrap:break-word;font-size:15px;line-height:1.4;position:relative;animation:slide 0.3s;box-shadow:0 1px 2px rgba(0,0,0,0.2)}
+@keyframes slide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .msg.sent{background:#005c4b;margin-left:auto;border-top-right-radius:3px}
 .msg.received{background:#202c33;margin-right:auto;border-top-left-radius:3px}
-.msg .sender{font-size:12px;color:#00a884;font-weight:bold;margin-bottom:3px}
-.msg .text{color:#e9edef}
-.msg .time{font-size:10px;color:#8696a0;margin-top:5px;text-align:left}
-.msg.sent .time{color:#a8c7b7}
+.msg .sender{font-size:12px;color:#00a884;font-weight:bold;margin-bottom:4px}
+.msg .text{color:#e9edef;word-wrap:break-word}
+.msg .meta{font-size:10px;color:#8696a0;margin-top:3px;text-align:left;display:flex;justify-content:flex-end;align-items:center;gap:4px}
+.msg.sent .meta{color:#a8c7b7}
+.msg .check{color:#a8c7b7;font-size:12px}
+.msg .check.read{color:#53bdeb}
+
+/* تاریخ */
+.date-divider{text-align:center;margin:15px 0;font-size:12px;color:#8696a0}
+.date-divider span{background:#202c33;padding:5px 12px;border-radius:12px}
 
 /* ورودی */
-.input-bar{background:#202c33;padding:10px;display:flex;gap:8px;align-items:center;flex-shrink:0}
-.input-bar input{flex:1;background:#2a3942;border:none;padding:14px 18px;border-radius:25px;color:#fff;font-family:Tahoma;font-size:15px;outline:none}
+.input-bar{background:#202c33;padding:8px 10px;display:flex;gap:6px;align-items:center;flex-shrink:0}
+.input-bar input{flex:1;background:#2a3942;border:none;padding:13px 16px;border-radius:25px;color:#fff;font-family:Tahoma;font-size:15px;outline:none}
 .input-bar input::placeholder{color:#8696a0}
 .emoji-btn{background:none;border:none;color:#ffd700;font-size:24px;cursor:pointer;padding:5px}
-.send-btn{background:#00a884;border:none;width:48px;height:48px;border-radius:50%;color:#fff;font-size:22px;cursor:pointer;flex-shrink:0}
+.send-btn{background:#00a884;border:none;width:48px;height:48px;border-radius:50%;color:#fff;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .send-btn:active{transform:scale(0.9)}
 
 /* ایموجی */
-.emoji-panel{display:none;background:#202c33;padding:10px;grid-template-columns:repeat(7,1fr);gap:5px;max-height:180px;overflow-y:auto;border-top:1px solid #2a3942}
+.emoji-panel{display:none;background:#202c33;padding:10px;grid-template-columns:repeat(7,1fr);gap:5px;max-height:180px;overflow-y:auto;border-top:1px solid #2a3942;flex-shrink:0}
 .emoji-panel.show{display:grid}
 .emoji-panel span{font-size:24px;cursor:pointer;text-align:center;padding:5px;border-radius:8px}
 .emoji-panel span:active{background:#2a3942}
 
-/* لیست چت ها */
-.chat-item{background:#202c33;border-radius:12px;padding:15px;margin-bottom:10px;cursor:pointer;display:flex;gap:12px;align-items:center}
-.chat-item:active{background:#2a3942}
-.chat-item .avatar{width:50px;height:50px}
-.chat-item .body{flex:1;min-width:0}
-.chat-item h3{font-size:16px;color:#e9edef;margin-bottom:4px}
-.chat-item p{font-size:13px;color:#8696a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chat-item .badge{background:#00a884;color:#fff;font-size:11px;padding:3px 8px;border-radius:10px;font-weight:bold}
-
-/* تب ها */
+/* تب‌ها */
 .tabs{background:#202c33;display:flex;border-top:1px solid #2a3942;flex-shrink:0}
-.tab-btn{flex:1;background:none;border:none;color:#8696a0;padding:12px 5px;font-size:11px;font-family:Tahoma;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab-btn{flex:1;background:none;border:none;color:#8696a0;padding:10px 5px;font-size:11px;font-family:Tahoma;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
 .tab-btn .icon{font-size:22px}
 .tab-btn.active{color:#00a884}
-
-/* کاربران */
-.user-item{background:#202c33;border-radius:12px;padding:15px;margin-bottom:10px;cursor:pointer;display:flex;gap:12px;align-items:center}
-.user-item:active{background:#2a3942}
-.user-item .avatar{width:45px;height:45px}
-.user-item .body{flex:1}
-.user-item h3{font-size:15px;color:#e9edef}
-.user-item p{font-size:12px;color:#00a884}
+.tab-btn .badge{position:absolute;top:5px;right:25%;background:#00a884;color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold}
 
 /* پروفایل */
-.profile{padding:30px;display:flex;flex-direction:column;align-items:center;text-align:center}
-.profile .avatar{width:100px;height:100px;font-size:40px;margin-bottom:15px}
+.profile{padding:30px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;overflow-y:auto;height:100%}
+.profile .avatar{width:110px;height:110px;font-size:44px;margin-bottom:15px;border:4px solid #00a884}
 .profile h2{font-size:22px;color:#e9edef;margin-bottom:5px}
-.profile p{color:#8696a0;margin-bottom:20px}
-.profile .stat{background:#202c33;border-radius:12px;padding:20px;width:100%;max-width:300px;margin-bottom:10px}
-.profile .stat strong{color:#00a884;font-size:20px;display:block}
-.profile .stat span{color:#8696a0;font-size:13px}
+.profile .phone{color:#8696a0;margin-bottom:25px}
+.profile .about{background:#202c33;border-radius:12px;padding:15px;width:100%;max-width:350px;margin-bottom:10px;text-align:right}
+.profile .about small{color:#8696a0;font-size:12px;display:block;margin-bottom:5px}
+.profile .about p{color:#e9edef}
+.profile .stat-row{display:flex;gap:10px;width:100%;max-width:350px;margin-bottom:10px}
+.profile .stat-box{flex:1;background:#202c33;border-radius:12px;padding:15px;text-align:center}
+.profile .stat-box strong{color:#00a884;font-size:22px;display:block;margin-bottom:3px}
+.profile .stat-box span{color:#8696a0;font-size:12px}
+.profile .btn{background:#00a884;color:#fff;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;width:100%;max-width:350px;margin-top:10px;font-family:Tahoma}
+.profile .btn.danger{background:#e94560}
+.profile .btn:active{transform:scale(0.98)}
 
 /* سرچ */
-.search-bar{background:#202c33;padding:10px;flex-shrink:0}
-.search-bar input{width:100%;background:#2a3942;border:none;padding:12px 18px;border-radius:25px;color:#fff;font-size:14px;outline:none;font-family:Tahoma}
+.search-bar{background:#0b141a;padding:10px 15px;flex-shrink:0;border-bottom:1px solid #1f2c33}
+.search-bar input{width:100%;background:#202c33;border:none;padding:12px 18px;border-radius:25px;color:#fff;font-size:14px;outline:none;font-family:Tahoma}
+.search-bar input::placeholder{color:#8696a0}
 
-.empty{text-align:center;color:#8696a0;padding:40px 20px;line-height:1.8}
+.empty{text-align:center;color:#8696a0;padding:50px 20px;line-height:2;font-size:14px}
+.empty .big{font-size:60px;display:block;margin-bottom:15px;opacity:0.5}
+
+/* FAB (دکمه شناور) */
+.fab{position:absolute;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;background:#00a884;border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 4px 15px rgba(0,168,132,0.5);z-index:20}
+.fab:active{transform:scale(0.9)}
 </style>
 </head>
 <body>
 
 <!-- ورود -->
 <div class="login" id="loginScreen">
-<h1>💬 پیام‌رسان</h1>
-<p>اسمت رو وارد کن تا شروع کنیم<br>با دوستات چت کن!</p>
+<div class="logo">💬</div>
+<h1>واتساپ من</h1>
+<p>برای شروع، اسمت رو وارد کن<br>با همه چت کن!</p>
 <input type="text" id="nameInput" placeholder="اسم شما" maxlength="20">
-<button id="loginBtn">ورود</button>
+<button id="loginBtn">ورود به واتساپ</button>
 </div>
 
 <!-- هدر -->
 <div class="header" id="header" style="display:none">
-<button class="back-btn" id="backBtn" style="display:none">←</button>
-<div class="avatar" id="headerAvatar">👤</div>
+<button class="back-btn" id="backBtn">←</button>
+<div class="avatar" id="headerAvatar">👤<span class="status-dot" id="headerStatusDot"></span></div>
 <div class="info">
-<h2 id="headerTitle">پیام‌رسان</h2>
-<p id="headerStatus">● آنلاین</p>
+<h2 id="headerTitle">واتساپ</h2>
+<p id="headerStatus">آنلاین</p>
 </div>
-<button class="header-btn" id="themeBtn" title="تغییر تم">🌙</button>
 </div>
 
 <!-- محتوا -->
@@ -123,14 +144,14 @@ body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition
 <!-- تب چت‌ها -->
 <div class="page active" id="pageChats">
 <div class="search-bar">
-<input type="text" id="searchChat" placeholder="🔍 جستجو...">
+<input type="text" id="searchChat" placeholder="🔍 جستجوی چت...">
 </div>
 <div class="chat-list" id="chatList">
-<div class="chat-item" id="publicChat">
+<div class="chat-item" id="publicChatItem">
 <div class="avatar">👥</div>
 <div class="body">
-<h3>گروه عمومی</h3>
-<p>چت با همه کاربران</p>
+<h3>گروه عمومی <span class="time" id="publicTime"></span></h3>
+<p><span id="publicLastMsg">چت با همه کاربران</span><span class="badge" id="publicBadge" style="display:none">0</span></p>
 </div>
 </div>
 </div>
@@ -138,8 +159,8 @@ body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition
 
 <!-- تب چت باز -->
 <div class="page" id="pageChat">
-<div class="chat-list" id="messagesList">
-<div class="empty">هنوز پیامی نیست. اولین نفر باش!</div>
+<div class="messages-area" id="messagesArea">
+<div class="empty"><span class="big">💬</span>هنوز پیامی نیست. اولین نفر باش!</div>
 </div>
 <div class="emoji-panel" id="emojiPanel"></div>
 <div class="input-bar">
@@ -155,7 +176,7 @@ body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition
 <input type="text" id="searchUser" placeholder="🔍 جستجوی کاربر...">
 </div>
 <div class="chat-list" id="usersList">
-<div class="empty">در حال بارگذاری...</div>
+<div class="empty"><span class="big">👥</span>در حال بارگذاری...</div>
 </div>
 </div>
 
@@ -164,16 +185,22 @@ body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition
 <div class="profile">
 <div class="avatar" id="profileAvatar">👤</div>
 <h2 id="profileName">کاربر</h2>
-<p id="profileStatus">● آنلاین</p>
-<div class="stat">
+<p class="phone" id="profilePhone">● آنلاین</p>
+<div class="about">
+<small>درباره من</small>
+<p>سلام! من دارم با واتساپ خودم چت می‌کنم 😊</p>
+</div>
+<div class="stat-row">
+<div class="stat-box">
 <strong id="statMessages">0</strong>
-<span>پیام ارسالی</span>
+<span>پیام</span>
 </div>
-<div class="stat">
+<div class="stat-box">
 <strong id="statUsers">0</strong>
-<span>کاربران آنلاین</span>
+<span>کاربر</span>
 </div>
-<button class="send-btn" style="width:auto;padding:12px 30px;border-radius:25px;font-size:15px;margin-top:10px" id="logoutBtn">🚪 خروج</button>
+</div>
+<button class="btn" id="logoutBtn">🚪 خروج از حساب</button>
 </div>
 </div>
 
@@ -184,6 +211,7 @@ body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition
 <button class="tab-btn active" data-tab="pageChats">
 <span class="icon">💬</span>
 <span>چت‌ها</span>
+<span class="badge" id="tabChatBadge" style="display:none">0</span>
 </button>
 <button class="tab-btn" data-tab="pageUsers">
 <span class="icon">👥</span>
@@ -191,13 +219,13 @@ body{background:#0b141a;color:#fff;display:flex;flex-direction:column;transition
 </button>
 <button class="tab-btn" data-tab="pageProfile">
 <span class="icon">👤</span>
-<span>پروفایل</span>
+<span>من</span>
 </button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, query, limitToLast, set, remove, serverTimestamp, onDisconnect, update, get } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+import { getDatabase, ref, push, onValue, query, limitToLast, set, remove, onDisconnect, get, update } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCiattAZKHvXx_qUwkZRLYjoojLeaYbMm4",
@@ -215,19 +243,20 @@ const db = getDatabase(app);
 var myName = "";
 var myId = "";
 var currentChat = "public";
-var currentChatName = "گروه عمومی";
+var currentChatUser = null;
 var msgCount = 0;
-var usersCache = {};
+var typingTimer = null;
+var unreadCounts = {};
+var allUsers = {};
 
-// ایموجی‌ها
-var emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','👑','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🚗','✈️'];
+var emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','👑','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🚗','✈️','🎂','🍰'];
 
-// ==================== ورود ====================
-var savedName = localStorage.getItem('messenger_name');
+// ============ ورود ============
+var savedName = localStorage.getItem('wa_name');
 if (savedName) {
     myName = savedName;
-    myId = localStorage.getItem('messenger_id') || 'user_' + Date.now();
-    localStorage.setItem('messenger_id', myId);
+    myId = localStorage.getItem('wa_id') || 'user_' + Date.now();
+    localStorage.setItem('wa_id', myId);
     startApp();
 }
 
@@ -235,147 +264,145 @@ document.getElementById('loginBtn').onclick = function() {
     var name = document.getElementById('nameInput').value.trim();
     if (name === '') { alert('اسمت رو وارد کن!'); return; }
     myName = name;
-    myId = 'user_' + Date.now();
-    localStorage.setItem('messenger_name', name);
-    localStorage.setItem('messenger_id', myId);
+    myId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    localStorage.setItem('wa_name', name);
+    localStorage.setItem('wa_id', myId);
     startApp();
-};
-
-document.getElementById('logoutBtn').onclick = function() {
-    if (confirm('از پیام‌رسان خارج می‌شی؟')) {
-        if (myId) remove(ref(db, 'online/' + myId));
-        localStorage.removeItem('messenger_name');
-        localStorage.removeItem('messenger_id');
-        location.reload();
-    }
 };
 
 function startApp() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('header').style.display = 'flex';
     document.getElementById('tabs').style.display = 'flex';
-    document.getElementById('headerAvatar').textContent = myName.charAt(0).toUpperCase();
+    document.getElementById('headerAvatar').innerHTML = myName.charAt(0).toUpperCase() + '<span class="status-dot"></span>';
     document.getElementById('profileAvatar').textContent = myName.charAt(0).toUpperCase();
     document.getElementById('profileName').textContent = myName;
-    document.getElementById('headerTitle').textContent = 'پیام‌رسان';
+    document.getElementById('profilePhone').textContent = '● آنلاین';
     
-    // ثبت آنلاین
     setOnline();
-    
-    // بارگذاری
     loadPublicMessages();
-    loadUsers();
+    loadUsersList();
     loadEmoji();
+    loadMyMessagesCount();
 }
 
-// ==================== آنلاین ====================
+// ============ آنلاین ============
 function setOnline() {
     var onlineRef = ref(db, 'online/' + myId);
     set(onlineRef, { name: myName, time: Date.now() });
     onDisconnect(onlineRef).remove();
+    
+    // آخرین بازدید
+    var lastRef = ref(db, 'lastseen/' + myId);
+    set(lastRef, { name: myName, time: Date.now() });
 }
 
-// ==================== چت عمومی ====================
-document.getElementById('publicChat').onclick = function() {
+// ============ چت عمومی ============
+document.getElementById('publicChatItem').onclick = function() {
     currentChat = "public";
-    currentChatName = "گروه عمومی";
+    currentChatUser = null;
+    unreadCounts['public'] = 0;
+    updateBadges();
     document.getElementById('headerTitle').textContent = "گروه عمومی";
     document.getElementById('headerStatus').textContent = "● آنلاین";
+    document.getElementById('headerStatus').className = 'online';
+    document.getElementById('backBtn').style.display = 'block';
     showPage('pageChat');
     loadPublicMessages();
 };
 
 function loadPublicMessages() {
-    var list = document.getElementById('messagesList');
+    var area = document.getElementById('messagesArea');
     onValue(query(ref(db, 'messages'), limitToLast(100)), function(snap) {
-        list.innerHTML = '';
+        area.innerHTML = '';
         var data = snap.val();
         if (!data) {
-            list.innerHTML = '<div class="empty">هنوز پیامی نیست. اولین نفر باش!</div>';
+            area.innerHTML = '<div class="empty"><span class="big">💬</span>هنوز پیامی نیست. اولین نفر باش!</div>';
             return;
         }
         var keys = Object.keys(data).sort(function(a,b) { return (data[a].time||0) - (data[b].time||0); });
+        var lastDate = '';
+        
         keys.forEach(function(k) {
             var m = data[k];
+            var msgDate = new Date(m.time).toLocaleDateString('fa-IR');
+            if (msgDate !== lastDate) {
+                var div = document.createElement('div');
+                div.className = 'date-divider';
+                div.innerHTML = '<span>' + msgDate + '</span>';
+                area.appendChild(div);
+                lastDate = msgDate;
+            }
+            
             var isMine = (m.name === myName);
-            var div = document.createElement('div');
-            div.className = 'msg ' + (isMine ? 'sent' : 'received');
+            var msg = document.createElement('div');
+            msg.className = 'msg ' + (isMine ? 'sent' : 'received');
             var html = '';
-            if (!isMine) html += '<div class="sender">' + m.name + '</div>';
+            if (!isMine) html += '<div class="sender">' + escapeHtml(m.name) + '</div>';
             html += '<div class="text">' + escapeHtml(m.text) + '</div>';
-            html += '<div class="time">' + (m.timeStr||'') + '</div>';
-            div.innerHTML = html;
-            list.appendChild(div);
+            html += '<div class="meta">' + (m.timeStr||'') + (isMine ? ' <span class="check">✓✓</span>' : '') + '</div>';
+            msg.innerHTML = html;
+            area.appendChild(msg);
         });
-        list.scrollTop = list.scrollHeight;
+        
+        area.scrollTop = area.scrollHeight;
+        
+        // آخرین پیام
+        if (keys.length > 0) {
+            var last = data[keys[keys.length-1]];
+            document.getElementById('publicLastMsg').textContent = last.name + ': ' + last.text;
+            document.getElementById('publicTime').textContent = last.timeStr;
+        }
     });
 }
 
-// ==================== کاربران ====================
-function loadUsers() {
-    var list = document.getElementById('usersList');
-    onValue(ref(db, 'online'), function(snap) {
-        list.innerHTML = '';
-        var data = snap.val();
-        if (!data) {
-            list.innerHTML = '<div class="empty">هیچ کاربری آنلاین نیست</div>';
-            return;
-        }
-        var count = 0;
-        Object.keys(data).forEach(function(uid) {
-            if (uid === myId) return;
-            var u = data[uid];
-            count++;
-            usersCache[uid] = u;
-            var div = document.createElement('div');
-            div.className = 'user-item';
-            div.innerHTML = '<div class="avatar">' + u.name.charAt(0).toUpperCase() + '</div>' +
-                            '<div class="body"><h3>' + escapeHtml(u.name) + '</h3><p>● آنلاین</p></div>';
-            div.onclick = function() { openPrivateChat(uid, u.name); };
-            list.appendChild(div);
-        });
-        if (count === 0) {
-            list.innerHTML = '<div class="empty">هنوز کسی آنلاین نیست</div>';
-        }
-        document.getElementById('statUsers').textContent = count + 1;
-    });
-}
-
+// ============ چت خصوصی ============
 function openPrivateChat(uid, name) {
     currentChat = uid;
-    currentChatName = name;
+    currentChatUser = { id: uid, name: name };
+    unreadCounts[uid] = 0;
+    updateBadges();
     document.getElementById('headerTitle').textContent = name;
     document.getElementById('headerStatus').textContent = "● آنلاین";
+    document.getElementById('headerStatus').className = 'online';
+    document.getElementById('backBtn').style.display = 'block';
     showPage('pageChat');
     loadPrivateMessages(uid);
 }
 
 function loadPrivateMessages(otherId) {
     var chatId = [myId, otherId].sort().join('_');
-    var list = document.getElementById('messagesList');
+    var area = document.getElementById('messagesArea');
     onValue(query(ref(db, 'private/' + chatId), limitToLast(100)), function(snap) {
-        list.innerHTML = '';
+        area.innerHTML = '';
         var data = snap.val();
         if (!data) {
-            list.innerHTML = '<div class="empty">هنوز پیامی نیست. سلام کن!</div>';
+            area.innerHTML = '<div class="empty"><span class="big">💬</span>هنوز پیامی نیست. سلام کن!</div>';
             return;
         }
         var keys = Object.keys(data).sort(function(a,b) { return (data[a].time||0) - (data[b].time||0); });
+        
         keys.forEach(function(k) {
             var m = data[k];
             var isMine = (m.sender === myId);
-            var div = document.createElement('div');
-            div.className = 'msg ' + (isMine ? 'sent' : 'received');
+            var msg = document.createElement('div');
+            msg.className = 'msg ' + (isMine ? 'sent' : 'received');
             var html = '<div class="text">' + escapeHtml(m.text) + '</div>';
-            html += '<div class="time">' + (m.timeStr||'') + '</div>';
-            div.innerHTML = html;
-            list.appendChild(div);
+            html += '<div class="meta">' + (m.timeStr||'') + (isMine ? ' <span class="check ' + (m.read ? 'read' : '') + '">✓✓</span>' : '') + '</div>';
+            msg.innerHTML = html;
+            area.appendChild(msg);
+            
+            // علامت خوانده شدن
+            if (!isMine && !m.read) {
+                update(ref(db, 'private/' + chatId + '/' + k), { read: true });
+            }
         });
-        list.scrollTop = list.scrollHeight;
+        
+        area.scrollTop = area.scrollHeight;
     });
 }
 
-// ==================== ارسال ====================
+// ============ ارسال ============
 document.getElementById('sendBtn').onclick = sendMsg;
 document.getElementById('msgInput').onkeypress = function(e) { if (e.key === 'Enter') sendMsg(); };
 
@@ -391,7 +418,9 @@ function sendMsg() {
         push(ref(db, 'messages'), { name: myName, text: text, time: Date.now(), timeStr: timeStr });
     } else {
         var chatId = [myId, currentChat].sort().join('_');
-        push(ref(db, 'private/' + chatId), { sender: myId, senderName: myName, text: text, time: Date.now(), timeStr: timeStr });
+        push(ref(db, 'private/' + chatId), { 
+            sender: myId, senderName: myName, text: text, time: Date.now(), timeStr: timeStr, read: false 
+        });
     }
     
     msgCount++;
@@ -399,77 +428,21 @@ function sendMsg() {
     input.value = '';
 }
 
-// ==================== ایموجی ====================
-function loadEmoji() {
-    var panel = document.getElementById('emojiPanel');
-    var h = '';
-    emojis.forEach(function(e) {
-        h += '<span>' + e + '</span>';
-    });
-    panel.innerHTML = h;
-    panel.querySelectorAll('span').forEach(function(s) {
-        s.onclick = function() {
-            var input = document.getElementById('msgInput');
-            input.value += s.textContent;
-            input.focus();
-        };
-    });
-}
-
-document.getElementById('emojiBtn').onclick = function() {
-    document.getElementById('emojiPanel').classList.toggle('show');
-};
-
-// ==================== تب ها ====================
-document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.onclick = function() {
-        var target = btn.getAttribute('data-tab');
-        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-        document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-        btn.classList.add('active');
-        document.getElementById(target).classList.add('active');
-        document.getElementById('backBtn').style.display = 'none';
-        if (target === 'pageChats') {
-            document.getElementById('headerTitle').textContent = 'پیام‌رسان';
-        } else if (target === 'pageUsers') {
-            document.getElementById('headerTitle').textContent = 'کاربران آنلاین';
-        } else {
-            document.getElementById('headerTitle').textContent = 'پروفایل';
-        }
-    };
-});
-
-// ==================== ناوبری ====================
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-    document.getElementById(id).classList.add('active');
-}
-
-document.getElementById('backBtn').onclick = function() {
-    document.querySelector('.tab-btn[data-tab="pageChats"]').click();
-};
-
-// ==================== تم ====================
-document.getElementById('themeBtn').onclick = function() {
-    document.body.style.background = document.body.style.background === 'white' ? '#0b141a' : 'white';
-};
-
-// ==================== سرچ ====================
-document.getElementById('searchUser').oninput = function(e) {
-    var q = e.target.value.toLowerCase();
-    document.querySelectorAll('#usersList .user-item').forEach(function(item) {
-        var name = item.querySelector('h3').textContent.toLowerCase();
-        item.style.display = name.includes(q) ? 'flex' : 'none';
-    });
-};
-
-// ==================== کمکی ====================
-function escapeHtml(text) {
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-</script>
-
-</body>
-</html>
+// ============ لیست کاربران ============
+function loadUsersList() {
+    var list = document.getElementById('usersList');
+    onValue(ref(db, 'online'), function(snap) {
+        list.innerHTML = '';
+        var data = snap.val();
+        var count = 0;
+        
+        if (data) {
+            Object.keys(data).forEach(function(uid) {
+                if (uid === myId) return;
+                var u = data[uid];
+                allUsers[uid] = u;
+                count++;
+                
+                var div = document.createElement('div');
+                div.className = 'chat-item';
+                div.innerHTML = '<
