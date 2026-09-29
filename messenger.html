@@ -3,71 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>پیام‌رسان من</title>
+<title>سوپر اپ</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:#0b141a;color:#fff;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:#0b141a;color:#fff;display:flex;flex-direction:column}
 
-.login{position:fixed;inset:0;background:linear-gradient(135deg,#0b141a,#1a2a3a);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;z-index:100}
-.login h1{color:#00a884;font-size:2.5em;margin-bottom:10px}
-.login p{color:#8696a0;margin-bottom:30px;text-align:center;line-height:1.8}
-.login input{width:100%;max-width:300px;background:#2a3942;border:1px solid #00a884;padding:15px;border-radius:25px;color:#fff;font-size:16px;font-family:Tahoma;outline:none;text-align:center;margin-bottom:15px}
-.login button{background:#00a884;color:#fff;border:none;padding:15px 50px;border-radius:25px;font-size:16px;font-family:Tahoma;font-weight:bold;cursor:pointer;width:100%;max-width:300px}
-.login button:active{transform:scale(0.98)}
+/* محتوای اصلی */
+.content{flex:1;overflow:hidden;position:relative}
+.tab-page{position:absolute;inset:0;display:none;flex-direction:column}
+.tab-page.active{display:flex}
 
-.header{background:#202c33;padding:12px 15px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,0.4);z-index:10}
-.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;flex-shrink:0}
-.info{flex:1;min-width:0}
-.name{font-size:16px;font-weight:bold;color:#e9edef}
-.status{font-size:12px;color:#00a884;display:flex;align-items:center;gap:5px}
-.status::before{content:'';width:8px;height:8px;background:#00a884;border-radius:50%;animation:blink 2s infinite}
-@keyframes blink{50%{opacity:0.3}}
-.logout{background:none;border:none;color:#8696a0;font-size:20px;cursor:pointer;padding:5px}
+/* تب چت */
+.chat-header{background:#202c33;padding:12px 15px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.avatar{width:40px;height:40px;border-radius:50%;background:#00a884;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.chat-header .info{flex:1}
+.chat-header .info h2{font-size:16px;color:#e9edef}
+.chat-header .info p{font-size:12px;color:#00a884}
 
-.chat{flex:1;overflow-y:auto;padding:15px 12px;display:flex;flex-direction:column;gap:8px;background:#0b141a}
-.msg{max-width:80%;padding:8px 12px;border-radius:10px;word-wrap:break-word;line-height:1.4;font-size:15px;position:relative;animation:slideIn 0.3s ease}
-@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.msg.sent{background:#005c4b;align-self:flex-end;border-top-right-radius:3px}
-.msg.received{background:#202c33;align-self:flex-start;border-top-left-radius:3px}
+.chat-list{flex:1;overflow-y:auto;padding:15px;background:#0b141a}
+.msg{max-width:80%;padding:10px 14px;border-radius:12px;margin-bottom:10px;word-wrap:break-word;font-size:15px;line-height:1.4}
+.msg.sent{background:#005c4b;margin-left:auto;border-top-right-radius:3px}
+.msg.received{background:#202c33;margin-right:auto;border-top-left-radius:3px}
 .msg .sender{font-size:12px;color:#00a884;font-weight:bold;margin-bottom:3px}
-.msg .text{color:#e9edef}
-.msg .time{font-size:10px;color:#8696a0;margin-top:4px;display:block;text-align:left}
-.msg.sent .time{color:#a8c7b7}
+.msg .time{font-size:10px;color:#8696a0;margin-top:5px;text-align:left}
 
-.input-bar{background:#202c33;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0}
-.input-bar input{flex:1;background:#2a3942;border:none;padding:12px 16px;border-radius:25px;color:#e9edef;font-family:Tahoma;font-size:15px;outline:none;min-width:0}
-.input-bar input::placeholder{color:#8696a0}
-.send{background:#00a884;border:none;width:48px;height:48px;border-radius:50%;color:white;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.send:active{transform:scale(0.9);background:#008f72}
+.chat-input{background:#202c33;padding:10px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+.chat-input input{flex:1;background:#2a3942;border:none;padding:14px 18px;border-radius:25px;color:#fff;font-family:Tahoma;font-size:15px;outline:none}
+.chat-input input::placeholder{color:#8696a0}
+.send-btn{background:#00a884;border:none;width:50px;height:50px;border-radius:50%;color:#fff;font-size:22px;cursor:pointer;flex-shrink:0}
 
-.empty{text-align:center;color:#8696a0;padding:40px 20px;line-height:1.8}
+/* تب مرورگر */
+.browser-header{background:#202c33;padding:10px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+.browser-header input{flex:1;background:#2a3942;border:none;padding:12px 15px;border-radius:25px;color:#fff;font-size:14px;outline:none;direction:ltr}
+.browser-header input::placeholder{color:#8696a0}
+.go-btn{background:#00a884;border:none;padding:12px 18px;border-radius:25px;color:#fff;font-size:14px;cursor:pointer;font-weight:bold}
+.browser-frame{flex:1;border:none;background:#fff;width:100%}
+
+.browser-shortcuts{background:#202c33;padding:8px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0}
+.shortcut{background:#2a3942;border:none;color:#e9edef;padding:8px 15px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:Tahoma}
+.shortcut:active{background:#00a884}
+
+/* تب ها */
+.tabs{background:#202c33;display:flex;border-top:1px solid #2a3942;flex-shrink:0}
+.tab-btn{flex:1;background:none;border:none;color:#8696a0;padding:12px 5px;font-size:12px;font-family:Tahoma;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tab-btn .icon{font-size:22px}
+.tab-btn.active{color:#00a884}
+
+/* صفحه ورود */
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0b141a,#1a2a3a);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;z-index:9999}
+.login-screen h1{color:#00a884;font-size:2.5em;margin-bottom:10px}
+.login-screen p{color:#8696a0;margin-bottom:25px;text-align:center;line-height:1.8}
+.login-screen input{background:#2a3942;border:1px solid #00a884;padding:15px;border-radius:25px;color:#fff;font-size:16px;font-family:Tahoma;outline:none;text-align:center;margin-bottom:15px;width:100%;max-width:300px}
+.login-screen button{background:#00a884;color:#fff;border:none;padding:15px;border-radius:25px;font-size:16px;font-weight:bold;cursor:pointer;width:100%;max-width:300px}
+
+/* درباره */
+.about{flex:1;overflow-y:auto;padding:20px;line-height:2}
+.about h2{color:#00a884;margin-bottom:15px}
+.about .card{background:#202c33;border-radius:15px;padding:20px;margin-bottom:15px}
+.about ul{margin-right:20px}
+.about li{margin-bottom:8px}
 </style>
 </head>
 <body>
 
-<div class="login" id="loginPage">
-<h1>💬 پیام‌رسان</h1>
-<p>اسمت رو وارد کن تا شروع کنیم<br>پیام‌هات برای همه نمایش داده می‌شه</p>
+<!-- صفحه ورود -->
+<div class="login-screen" id="loginScreen">
+<h1>💬 سوپر اپ</h1>
+<p>اسمت رو وارد کن تا شروع کنیم</p>
 <input type="text" id="nameInput" placeholder="اسم شما" maxlength="20">
-<button onclick="login()">ورود</button>
+<button id="loginBtn">ورود</button>
 </div>
 
-<div class="header" id="header" style="display:none">
+<!-- محتوا -->
+<div class="content">
+
+<!-- صفحه چت -->
+<div class="tab-page active" id="pageChat">
+<div class="chat-header">
 <div class="avatar" id="userAvatar">👤</div>
 <div class="info">
-<div class="name">گروه عمومی</div>
-<div class="status">آنلاین</div>
+<h2>گروه عمومی</h2>
+<p>● آنلاین</p>
 </div>
-<button class="logout" onclick="logout()">🚪</button>
 </div>
-
-<div class="chat" id="chat" style="display:none">
-<div class="empty">در حال بارگذاری...</div>
+<div class="chat-list" id="chatList">
+<div style="text-align:center;color:#8696a0;padding:40px">هنوز پیامی نیست. اولین نفر باش!</div>
 </div>
-
-<div class="input-bar" id="inputBar" style="display:none">
+<div class="chat-input">
 <input type="text" id="msgInput" placeholder="پیام..." autocomplete="off">
-<button class="send" onclick="sendMessage()">➤</button>
+<button class="send-btn" id="sendBtn">➤</button>
+</div>
+</div>
+
+<!-- صفحه مرورگر -->
+<div class="tab-page" id="pageBrowser">
+<div class="browser-header">
+<input type="text" id="urlInput" placeholder="آدرس سایت..." value="https://www.google.com">
+<button class="go-btn" id="goBtn">برو</button>
+</div>
+<div class="browser-shortcuts">
+<button class="shortcut" data-url="https://www.google.com">🔍 گوگل</button>
+<button class="shortcut" data-url="https://www.wikipedia.org">📚 ویکی</button>
+<button class="shortcut" data-url="https://mohammadalinisi2017-svg.github.io/quran-app/">📖 قرآن</button>
+<button class="shortcut" data-url="https://mohammadalinisi2017-svg.github.io/quran-app/python1.html">🐍 پایتون</button>
+<button class="shortcut" data-url="https://quran.com">📕 قرآن آنلاین</button>
+<button class="shortcut" data-url="https://www.youtube.com">🎬 یوتیوب</button>
+</div>
+<iframe class="browser-frame" id="browserFrame" src="https://www.google.com" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+</div>
+
+<!-- صفحه درباره -->
+<div class="tab-page" id="pageAbout">
+<div class="about">
+<h2>ℹ️ درباره سوپر اپ</h2>
+<div class="card">
+<strong>ساخته شده توسط: محمد علی نیسی</strong><br>
+<span style="color:#8696a0">سن: 9 سال</span>
+</div>
+<div class="card">
+<strong>🎯 امکانات:</strong>
+<ul>
+<li>💬 چت گروهی (مثل واتساپ)</li>
+<li>🌐 مرورگر داخلی</li>
+<li>📱 رابط کاربری ساده</li>
+<li>🔒 ذخیره‌سازی امن</li>
+</ul>
+</div>
+<div class="card">
+<strong>💡 تکنولوژی‌ها:</strong>
+<ul>
+<li>HTML/CSS/JavaScript</li>
+<li>Firebase Realtime Database</li>
+<li>GitHub Pages</li>
+</ul>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- تب‌ها -->
+<div class="tabs">
+<button class="tab-btn active" data-tab="pageChat">
+<span class="icon">💬</span>
+<span>چت</span>
+</button>
+<button class="tab-btn" data-tab="pageBrowser">
+<span class="icon">🌐</span>
+<span>مرورگر</span>
+</button>
+<button class="tab-btn" data-tab="pageAbout">
+<span class="icon">ℹ️</span>
+<span>درباره</span>
+</button>
 </div>
 
 <script type="module">
@@ -87,16 +176,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let myName = localStorage.getItem('messenger_name') || '';
+var myName = "";
+var chatList = document.getElementById('chatList');
+var msgInput = document.getElementById('msgInput');
 
-const chat = document.getElementById('chat');
-const input = document.getElementById('msgInput');
-
-if (myName) {
-    showChat();
+// چک ورود قبلی
+var savedName = localStorage.getItem('messenger_name');
+if (savedName) {
+    myName = savedName;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('userAvatar').textContent = myName.charAt(0).toUpperCase();
+    loadMessages();
 }
 
-function login() {
+// ورود
+document.getElementById('loginBtn').onclick = function() {
     var name = document.getElementById('nameInput').value.trim();
     if (name === '') {
         alert('اسمت رو وارد کن!');
@@ -104,67 +198,20 @@ function login() {
     }
     myName = name;
     localStorage.setItem('messenger_name', name);
-    showChat();
-}
-
-function logout() {
-    if (confirm('از پیام‌رسان خارج می‌شی؟')) {
-        localStorage.removeItem('messenger_name');
-        myName = '';
-        location.reload();
-    }
-}
-
-function showChat() {
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('header').style.display = 'flex';
-    document.getElementById('chat').style.display = 'flex';
-    document.getElementById('inputBar').style.display = 'flex';
+    document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('userAvatar').textContent = myName.charAt(0).toUpperCase();
     loadMessages();
-}
+};
 
-function loadMessages() {
-    const messagesRef = query(ref(db, 'messages'), limitToLast(100));
-    
-    onValue(messagesRef, function(snapshot) {
-        chat.innerHTML = '';
-        var data = snapshot.val();
-        
-        if (!data) {
-            chat.innerHTML = '<div class="empty">هنوز پیامی نیست. اولین نفر باش!</div>';
-            return;
-        }
-        
-        var keys = Object.keys(data).sort(function(a, b) {
-            return (data[a].time || 0) - (data[b].time || 0);
-        });
-        
-        for (var i = 0; i < keys.length; i++) {
-            var msg = data[keys[i]];
-            var isMine = (msg.name === myName);
-            
-            var div = document.createElement('div');
-            div.className = 'msg ' + (isMine ? 'sent' : 'received');
-            
-            var html = '';
-            if (!isMine) {
-                html += '<div class="sender">' + msg.name + '</div>';
-            }
-            html += '<div class="text">' + escapeHtml(msg.text) + '</div>';
-            html += '<span class="time">' + (msg.timeStr || '') + '</span>';
-            
-            div.innerHTML = html;
-            chat.appendChild(div);
-        }
-        
-        chat.scrollTop = chat.scrollHeight;
-    });
-}
+// ارسال پیام
+document.getElementById('sendBtn').onclick = sendMsg;
+msgInput.onkeypress = function(e) {
+    if (e.key === 'Enter') sendMsg();
+};
 
-function sendMessage() {
-    var text = input.value.trim();
-    if (text === '') return;
+function sendMsg() {
+    var text = msgInput.value.trim();
+    if (text === '' || myName === '') return;
     
     var now = new Date();
     var timeStr = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
@@ -176,7 +223,38 @@ function sendMessage() {
         timeStr: timeStr
     });
     
-    input.value = '';
+    msgInput.value = '';
+}
+
+function loadMessages() {
+    onValue(query(ref(db, 'messages'), limitToLast(100)), function(snap) {
+        chatList.innerHTML = '';
+        var data = snap.val();
+        
+        if (!data) {
+            chatList.innerHTML = '<div style="text-align:center;color:#8696a0;padding:40px">هنوز پیامی نیست. اولین نفر باش!</div>';
+            return;
+        }
+        
+        var keys = Object.keys(data).sort(function(a,b) {
+            return (data[a].time||0) - (data[b].time||0);
+        });
+        
+        keys.forEach(function(k) {
+            var m = data[k];
+            var isMine = (m.name === myName);
+            var div = document.createElement('div');
+            div.className = 'msg ' + (isMine ? 'sent' : 'received');
+            var html = '';
+            if (!isMine) html += '<div class="sender">' + m.name + '</div>';
+            html += '<div>' + escapeHtml(m.text) + '</div>';
+            html += '<div class="time">' + (m.timeStr||'') + '</div>';
+            div.innerHTML = html;
+            chatList.appendChild(div);
+        });
+        
+        chatList.scrollTop = chatList.scrollHeight;
+    });
 }
 
 function escapeHtml(text) {
@@ -185,14 +263,38 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-input.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') sendMessage();
+// تب‌ها
+var tabBtns = document.querySelectorAll('.tab-btn');
+tabBtns.forEach(function(btn) {
+    btn.onclick = function() {
+        var target = btn.getAttribute('data-tab');
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-page').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById(target).classList.add('active');
+    };
 });
 
-window.login = login;
-window.logout = logout;
-window.sendMessage = sendMessage;
+// مرورگر
+document.getElementById('goBtn').onclick = function() {
+    var url = document.getElementById('urlInput').value.trim();
+    if (!url.startsWith('http')) url = 'https://' + url;
+    document.getElementById('browserFrame').src = url;
+};
+
+document.getElementById('urlInput').onkeypress = function(e) {
+    if (e.key === 'Enter') document.getElementById('goBtn').click();
+};
+
+// میانبرهای مرورگر
+document.querySelectorAll('.shortcut').forEach(function(btn) {
+    btn.onclick = function() {
+        var url = btn.getAttribute('data-url');
+        document.getElementById('urlInput').value = url;
+        document.getElementById('browserFrame').src = url;
+    };
+});
 </script>
 
 </body>
-</html>
+  </html>
