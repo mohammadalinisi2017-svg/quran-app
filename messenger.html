@@ -7,117 +7,191 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:#0b141a;color:#fff;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+.login{position:fixed;inset:0;background:linear-gradient(135deg,#0b141a,#1a2a3a);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;z-index:100}
+.login h1{color:#00a884;font-size:2.5em;margin-bottom:10px}
+.login p{color:#8696a0;margin-bottom:30px;text-align:center;line-height:1.8}
+.login input{width:100%;max-width:300px;background:#2a3942;border:1px solid #00a884;padding:15px;border-radius:25px;color:#fff;font-size:16px;font-family:Tahoma;outline:none;text-align:center;margin-bottom:15px}
+.login button{background:#00a884;color:#fff;border:none;padding:15px 50px;border-radius:25px;font-size:16px;font-family:Tahoma;font-weight:bold;cursor:pointer;width:100%;max-width:300px}
+.login button:active{transform:scale(0.98)}
+
 .header{background:#202c33;padding:12px 15px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,0.4);z-index:10}
 .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;flex-shrink:0}
 .info{flex:1;min-width:0}
-.name{font-size:16px;font-weight:bold;color:#e9edef;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name{font-size:16px;font-weight:bold;color:#e9edef}
 .status{font-size:12px;color:#00a884;display:flex;align-items:center;gap:5px}
-.status::before{content:'';width:8px;height:8px;background:#00a884;border-radius:50%;display:inline-block;animation:blink 2s infinite}
+.status::before{content:'';width:8px;height:8px;background:#00a884;border-radius:50%;animation:blink 2s infinite}
 @keyframes blink{50%{opacity:0.3}}
+.logout{background:none;border:none;color:#8696a0;font-size:20px;cursor:pointer;padding:5px}
+
 .chat{flex:1;overflow-y:auto;padding:15px 12px;display:flex;flex-direction:column;gap:8px;background:#0b141a}
 .msg{max-width:80%;padding:8px 12px;border-radius:10px;word-wrap:break-word;line-height:1.4;font-size:15px;position:relative;animation:slideIn 0.3s ease}
 @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .msg.sent{background:#005c4b;align-self:flex-end;border-top-right-radius:3px}
 .msg.received{background:#202c33;align-self:flex-start;border-top-left-radius:3px}
+.msg .sender{font-size:12px;color:#00a884;font-weight:bold;margin-bottom:3px}
+.msg .text{color:#e9edef}
 .msg .time{font-size:10px;color:#8696a0;margin-top:4px;display:block;text-align:left}
-.msg.sent .time{text-align:left;color:#a8c7b7}
+.msg.sent .time{color:#a8c7b7}
+
 .input-bar{background:#202c33;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0}
 .input-bar input{flex:1;background:#2a3942;border:none;padding:12px 16px;border-radius:25px;color:#e9edef;font-family:Tahoma;font-size:15px;outline:none;min-width:0}
 .input-bar input::placeholder{color:#8696a0}
-.send{background:#00a884;border:none;width:48px;height:48px;border-radius:50%;color:white;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}
+.send{background:#00a884;border:none;width:48px;height:48px;border-radius:50%;color:white;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .send:active{transform:scale(0.9);background:#008f72}
-.emoji-btn{background:none;border:none;color:#8696a0;font-size:24px;cursor:pointer;padding:5px;flex-shrink:0}
-.emoji-panel{display:none;background:#202c33;padding:10px;grid-template-columns:repeat(7,1fr);gap:5px;max-height:180px;overflow-y:auto;border-top:1px solid #2a3942}
-.emoji-panel.show{display:grid}
-.emoji-panel span{font-size:24px;cursor:pointer;text-align:center;padding:5px;border-radius:8px}
-.emoji-panel span:active{background:#2a3942}
+
+.empty{text-align:center;color:#8696a0;padding:40px 20px;line-height:1.8}
 </style>
 </head>
 <body>
 
-<div class="header">
+<div class="login" id="loginPage">
+<h1>💬 پیام‌رسان</h1>
+<p>اسمت رو وارد کن تا شروع کنیم<br>پیام‌هات برای همه نمایش داده می‌شه</p>
+<input type="text" id="nameInput" placeholder="اسم شما" maxlength="20">
+<button onclick="login()">ورود</button>
+</div>
+
+<div class="header" id="header" style="display:none">
 <div class="avatar" id="userAvatar">👤</div>
 <div class="info">
-<div class="name" id="userName">علی</div>
+<div class="name">گروه عمومی</div>
 <div class="status">آنلاین</div>
 </div>
+<button class="logout" onclick="logout()">🚪</button>
 </div>
 
-<div class="chat" id="chat">
-<div class="msg received">سلام! چطوری؟ 😊<span class="time">10:30</span></div>
-<div class="msg sent">سلام! خوبم مرسی 😄<span class="time">10:31</span></div>
-<div class="msg received">چه خبر؟<span class="time">10:32</span></div>
+<div class="chat" id="chat" style="display:none">
+<div class="empty">در حال بارگذاری...</div>
 </div>
 
-<div class="emoji-panel" id="emojiPanel"></div>
-
-<div class="input-bar">
-<button class="emoji-btn" onclick="toggleEmoji()">😊</button>
+<div class="input-bar" id="inputBar" style="display:none">
 <input type="text" id="msgInput" placeholder="پیام..." autocomplete="off">
 <button class="send" onclick="sendMessage()">➤</button>
 </div>
 
-<script>
-var chat = document.getElementById('chat');
-var input = document.getElementById('msgInput');
-var emojiPanel = document.getElementById('emojiPanel');
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
-var emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😛','😜','🤪','🤗','🤔','😐','😑','😶','🙄','😏','😥','😮','🤐','😴','😌','😒','😓','😔','🙁','😞','😟','😢','😭','😨','😩','😱','😳','😵','😡','😷','🤒','🤢','🤠','🤡','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🖐','🖖','👋','🙏','💪','❤️','🧡','💛','💚','💙','💜','🖤','💔','💕','💞','💓','💗','💖','🌹','🌸','🌺','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','👑','💎','🌈','☀️','🌙','⚡','💧','🍕','🍔','🍟','🍰','☕'];
+const firebaseConfig = {
+  apiKey: "AIzaSyCiattAZKHvXx_qUwkZRLYjoojLeaYbMm4",
+  authDomain: "my-messenger-3d827.firebaseapp.com",
+  databaseURL: "https://my-messenger-3d827-default-rtdb.firebaseio.com",
+  projectId: "my-messenger-3d827",
+  storageBucket: "my-messenger-3d827.firebasestorage.app",
+  messagingSenderId: "452001582539",
+  appId: "1:452001582539:web:6233a4c49f227e41787a4e"
+};
 
-function loadEmoji() {
-    var h = '';
-    for (var i = 0; i < emojis.length; i++) {
-        h += '<span onclick="addEmoji(\'' + emojis[i] + '\')">' + emojis[i] + '</span>';
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let myName = localStorage.getItem('messenger_name') || '';
+
+const chat = document.getElementById('chat');
+const input = document.getElementById('msgInput');
+
+if (myName) {
+    showChat();
+}
+
+function login() {
+    var name = document.getElementById('nameInput').value.trim();
+    if (name === '') {
+        alert('اسمت رو وارد کن!');
+        return;
     }
-    emojiPanel.innerHTML = h;
+    myName = name;
+    localStorage.setItem('messenger_name', name);
+    showChat();
 }
 
-function toggleEmoji() {
-    emojiPanel.classList.toggle('show');
+function logout() {
+    if (confirm('از پیام‌رسان خارج می‌شی؟')) {
+        localStorage.removeItem('messenger_name');
+        myName = '';
+        location.reload();
+    }
 }
 
-function addEmoji(e) {
-    input.value += e;
-    input.focus();
+function showChat() {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('header').style.display = 'flex';
+    document.getElementById('chat').style.display = 'flex';
+    document.getElementById('inputBar').style.display = 'flex';
+    document.getElementById('userAvatar').textContent = myName.charAt(0).toUpperCase();
+    loadMessages();
 }
 
-function getTime() {
-    var d = new Date();
-    var h = d.getHours();
-    var m = d.getMinutes();
-    if (m < 10) m = '0' + m;
-    return h + ':' + m;
+function loadMessages() {
+    const messagesRef = query(ref(db, 'messages'), limitToLast(100));
+    
+    onValue(messagesRef, function(snapshot) {
+        chat.innerHTML = '';
+        var data = snapshot.val();
+        
+        if (!data) {
+            chat.innerHTML = '<div class="empty">هنوز پیامی نیست. اولین نفر باش!</div>';
+            return;
+        }
+        
+        var keys = Object.keys(data).sort(function(a, b) {
+            return (data[a].time || 0) - (data[b].time || 0);
+        });
+        
+        for (var i = 0; i < keys.length; i++) {
+            var msg = data[keys[i]];
+            var isMine = (msg.name === myName);
+            
+            var div = document.createElement('div');
+            div.className = 'msg ' + (isMine ? 'sent' : 'received');
+            
+            var html = '';
+            if (!isMine) {
+                html += '<div class="sender">' + msg.name + '</div>';
+            }
+            html += '<div class="text">' + escapeHtml(msg.text) + '</div>';
+            html += '<span class="time">' + (msg.timeStr || '') + '</span>';
+            
+            div.innerHTML = html;
+            chat.appendChild(div);
+        }
+        
+        chat.scrollTop = chat.scrollHeight;
+    });
 }
 
 function sendMessage() {
     var text = input.value.trim();
     if (text === '') return;
-
-    var msg = document.createElement('div');
-    msg.className = 'msg sent';
-    msg.innerHTML = text + '<span class="time">' + getTime() + '</span>';
-    chat.appendChild(msg);
+    
+    var now = new Date();
+    var timeStr = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+    
+    push(ref(db, 'messages'), {
+        name: myName,
+        text: text,
+        time: Date.now(),
+        timeStr: timeStr
+    });
     
     input.value = '';
-    chat.scrollTop = chat.scrollHeight;
+}
 
-    setTimeout(function() {
-        var replies = ['👍','😂','عالیه!','مرسی','خوبم','😊','باشه','اوکی','دمت گرم','چه خبر؟','آره','نه','حتماً','شوخی می‌کنی؟','جدی؟','خب','بعداً حرف می‌زنیم','❤️','🌹','ممنون'];
-        var reply = replies[Math.floor(Math.random() * replies.length)];
-        var rmsg = document.createElement('div');
-        rmsg.className = 'msg received';
-        rmsg.innerHTML = reply + '<span class="time">' + getTime() + '</span>';
-        chat.appendChild(rmsg);
-        chat.scrollTop = chat.scrollHeight;
-    }, 1000);
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 input.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') sendMessage();
 });
 
-loadEmoji();
-chat.scrollTop = chat.scrollHeight;
+window.login = login;
+window.logout = logout;
+window.sendMessage = sendMessage;
 </script>
 
 </body>
