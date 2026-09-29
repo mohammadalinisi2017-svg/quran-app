@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>پیام‌رسان من</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#0b141a;color:#fff;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.header{background:#202c33;padding:12px 15px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,0.4);z-index:10}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;flex-shrink:0}
+.info{flex:1;min-width:0}
+.name{font-size:16px;font-weight:bold;color:#e9edef;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status{font-size:12px;color:#00a884;display:flex;align-items:center;gap:5px}
+.status::before{content:'';width:8px;height:8px;background:#00a884;border-radius:50%;display:inline-block;animation:blink 2s infinite}
+@keyframes blink{50%{opacity:0.3}}
+.chat{flex:1;overflow-y:auto;padding:15px 12px;display:flex;flex-direction:column;gap:8px;background:#0b141a}
+.msg{max-width:80%;padding:8px 12px;border-radius:10px;word-wrap:break-word;line-height:1.4;font-size:15px;position:relative;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.msg.sent{background:#005c4b;align-self:flex-end;border-top-right-radius:3px}
+.msg.received{background:#202c33;align-self:flex-start;border-top-left-radius:3px}
+.msg .time{font-size:10px;color:#8696a0;margin-top:4px;display:block;text-align:left}
+.msg.sent .time{text-align:left;color:#a8c7b7}
+.input-bar{background:#202c33;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+.input-bar input{flex:1;background:#2a3942;border:none;padding:12px 16px;border-radius:25px;color:#e9edef;font-family:Tahoma;font-size:15px;outline:none;min-width:0}
+.input-bar input::placeholder{color:#8696a0}
+.send{background:#00a884;border:none;width:48px;height:48px;border-radius:50%;color:white;font-size:22px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}
+.send:active{transform:scale(0.9);background:#008f72}
+.emoji-btn{background:none;border:none;color:#8696a0;font-size:24px;cursor:pointer;padding:5px;flex-shrink:0}
+.emoji-panel{display:none;background:#202c33;padding:10px;grid-template-columns:repeat(7,1fr);gap:5px;max-height:180px;overflow-y:auto;border-top:1px solid #2a3942}
+.emoji-panel.show{display:grid}
+.emoji-panel span{font-size:24px;cursor:pointer;text-align:center;padding:5px;border-radius:8px}
+.emoji-panel span:active{background:#2a3942}
+</style>
+</head>
+<body>
+
+<div class="header">
+<div class="avatar" id="userAvatar">👤</div>
+<div class="info">
+<div class="name" id="userName">علی</div>
+<div class="status">آنلاین</div>
+</div>
+</div>
+
+<div class="chat" id="chat">
+<div class="msg received">سلام! چطوری؟ 😊<span class="time">10:30</span></div>
+<div class="msg sent">سلام! خوبم مرسی 😄<span class="time">10:31</span></div>
+<div class="msg received">چه خبر؟<span class="time">10:32</span></div>
+</div>
+
+<div class="emoji-panel" id="emojiPanel"></div>
+
+<div class="input-bar">
+<button class="emoji-btn" onclick="toggleEmoji()">😊</button>
+<input type="text" id="msgInput" placeholder="پیام..." autocomplete="off">
+<button class="send" onclick="sendMessage()">➤</button>
+</div>
+
+<script>
+var chat = document.getElementById('chat');
+var input = document.getElementById('msgInput');
+var emojiPanel = document.getElementById('emojiPanel');
+
+var emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😛','😜','🤪','🤗','🤔','😐','😑','😶','🙄','😏','😥','😮','🤐','😴','😌','😒','😓','😔','🙁','😞','😟','😢','😭','😨','😩','😱','😳','😵','😡','😷','🤒','🤢','🤠','🤡','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🖐','🖖','👋','🙏','💪','❤️','🧡','💛','💚','💙','💜','🖤','💔','💕','💞','💓','💗','💖','🌹','🌸','🌺','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','👑','💎','🌈','☀️','🌙','⚡','💧','🍕','🍔','🍟','🍰','☕'];
+
+function loadEmoji() {
+    var h = '';
+    for (var i = 0; i < emojis.length; i++) {
+        h += '<span onclick="addEmoji(\'' + emojis[i] + '\')">' + emojis[i] + '</span>';
+    }
+    emojiPanel.innerHTML = h;
+}
+
+function toggleEmoji() {
+    emojiPanel.classList.toggle('show');
+}
+
+function addEmoji(e) {
+    input.value += e;
+    input.focus();
+}
+
+function getTime() {
+    var d = new Date();
+    var h = d.getHours();
+    var m = d.getMinutes();
+    if (m < 10) m = '0' + m;
+    return h + ':' + m;
+}
+
+function sendMessage() {
+    var text = input.value.trim();
+    if (text === '') return;
+
+    var msg = document.createElement('div');
+    msg.className = 'msg sent';
+    msg.innerHTML = text + '<span class="time">' + getTime() + '</span>';
+    chat.appendChild(msg);
+    
+    input.value = '';
+    chat.scrollTop = chat.scrollHeight;
+
+    setTimeout(function() {
+        var replies = ['👍','😂','عالیه!','مرسی','خوبم','😊','باشه','اوکی','دمت گرم','چه خبر؟','آره','نه','حتماً','شوخی می‌کنی؟','جدی؟','خب','بعداً حرف می‌زنیم','❤️','🌹','ممنون'];
+        var reply = replies[Math.floor(Math.random() * replies.length)];
+        var rmsg = document.createElement('div');
+        rmsg.className = 'msg received';
+        rmsg.innerHTML = reply + '<span class="time">' + getTime() + '</span>';
+        chat.appendChild(rmsg);
+        chat.scrollTop = chat.scrollHeight;
+    }, 1000);
+}
+
+input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+loadEmoji();
+chat.scrollTop = chat.scrollHeight;
+</script>
+
+</body>
+</html>
