@@ -52,7 +52,7 @@ body.theme-red .header,body.theme-red .tabs,body.theme-red .ibar,body.theme-red 
 .msg{max-width:85%;padding:8px 10px 6px;border-radius:10px;margin-bottom:6px;word-wrap:break-word;font-size:15px;line-height:1.4;position:relative;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.2)}
 .msg.sent{background:#005c4b;margin-left:auto;border-top-right-radius:3px}
 .msg.rec{background:#202c33;margin-right:auto;border-top-left-radius:3px}
-.msg.broadcast{border-right:4px solid #ffd700;background:#2a2020}
+.msg.broadcast{border-right:4px solid #2196F3;background:#1a2535}
 .msg .sender{font-size:12px;color:#00a884;font-weight:bold;margin-bottom:3px}
 .msg .reply-box{background:rgba(0,0,0,0.2);border-right:3px solid #00a884;padding:4px 7px;border-radius:5px;margin-bottom:5px;font-size:12px;color:#a8c7b7}
 .msg .text{color:#e9edef;word-wrap:break-word}
@@ -104,7 +104,7 @@ body.theme-red .header,body.theme-red .tabs,body.theme-red .ibar,body.theme-red 
 .prof .stat strong{color:#00a884;font-size:22px;display:block}
 .prof .stat span{color:#8696a0;font-size:12px}
 .prof .stt{background:#202c33;border-radius:12px;padding:14px;width:100%;max-width:350px;margin-bottom:8px;display:flex;justify-content:space-between;cursor:pointer;font-size:14px;color:#e9edef;align-items:center}
-.prof .stt.admin{background:linear-gradient(135deg,#ffd700,#ff9800);color:#000;font-weight:bold}
+.prof .stt.admin{background:linear-gradient(135deg,#2196F3,#1976D2);color:#fff;font-weight:bold}
 .prof .btn{background:#e94560;color:#fff;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;width:100%;max-width:350px;margin-top:8px;font-family:Tahoma}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
 .modal.show{display:flex}
@@ -127,13 +127,13 @@ body.theme-red .header,body.theme-red .tabs,body.theme-red .ibar,body.theme-red 
 .notif-banner p{color:#e9edef;font-size:13px}
 .empty{text-align:center;color:#8696a0;padding:50px 20px;line-height:2;font-size:13px}
 .empty .big{font-size:60px;display:block;margin-bottom:15px;opacity:0.5}
-.admin-badge{display:inline-block;background:#ffd700;color:#000;font-size:10px;padding:1px 5px;border-radius:8px;font-weight:bold;margin-right:4px}
-.admin-stat{background:linear-gradient(135deg,#ffd700,#ff9800);color:#000;border-radius:12px;padding:15px;margin-bottom:10px;text-align:center}
+.admin-badge{display:inline-block;background:#2196F3;color:#fff;font-size:12px;padding:2px 6px;border-radius:8px;font-weight:bold;margin-right:4px}
+.admin-stat{background:linear-gradient(135deg,#2196F3,#1976D2);color:#fff;border-radius:12px;padding:15px;margin-bottom:10px;text-align:center}
 .admin-stat strong{font-size:24px;display:block}
 .admin-stat span{font-size:12px}
 .loading{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;color:#fff;font-size:16px}
 .loading.show{display:flex}
-.loading .spin{width:40px;height:40px;border:4px solid #00a884;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-left:10px}
+.loading .spin{width:40px;height:40px;border:4px solid #2196F3;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-left:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -241,7 +241,7 @@ body.theme-red .header,body.theme-red .tabs,body.theme-red .ibar,body.theme-red 
 <div class="stt" onclick="showThemePicker()"><span>🎨 تغییر تم</span><span>›</span></div>
 <div class="stt" onclick="requestNotifPermission()"><span>🔔 فعال‌سازی اعلان</span><span>›</span></div>
 <div class="stt" onclick="showAbout()"><span>ℹ️ درباره</span><span>›</span></div>
-<div class="stt" id="adminBtn" onclick="showAdminLogin()"><span>👑 ورود مدیر</span><span>›</span></div>
+<div class="stt" id="adminBtn" onclick="showAdminLogin()"><span>✅ ورود مدیر</span><span>›</span></div>
 <button class="btn" id="logoutBtn">🚪 خروج</button>
 </div>
 </div>
@@ -286,12 +286,18 @@ var myName = "", myId = "", myAv = "😊", curChat = "public", curUser = null;
 var replyTo = null, selMsg = null, selKey = null, selPath = null, selAv = "😊";
 var unread = {}, allUsers = {}, lastSeenRef = null;
 
-// ⚠️ کد مدیر - اینجا عوض کن
+// ⚠️ ایمیل مدیر - اینجا عوض کن
+var ADMIN_EMAIL = "neysi@admin.com";
 var ADMIN_CODE = "neysi2025";
 var isAdmin = localStorage.getItem('app_admin') === 'true';
 
+function isAdminEmail(email) {
+    if (!email) return false;
+    return email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+}
+
 var avOpts = ['😊','😎','🤓','🥳','😇','🤠','👦','👧','🧑','👨','👩','🧔','👶','🐱','🐶','🦊','🐻','🐼','🦁','🐯','🦄','🐸','🐵','🦉','🌟','⭐','💫','✨','🔥','⚡','🌸','🌹'];
-var emos = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','👑','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🎂','🍰','🐱','🐶','🌸','🦋','🐢','🐠','🍓','🍉','🍎'];
+var emos = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','✅','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🎂','🍰','🐱','🐶','🌸','🦋','🐢','🐠','🍓','🍉','🍎'];
 var themes = ['theme-green','theme-blue','theme-purple','theme-red'];
 
 function loadAvPick(){
@@ -344,13 +350,14 @@ function startApp(){
     cleanupOldMessages();
     listenNotifs();
     checkAdminBtn();
+    listenAllEvents();
 }
 
 function updateAv(){
     document.getElementById('headerAv').innerHTML = myAv + '<span class="dot"></span>';
     document.getElementById('profAv').textContent = myAv;
     if (isAdmin) {
-        document.getElementById('profName').innerHTML = myName + ' <span class="admin-badge">👑 مدیر</span>';
+        document.getElementById('profName').innerHTML = myName + ' <span class="admin-badge">✅</span>';
     } else {
         document.getElementById('profName').textContent = myName;
     }
@@ -366,11 +373,11 @@ function setOnline(){
     lastSeenRef.set({ name: myName, avatar: myAv, time: Date.now() });
 }
 
-// ============ کد ادمین ============
+// ============ مدیر ============
 function checkAdminBtn(){
     var btn = document.getElementById('adminBtn');
     if (isAdmin) {
-        btn.innerHTML = '<span>👑 پنل مدیر</span><span>›</span>';
+        btn.innerHTML = '<span>✅ پنل مدیر</span><span>›</span>';
         btn.classList.add('admin');
         btn.onclick = showAdminPanel;
     }
@@ -379,9 +386,9 @@ function checkAdminBtn(){
 function showAdminLogin(){
     if (isAdmin) { showAdminPanel(); return; }
     var mb = document.getElementById('mbox');
-    mb.innerHTML = '<h3>👑 ورود مدیر</h3>' +
-        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">کد مخفی مدیر رو وارد کن:</p>' +
-        '<input type="password" id="adminCodeInput" placeholder="کد مدیر" maxlength="30">' +
+    mb.innerHTML = '<h3>✅ ورود مدیر</h3>' +
+        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">ایمیل یا کد مدیر رو وارد کن:</p>' +
+        '<input type="text" id="adminCodeInput" placeholder="ایمیل یا کد مدیر" maxlength="60">' +
         '<div class="acts">' +
         '<button class="s" onclick="closeModal()">لغو</button>' +
         '<button class="p" onclick="checkAdminCode()">ورود</button>' +
@@ -391,7 +398,7 @@ function showAdminLogin(){
 
 function checkAdminCode(){
     var code = document.getElementById('adminCodeInput').value.trim();
-    if (code === ADMIN_CODE) {
+    if (code === ADMIN_CODE || isAdminEmail(code)) {
         isAdmin = true;
         localStorage.setItem('app_admin', 'true');
         closeModal();
@@ -408,13 +415,11 @@ function showAdminPanel(){
     db.ref('online').once('value', function(snap){
         var users = snap.val() || {};
         var count = Object.keys(users).length;
-        
         db.ref('messages').once('value', function(ms){
             var d = ms.val() || {};
             var totalMsgs = Object.keys(d).length;
-            
             var mb = document.getElementById('mbox');
-            var h = '<h3>👑 پنل مدیریت</h3>';
+            var h = '<h3>✅ پنل مدیریت</h3>';
             h += '<div class="admin-stat"><strong>' + count + '</strong><span>کاربر آنلاین</span></div>';
             h += '<div class="admin-stat"><strong>' + totalMsgs + '</strong><span>کل پیام‌ها</span></div>';
             h += '<p style="color:#8696a0;font-size:12px;margin-top:15px;margin-bottom:8px">📢 ارسال پیام همگانی:</p>';
@@ -436,20 +441,17 @@ function broadcastMessage(){
     var txt = document.getElementById('broadcastText').value.trim();
     if (!txt) { alert('متن پیام رو وارد کن'); return; }
     if (!confirm('این پیام به همه کاربران ارسال بشه؟')) return;
-    
     var n = new Date();
     var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
-    
     db.ref('messages').push({
         name: 'مدیر',
-        avatar: '👑',
+        avatar: '✅',
         text: '📢 ' + txt,
         time: Date.now(),
         timeStr: ts,
         read: false,
         isBroadcast: true
     });
-    
     alert('✅ پیام همگانی ارسال شد!');
     closeModal();
 }
@@ -487,7 +489,7 @@ function loadPubMsgs(){
             if (m.isBroadcast) div.classList.add('broadcast');
             var h = '';
             if (!mine) {
-                var badge = m.isBroadcast ? ' <span class="admin-badge">👑</span>' : '';
+                var badge = m.isBroadcast ? ' <span class="admin-badge">✅</span>' : '';
                 h += '<div class="sender">' + m.avatar + ' ' + esc(m.name) + badge + '</div>';
             }
             if (m.reply) h += '<div class="reply-box"><strong>' + esc(m.reply.name) + '</strong><br>' + esc(m.reply.text) + '</div>';
@@ -578,7 +580,6 @@ function sendMsg(){
     var n = new Date();
     var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
     var md = { name:myName, avatar:myAv, text:t, time:Date.now(), timeStr:ts, read:false };
-    if (isAdmin) md.name = myName;
     if (replyTo) md.reply = {name:replyTo.name, text:replyTo.text};
     if (curChat === "public") {
         db.ref('messages').push(md);
@@ -601,7 +602,6 @@ document.getElementById('photoInput').onchange = function(e){
     var file = e.target.files[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { alert('حجم عکس نباید بیشتر از ۵ مگابایت باشه'); return; }
-    
     showLoading('در حال آماده‌سازی عکس...');
     var reader = new FileReader();
     reader.onload = function(ev){
@@ -615,12 +615,10 @@ document.getElementById('photoInput').onchange = function(e){
             var ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             var compressed = canvas.toDataURL('image/jpeg', 0.6);
-            
             var n = new Date();
             var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
             var md = { name:myName, avatar:myAv, photo:compressed, text:'', time:Date.now(), timeStr:ts, read:false };
             if (replyTo) md.reply = {name:replyTo.name, text:replyTo.text};
-            
             if (curChat === "public") {
                 db.ref('messages').push(md);
             } else if (curChat.indexOf('group_') === 0) {
@@ -784,7 +782,7 @@ function loadUsers(){
                 if (uid === myId) return;
                 var u = d[uid]; cnt++;
                 allUsers[uid] = u;
-                var badge = u.isAdmin ? ' <span class="admin-badge">👑</span>' : '';
+                var badge = u.isAdmin ? ' <span class="admin-badge">✅</span>' : '';
                 var div = document.createElement('div');
                 div.className = 'citem';
                 div.innerHTML = '<div class="av">' + u.avatar + '<span class="dot"></span></div><div class="body"><h3>' + esc(u.name) + badge + '</h3><p style="color:#00a884">● آنلاین</p></div>';
@@ -887,7 +885,7 @@ function saveName(){
 
 function showAbout(){
     var mb = document.getElementById('mbox');
-    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 ساخته شده توسط: <strong style="color:#00a884">محمد علی نیسی</strong><br>🎂 سن: ۹ سال<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• ارسال عکس 📷<br>• آواتار سفارشی<br>• واکنش با ایموجی<br>• پاسخ و حذف پیام<br>• ۴ تم رنگی 🎨<br>• اعلان 🔔<br>• آخرین بازدید ⏰<br>• <strong>سیستم مدیر 👑</strong><br>• پیام همگانی<br>• پاکسازی خودکار (۱ سال)<br>• مرورگر با میانبر</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 ساخته شده توسط: <strong style="color:#00a884">محمد علی نیسی</strong><br>🎂 سن: ۹ سال<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• ارسال عکس 📷<br>• آواتار سفارشی<br>• واکنش با ایموجی<br>• پاسخ و حذف پیام<br>• ۴ تم رنگی 🎨<br>• اعلان 🔔<br>• آخرین بازدید ⏰<br>• <strong>سیستم مدیر ✅</strong><br>• پیام همگانی<br>• پاکسازی خودکار (۱ سال)<br>• مرورگر با میانبر</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
     document.getElementById('modal').classList.add('show');
 }
 
@@ -957,6 +955,17 @@ function listenNotifs(){
     });
 }
 
+function listenAllEvents(){
+    db.ref('online').on('child_added', function(snap) {
+        var u = snap.val();
+        if (!u || snap.key === myId) return;
+        var diff = Date.now() - (u.time || 0);
+        if (diff < 10000 && isAdmin) {
+            showNotifBanner('👤 کاربر جدید', u.name + ' آنلاین شد');
+        }
+    });
+}
+
 // ============ زمان ============
 function timeAgo(time){
     var diff = Math.floor((Date.now() - time) / 1000);
@@ -972,7 +981,6 @@ function timeAgo(time){
 function cleanupOldMessages(){
     var DAYS = 365;
     var cutoff = Date.now() - (DAYS * 24 * 60 * 60 * 1000);
-    
     db.ref('messages').once('value', function(snap){
         var d = snap.val(); if (!d) return;
         Object.keys(d).forEach(function(k){
