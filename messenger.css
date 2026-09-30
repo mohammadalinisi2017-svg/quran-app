@@ -18,6 +18,12 @@ body.theme-red .header,body.theme-red .tabs,body.theme-red .ibar,body.theme-red 
 .login .av-pick span{font-size:24px;cursor:pointer;text-align:center;padding:4px;border-radius:8px}
 .login .av-pick span.sel{background:#25d366}
 .login button{background:#25d366;color:#fff;border:none;padding:16px;border-radius:30px;font-size:16px;font-weight:bold;cursor:pointer;width:100%;max-width:300px;font-family:Tahoma}
+.waiting-screen{position:fixed;inset:0;background:linear-gradient(135deg,#ff9800,#f57c00);display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;z-index:9998;text-align:center}
+.waiting-screen.show{display:flex}
+.waiting-screen h1{color:#fff;font-size:1.5em;margin-bottom:15px}
+.waiting-screen p{color:#fff;opacity:0.95;margin-bottom:15px;line-height:1.8;font-size:14px}
+.waiting-screen input{background:rgba(255,255,255,0.2);border:2px solid #fff;padding:15px;border-radius:30px;color:#fff;font-size:20px;text-align:center;outline:none;max-width:250px;margin-bottom:15px;font-family:Courier New,monospace;letter-spacing:5px;direction:ltr}
+.waiting-screen button{background:#fff;color:#ff9800;border:none;padding:15px 40px;border-radius:30px;font-size:16px;font-weight:bold;cursor:pointer;font-family:Tahoma;margin:5px}
 .header{background:#202c33;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.3);z-index:10}
 .back{background:none;border:none;color:#00a884;font-size:24px;cursor:pointer;padding:5px;display:none}
 .av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-size:18px;position:relative}
@@ -113,7 +119,22 @@ body.theme-red .header,body.theme-red .tabs,body.theme-red .ibar,body.theme-red 
 .admin-stat{background:linear-gradient(135deg,#2196F3,#1976D2);color:#fff;border-radius:12px;padding:15px;margin-bottom:10px;text-align:center}
 .admin-stat strong{font-size:24px;display:block}
 .admin-stat span{font-size:12px}
+.pending-user{background:#2a3942;border-radius:12px;padding:14px;margin-bottom:10px;border-right:4px solid #ff9800}
+.pending-user .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pending-user .u-name{font-weight:bold;color:#e9edef;font-size:15px}
+.pending-user .u-code{background:#ff9800;color:#fff;padding:4px 10px;border-radius:8px;font-weight:bold;font-family:Courier New,monospace;font-size:16px}
+.pending-user .u-email{color:#4fc3f7;font-size:13px;direction:ltr;text-align:left;margin:6px 0;word-break:break-all;background:rgba(79,195,247,0.1);padding:6px 10px;border-radius:8px;cursor:pointer}
+.pending-user .u-time{color:#8696a0;font-size:11px}
+.pending-user .acts{display:flex;gap:6px;margin-top:10px}
+.pending-user .acts button{flex:1;padding:9px;border-radius:8px;border:none;font-family:Tahoma;font-size:13px;font-weight:bold;cursor:pointer}
+.pending-user .approve{background:#4CAF50;color:#fff}
+.pending-user .reject{background:#e94560;color:#fff}
+.log-item{background:#2a3942;padding:12px;border-radius:10px;margin-bottom:8px;font-size:13px;border-right:3px solid #00a884}
+.log-item.user-new{border-right-color:#4CAF50}
+.log-item.msg-new{border-right-color:#2196F3}
+.log-item.group-new{border-right-color:#FF9800}
+.log-item.photo-new{border-right-color:#9C27B0}
+.log-item .log-time{color:#8696a0;font-size:11px}
+.log-item .log-text{color:#e9edef;margin-top:3px}
 .loading{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;color:#fff;font-size:16px}
 .loading.show{display:flex}
-.loading .spin{width:40px;height:40px;border:4px solid #2196F3;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-left:10px}
-@keyframes spin{to{transform:rotate(360deg)}}
