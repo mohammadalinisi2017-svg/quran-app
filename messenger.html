@@ -13,10 +13,20 @@
 <div class="login" id="loginScreen">
 <div class="logo">💬</div>
 <h1>سوپر اپ پیشرفته</h1>
-<p>اسمت و آواتارت رو انتخاب کن</p>
+<p>اسم و ایمیلت رو وارد کن</p>
 <input type="text" id="nameInput" placeholder="اسم شما" maxlength="20">
+<input type="email" id="emailInput" placeholder="ایمیل شما" maxlength="60" style="direction:ltr">
 <div class="av-pick" id="avPick"></div>
 <button id="loginBtn">ورود</button>
+</div>
+
+<div class="waiting-screen" id="waitingScreen">
+<h1>⏳ منتظر تأیید مدیر</h1>
+<p>ایمیلت به مدیر ارسال شد<br>منتظر باش تا کد تأیید رو برات بفرسته...</p>
+<input type="text" id="verifyCodeInput" placeholder="کد 6 رقمی" maxlength="6">
+<br>
+<button onclick="verifyMyCode()">✅ تأیید کد</button>
+<button onclick="checkApproval()" style="background:transparent;color:#fff;border:2px solid #fff;font-size:14px;padding:12px 25px">🔄 بررسی مجدد</button>
 </div>
 
 <div class="header" id="header" style="display:none">
@@ -137,7 +147,6 @@
 <h4 id="notifTitle"></h4>
 <p id="notifText"></p>
 </div>
-<div class="loading" id="loading"><span id="loadingText">در حال ارسال...</span><div class="spin"></div></div>
 
 <script src="messenger.js"></script>
 </body>
