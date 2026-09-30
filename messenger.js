@@ -10,9 +10,11 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 
-var myName = "", myId = "", myAv = "😊", curChat = "public", curUser = null;
+var myName = "", myId = "", myEmail = "", myAv = "😊", curChat = "public", curUser = null;
 var replyTo = null, selMsg = null, selKey = null, selPath = null, selAv = "😊";
 var unread = {}, allUsers = {}, lastSeenRef = null;
+var myApprovalCode = localStorage.getItem('app_approval_code') || '';
+var myApproved = localStorage.getItem('app_approved') === 'true';
 
 var ADMIN_EMAIL = "neysi@admin.com";
 var ADMIN_CODE = "neysi2025";
@@ -24,7 +26,7 @@ function isAdminEmail(email) {
 }
 
 var avOpts = ['😊','😎','🤓','🥳','😇','🤠','👦','👧','🧑','👨','👩','🧔','👶','🐱','🐶','🦊','🐻','🐼','🦁','🐯','🦄','🐸','🐵','🦉','🌟','⭐','💫','✨','🔥','⚡','🌸','🌹'];
-var emos = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','✅','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🎂','🍰','🐱','🐶','🌸','🦋','🐢','🐠','🍓','🍉','🍎'];
+var emos = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','✅','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🎂','🍰','🐱','🐶','🌸'];
 var themes = ['theme-green','theme-blue','theme-purple','theme-red'];
 
 function loadAvPick(){
@@ -44,25 +46,49 @@ loadAvPick();
 var sn = localStorage.getItem('app_name');
 if (sn) {
     myName = sn;
+    myEmail = localStorage.getItem('app_email') || '';
     myId = localStorage.getItem('app_id') || 'user_' + Date.now();
     myAv = localStorage.getItem('app_av') || '😊';
+    if (isAdminEmail(myEmail)) { isAdmin = true; myApproved = true; }
     localStorage.setItem('app_id', myId);
     startApp();
 }
 
 document.getElementById('loginBtn').onclick = function(){
     var n = document.getElementById('nameInput').value.trim();
+    var e = document.getElementById('emailInput').value.trim();
     if (!n) { alert('اسمت رو وارد کن!'); return; }
-    myName = n; myAv = selAv;
+    if (!e || !e.includes('@') || !e.includes('.')) { alert('ایمیل معتبر وارد کن'); return; }
+    myName = n; myEmail = e; myAv = selAv;
     myId = 'user_' + Date.now() + '_' + Math.floor(Math.random()*9999);
     localStorage.setItem('app_name', n);
+    localStorage.setItem('app_email', e);
     localStorage.setItem('app_id', myId);
     localStorage.setItem('app_av', myAv);
+    localStorage.removeItem('app_approved');
+    localStorage.removeItem('app_approval_code');
+    myApproved = false; myApprovalCode = '';
+    
+    if (isAdminEmail(e)) {
+        isAdmin = true; myApproved = true;
+        localStorage.setItem('app_admin', 'true');
+        localStorage.setItem('app_approved', 'true');
+        setTimeout(function(){ alert('✅ خوش آمدی مدیر!'); }, 300);
+    }
     startApp();
 };
 
 function startApp(){
     document.getElementById('loginScreen').style.display = 'none';
+    
+    if (isAdminEmail(myEmail)) { isAdmin = true; myApproved = true; }
+    
+    if (!isAdmin && !myApproved) {
+        // منتظر تأیید
+        sendApprovalRequest();
+        return;
+    }
+    
     document.getElementById('header').style.display = 'flex';
     document.getElementById('tabs').style.display = 'flex';
     updateAv();
@@ -80,6 +106,147 @@ function startApp(){
     listenAllEvents();
 }
 
+function sendApprovalRequest(){
+    if (!myApprovalCode) {
+        myApprovalCode = Math.floor(100000 + Math.random() * 900000).toString();
+        localStorage.setItem('app_approval_code', myApprovalCode);
+    }
+    db.ref('approvals/' + myId).set({
+        name: myName, avatar: myAv, email: myEmail,
+        code: myApprovalCode, time: Date.now(),
+        approved: false, userId: myId
+    });
+    document.getElementById('waitingScreen').classList.add('show');
+}
+
+function verifyMyCode(){
+    var inp = document.getElementById('verifyCodeInput').value.trim();
+    if (!inp) { alert('کد رو وارد کن'); return; }
+    db.ref('approvals/' + myId).once('value', function(snap){
+        var a = snap.val();
+        if (!a) { alert('❌ درخواستت پیدا نشد'); return; }
+        if (a.approvedCode && inp === a.approvedCode) {
+            myApproved = true;
+            localStorage.setItem('app_approved', 'true');
+            document.getElementById('waitingScreen').classList.remove('show');
+            alert('🎉 تأیید شدی!');
+            startApp();
+        } else {
+            alert('❌ کد اشتباهه!');
+        }
+    });
+}
+
+function checkApproval(){
+    db.ref('approvals/' + myId).once('value', function(snap){
+        var a = snap.val();
+        if (a && a.approved) {
+            myApproved = true;
+            localStorage.setItem('app_approved', 'true');
+            document.getElementById('waitingScreen').classList.remove('show');
+            alert('🎉 تأیید شدی!');
+            startApp();
+        } else {
+            alert('⏳ هنوز تأیید نشدی');
+        }
+    });
+}
+
+function showPendingUsers(){
+    db.ref('approvals').once('value', function(snap){
+        var d = snap.val() || {};
+        var pending = [];
+        Object.keys(d).forEach(function(uid){
+            if (!d[uid].approved) pending.push({id: uid, data: d[uid]});
+        });
+        var mb = document.getElementById('mbox');
+        var h = '<h3>⏳ کاربران در انتظار (' + pending.length + ')</h3>';
+        if (pending.length === 0) {
+            h += '<div style="text-align:center;color:#8696a0;padding:30px">هیچ کاربری در انتظار نیست ✅</div>';
+        } else {
+            pending.sort(function(a,b){ return (a.data.time||0) - (b.data.time||0); });
+            pending.forEach(function(p) {
+                var u = p.data;
+                h += '<div class="pending-user">';
+                h += '<div class="row"><div class="u-name">' + u.avatar + ' ' + esc(u.name) + '</div></div>';
+                if (u.email) h += '<div class="u-email">📧 ' + esc(u.email) + '</div>';
+                h += '<div class="u-time">⏰ ' + timeAgo(u.time) + '</div>';
+                h += '<p style="color:#8696a0;font-size:12px;margin-top:8px">کد تأیید:</p>';
+                h += '<div style="text-align:center;margin-bottom:8px"><span class="u-code">' + u.code + '</span></div>';
+                h += '<div class="acts">';
+                h += '<button class="approve" onclick="approveUser(\'' + p.id + '\')">✅ فعال‌سازی</button>';
+                h += '<button class="reject" onclick="rejectUser(\'' + p.id + '\')">❌ رد</button>';
+                h += '</div></div>';
+            });
+        }
+        h += '<div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+        mb.innerHTML = h;
+        document.getElementById('modal').classList.add('show');
+    });
+}
+
+function approveUser(uid) {
+    db.ref('approvals/' + uid).once('value', function(snap){
+        var a = snap.val();
+        if (!a) return;
+        db.ref('approvals/' + uid).update({approvedCode: a.code, approvedAt: Date.now()});
+        alert('✅ کد فعال شد!\n\nکد: ' + a.code + '\n\nایمیل: ' + (a.email || 'ندارد') + '\n\nکد رو برای کاربر ایمیل کن.');
+        showPendingUsers();
+    });
+}
+
+function rejectUser(uid) {
+    if (!confirm('کاربر رد بشه؟')) return;
+    db.ref('approvals/' + uid).remove();
+    db.ref('online/' + uid).remove();
+    alert('❌ کاربر رد شد');
+    showPendingUsers();
+}
+
+function logEvent(type, userId, userName, avatar, text) {
+    db.ref('logs').push({
+        type: type, userId: userId || '', userName: userName || '',
+        avatar: avatar || '', text: text || '', time: Date.now()
+    });
+}
+
+function showActivityLog() {
+    db.ref('logs').limitToLast(200).once('value', function(s) {
+        var d = s.val() || {};
+        var keys = Object.keys(d).sort(function(a,b){ return (d[b].time||0) - (d[a].time||0); });
+        var mb = document.getElementById('mbox');
+        var h = '<h3>📋 اتفاق‌های اخیر</h3>';
+        if (keys.length === 0) {
+            h += '<div style="text-align:center;color:#8696a0;padding:30px">هنوز اتفاقی نیفتاده</div>';
+        } else {
+            keys.forEach(function(k) {
+                var l = d[k];
+                var icons = {'user_new':'👤','msg_new':'💬','group_new':'👥','photo_new':'🖼️'};
+                var texts = {
+                    'user_new': l.userName + ' عضو شد',
+                    'msg_new': l.userName + ': ' + (l.text||''),
+                    'group_new': 'گروه «' + l.text + '» ساخته شد',
+                    'photo_new': l.userName + ' عکس فرستاد'
+                };
+                h += '<div class="log-item ' + (l.type||'') + '">';
+                h += '<div class="log-time">' + (icons[l.type]||'') + ' ' + timeAgo(l.time) + '</div>';
+                h += '<div class="log-text">' + esc(texts[l.type] || l.type) + '</div>';
+                h += '</div>';
+            });
+        }
+        h += '<div class="acts"><button class="s" onclick="clearAllLogs()">🗑️ پاک کردن</button><button class="p" onclick="closeModal()">بستن</button></div>';
+        mb.innerHTML = h;
+        document.getElementById('modal').classList.add('show');
+    });
+}
+
+function clearAllLogs() {
+    if (confirm('همه لاگ‌ها پاک بشن؟')) {
+        db.ref('logs').remove();
+        showActivityLog();
+    }
+}
+
 function updateAv(){
     document.getElementById('headerAv').innerHTML = myAv + '<span class="dot"></span>';
     document.getElementById('profAv').textContent = myAv;
@@ -95,6 +262,7 @@ function setOnline(){
     var r = db.ref('online/' + myId);
     r.set({ name: myName, avatar: myAv, time: Date.now(), isAdmin: isAdmin });
     r.onDisconnect().remove();
+    logEvent('user_new', myId, myName, myAv, '');
     if (lastSeenRef) lastSeenRef.off();
     lastSeenRef = db.ref('lastseen/' + myId);
     lastSeenRef.set({ name: myName, avatar: myAv, time: Date.now() });
@@ -113,25 +281,21 @@ function showAdminLogin(){
     if (isAdmin) { showAdminPanel(); return; }
     var mb = document.getElementById('mbox');
     mb.innerHTML = '<h3>✅ ورود مدیر</h3>' +
-        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">ایمیل یا کد مدیر رو وارد کن:</p>' +
-        '<input type="text" id="adminCodeInput" placeholder="ایمیل یا کد مدیر" maxlength="60">' +
-        '<div class="acts">' +
-        '<button class="s" onclick="closeModal()">لغو</button>' +
-        '<button class="p" onclick="checkAdminCode()">ورود</button>' +
-        '</div>';
+        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">ایمیل یا کد مدیر:</p>' +
+        '<input type="text" id="adminCodeInput" placeholder="ایمیل یا کد" maxlength="60">' +
+        '<div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="checkAdminCode()">ورود</button></div>';
     document.getElementById('modal').classList.add('show');
 }
 
 function checkAdminCode(){
     var code = document.getElementById('adminCodeInput').value.trim();
     if (code === ADMIN_CODE || isAdminEmail(code)) {
-        isAdmin = true;
+        isAdmin = true; myApproved = true;
         localStorage.setItem('app_admin', 'true');
+        localStorage.setItem('app_approved', 'true');
         closeModal();
         alert('🎉 خوش آمدی مدیر!');
-        updateAv();
-        setOnline();
-        checkAdminBtn();
+        updateAv(); setOnline(); checkAdminBtn();
     } else {
         alert('❌ کد اشتباهه!');
     }
@@ -144,36 +308,38 @@ function showAdminPanel(){
         db.ref('messages').once('value', function(ms){
             var d = ms.val() || {};
             var totalMsgs = Object.keys(d).length;
-            var mb = document.getElementById('mbox');
-            var h = '<h3>✅ پنل مدیریت</h3>';
-            h += '<div class="admin-stat"><strong>' + count + '</strong><span>کاربر آنلاین</span></div>';
-            h += '<div class="admin-stat"><strong>' + totalMsgs + '</strong><span>کل پیام‌ها</span></div>';
-            h += '<p style="color:#8696a0;font-size:12px;margin-top:15px;margin-bottom:8px">📢 ارسال پیام همگانی:</p>';
-            h += '<input type="text" id="broadcastText" placeholder="متن پیام به همه..." maxlength="200">';
-            h += '<div class="acts">';
-            h += '<button class="s" onclick="closeModal()">بستن</button>';
-            h += '<button class="p" onclick="broadcastMessage()">📢 ارسال</button>';
-            h += '</div>';
-            h += '<div style="margin-top:15px;border-top:1px solid rgba(255,255,255,0.1);padding-top:15px">';
-            h += '<button style="width:100%;background:#e94560;color:#fff;border:none;padding:12px;border-radius:10px;font-family:Tahoma;cursor:pointer" onclick="logoutAdmin()">🚪 خروج از حالت مدیر</button>';
-            h += '</div>';
-            mb.innerHTML = h;
-            document.getElementById('modal').classList.add('show');
+            db.ref('approvals').once('value', function(as){
+                var ad = as.val() || {};
+                var pendCount = 0;
+                Object.keys(ad).forEach(function(uid){ if (!ad[uid].approved) pendCount++; });
+                
+                var mb = document.getElementById('mbox');
+                var h = '<h3>✅ پنل مدیریت</h3>';
+                h += '<div class="admin-stat"><strong>' + count + '</strong><span>کاربر آنلاین</span></div>';
+                h += '<div class="admin-stat"><strong>' + totalMsgs + '</strong><span>کل پیام‌ها</span></div>';
+                h += '<button onclick="showPendingUsers()" style="width:100%;background:#ff9800;color:#fff;border:none;padding:14px;border-radius:10px;font-family:Tahoma;cursor:pointer;font-weight:bold;margin-bottom:10px">⏳ کاربران در انتظار (' + pendCount + ')</button>';
+                h += '<button onclick="showActivityLog()" style="width:100%;background:#2196F3;color:#fff;border:none;padding:14px;border-radius:10px;font-family:Tahoma;cursor:pointer;font-weight:bold;margin-bottom:10px">📋 اتفاق‌های اخیر</button>';
+                h += '<p style="color:#8696a0;font-size:12px;margin:15px 0 8px">📢 پیام همگانی:</p>';
+                h += '<input type="text" id="broadcastText" placeholder="متن پیام..." maxlength="200">';
+                h += '<div class="acts"><button class="s" onclick="closeModal()">بستن</button><button class="p" onclick="broadcastMessage()">📢 ارسال</button></div>';
+                h += '<div style="margin-top:15px;border-top:1px solid rgba(255,255,255,0.1);padding-top:15px">';
+                h += '<button style="width:100%;background:#e94560;color:#fff;border:none;padding:12px;border-radius:10px;font-family:Tahoma;cursor:pointer" onclick="logoutAdmin()">🚪 خروج از حالت مدیر</button>';
+                h += '</div>';
+                mb.innerHTML = h;
+                document.getElementById('modal').classList.add('show');
+            });
         });
     });
 }
 
 function broadcastMessage(){
     var txt = document.getElementById('broadcastText').value.trim();
-    if (!txt) { alert('متن پیام رو وارد کن'); return; }
-    if (!confirm('این پیام به همه کاربران ارسال بشه؟')) return;
+    if (!txt) { alert('متن رو وارد کن'); return; }
+    if (!confirm('ارسال به همه؟')) return;
     var n = new Date();
     var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
-    db.ref('messages').push({
-        name: 'مدیر', avatar: '✅', text: '📢 ' + txt,
-        time: Date.now(), timeStr: ts, read: false, isBroadcast: true
-    });
-    alert('✅ پیام همگانی ارسال شد!');
+    db.ref('messages').push({name:'مدیر', avatar:'✅', text:'📢 '+txt, time:Date.now(), timeStr:ts, read:false, isBroadcast:true});
+    alert('✅ ارسال شد!');
     closeModal();
 }
 
@@ -182,7 +348,6 @@ function logoutAdmin(){
     isAdmin = false;
     localStorage.removeItem('app_admin');
     closeModal();
-    alert('از حالت مدیر خارج شدی');
     location.reload();
 }
 
@@ -236,7 +401,6 @@ function loadPubMsgs(){
 
 function openPriv(uid, name, av){
     curChat = uid; curUser = {id:uid, name:name, avatar:av};
-    unread[uid] = 0;
     document.getElementById('headerTitle').textContent = av + ' ' + name;
     document.getElementById('backBtn').style.display = 'block';
     showPage('pageChat');
@@ -288,6 +452,7 @@ function sendMsg(){
     if (replyTo) md.reply = {name:replyTo.name, text:replyTo.text};
     if (curChat === "public") {
         db.ref('messages').push(md);
+        logEvent('msg_new', myId, myName, myAv, t);
     } else if (curChat.indexOf('group_') === 0) {
         var gid = curChat.replace('group_','');
         db.ref('groupmessages/' + gid).push(md);
@@ -311,8 +476,7 @@ document.getElementById('photoInput').onchange = function(e){
         var img = new Image();
         img.onload = function(){
             var canvas = document.createElement('canvas');
-            var maxW = 600;
-            var scale = Math.min(1, maxW / img.width);
+            var scale = Math.min(1, 600 / img.width);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
             var ctx = canvas.getContext('2d');
@@ -321,9 +485,9 @@ document.getElementById('photoInput').onchange = function(e){
             var n = new Date();
             var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
             var md = { name:myName, avatar:myAv, photo:compressed, text:'', time:Date.now(), timeStr:ts, read:false };
-            if (replyTo) md.reply = {name:replyTo.name, text:replyTo.text};
             if (curChat === "public") {
                 db.ref('messages').push(md);
+                logEvent('photo_new', myId, myName, myAv, '');
             } else if (curChat.indexOf('group_') === 0) {
                 var gid = curChat.replace('group_','');
                 db.ref('groupmessages/' + gid).push(md);
@@ -332,7 +496,6 @@ document.getElementById('photoInput').onchange = function(e){
                 md.sender = myId;
                 db.ref('private/' + cid).push(md);
             }
-            cancelReply();
         };
         img.src = ev.target.result;
     };
@@ -344,14 +507,11 @@ document.getElementById('newGroupBtn').onclick = function(){
     db.ref('online').once('value', function(snap){
         var data = snap.val() || {};
         var mb = document.getElementById('mbox');
-        var h = '<h3>➕ گروه جدید</h3>';
-        h += '<input type="text" id="groupName" placeholder="اسم گروه">';
-        h += '<p style="color:#8696a0;margin:10px 0;font-size:13px">اعضا:</p>';
+        var h = '<h3>➕ گروه جدید</h3><input type="text" id="groupName" placeholder="اسم گروه"><p style="color:#8696a0;margin:10px 0;font-size:13px">اعضا:</p>';
         Object.keys(data).forEach(function(uid){
             if (uid === myId) return;
             var u = data[uid];
-            h += '<label style="display:flex;padding:10px;color:#e9edef;align-items:center;gap:8px;background:#2a3942;border-radius:8px;margin-bottom:6px">';
-            h += '<input type="checkbox" value="' + uid + '"> ' + u.avatar + ' ' + esc(u.name) + '</label>';
+            h += '<label style="display:flex;padding:10px;color:#e9edef;align-items:center;gap:8px;background:#2a3942;border-radius:8px;margin-bottom:6px"><input type="checkbox" value="' + uid + '"> ' + u.avatar + ' ' + esc(u.name) + '</label>';
         });
         h += '<div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="createGroup()">ساخت</button></div>';
         mb.innerHTML = h;
@@ -362,10 +522,10 @@ document.getElementById('newGroupBtn').onclick = function(){
 function createGroup(){
     var name = document.getElementById('groupName').value.trim();
     if (!name) { alert('اسم گروه رو وارد کن'); return; }
-    var members = {};
-    members[myId] = true;
+    var members = {}; members[myId] = true;
     document.querySelectorAll('#mbox input[type=checkbox]:checked').forEach(function(cb){ members[cb.value] = true; });
     db.ref('groups').push({ name:name, owner:myId, members:members, time:Date.now() });
+    logEvent('group_new', myId, myName, myAv, name);
     closeModal();
 }
 
@@ -373,8 +533,7 @@ function loadGroups(){
     var l = document.getElementById('groupsList');
     db.ref('groups').on('value', function(s){
         l.innerHTML = '';
-        var d = s.val();
-        if (!d) return;
+        var d = s.val(); if (!d) return;
         Object.keys(d).forEach(function(gid){
             var g = d[gid];
             if (!g.members || !g.members[myId]) return;
@@ -665,8 +824,7 @@ function timeAgo(time){
 }
 
 function cleanupOldMessages(){
-    var DAYS = 365;
-    var cutoff = Date.now() - (DAYS * 24 * 60 * 60 * 1000);
+    var cutoff = Date.now() - (365 * 24 * 60 * 60 * 1000);
     db.ref('messages').once('value', function(snap){
         var d = snap.val(); if (!d) return;
         Object.keys(d).forEach(function(k){
