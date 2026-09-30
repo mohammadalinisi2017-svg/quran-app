@@ -29,6 +29,247 @@ var avOpts = ['😊','😎','🤓','🥳','😇','🤠','👦','👧','🧑','�
 var emos = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','✅','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🎂','🍰','🐱','🐶','🌸'];
 var themes = ['theme-green','theme-blue','theme-purple','theme-red'];
 
+// ============ تماس صوتی ============
+var pc = null;
+var localStream = null;
+var callTimer = null;
+var callSeconds = 0;
+var isMuted = false;
+var isSpeaker = false;
+var currentCallUser = null;
+var callRef = null;
+var activeCallId = null;
+
+var servers = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+};
+
+async function startCall(userId, userName, avatar) {
+    if (pc) { alert('در حال تماس هستی'); return; }
+    currentCallUser = { id: userId, name: userName, avatar: avatar };
+    activeCallId = [myId, userId].sort().join('_');
+    
+    document.getElementById('callName').textContent = userName;
+    document.getElementById('callAvatar').textContent = avatar;
+    document.getElementById('callInfo').textContent = 'در حال زنگ زدن...';
+    document.getElementById('callScreen').classList.add('show');
+    document.getElementById('callTimer').textContent = '00:00';
+    
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+        alert('❌ اجازه میکروفون رو بده');
+        closeCallScreen();
+        return;
+    }
+    
+    pc = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+    
+    pc.ontrack = function(event) {
+        document.getElementById('remoteAudio').srcObject = event.streams[0];
+        document.getElementById('callInfo').textContent = 'در حال مکالمه';
+        startCallTimer();
+    };
+    
+    pc.onicecandidate = function(event) {
+        if (event.candidate) {
+            db.ref('calls/' + activeCallId + '/callerCandidates').push(event.candidate.toJSON());
+        }
+    };
+    
+    callRef = db.ref('calls/' + activeCallId);
+    
+    var offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    
+    await callRef.set({
+        caller: myId, callerName: myName, callerAvatar: myAv,
+        receiver: userId, receiverName: userName, receiverAvatar: avatar,
+        offer: { type: offer.type, sdp: offer.sdp },
+        status: 'ringing', time: Date.now()
+    });
+    
+    callRef.on('value', async function(snap) {
+        var data = snap.val();
+        if (!data) return;
+        if (data.status === 'accepted' && data.answer && !pc.currentRemoteDescription) {
+            document.getElementById('callInfo').textContent = 'در حال اتصال...';
+            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+        }
+        if (data.status === 'rejected' || data.status === 'ended') {
+            endCall();
+        }
+        if (data.receiverCandidates) {
+            Object.values(data.receiverCandidates).forEach(async function(c) {
+                try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch(e){}
+            });
+        }
+    });
+}
+
+function closeCallScreen() {
+    document.getElementById('callScreen').classList.remove('show');
+}
+
+async function acceptCall(userId, userName, avatar, offer) {
+    if (pc) return;
+    currentCallUser = { id: userId, name: userName, avatar: avatar };
+    activeCallId = [myId, userId].sort().join('_');
+    
+    document.getElementById('callName').textContent = userName;
+    document.getElementById('callAvatar').textContent = avatar;
+    document.getElementById('callInfo').textContent = 'در حال اتصال...';
+    document.getElementById('callScreen').classList.add('show');
+    
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+        alert('❌ اجازه میکروفون رو بده');
+        closeCallScreen();
+        return;
+    }
+    
+    pc = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+    
+    pc.ontrack = function(event) {
+        document.getElementById('remoteAudio').srcObject = event.streams[0];
+        document.getElementById('callInfo').textContent = 'در حال مکالمه';
+        startCallTimer();
+    };
+    
+    pc.onicecandidate = function(event) {
+        if (event.candidate) {
+            db.ref('calls/' + activeCallId + '/receiverCandidates').push(event.candidate.toJSON());
+        }
+    };
+    
+    await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    var answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    
+    callRef = db.ref('calls/' + activeCallId);
+    await callRef.update({
+        answer: { type: answer.type, sdp: answer.sdp },
+        status: 'accepted'
+    });
+    
+    callRef.on('value', async function(snap) {
+        var data = snap.val();
+        if (!data) return;
+        if (data.status === 'ended') endCall();
+        if (data.callerCandidates) {
+            Object.values(data.callerCandidates).forEach(async function(c) {
+                try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch(e){}
+            });
+        }
+    });
+}
+
+function startCallTimer() {
+    callSeconds = 0;
+    clearInterval(callTimer);
+    callTimer = setInterval(function() {
+        callSeconds++;
+        var m = Math.floor(callSeconds / 60);
+        var s = callSeconds % 60;
+        document.getElementById('callTimer').textContent = 
+            (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }, 1000);
+}
+
+function endCall() {
+    if (pc) { pc.close(); pc = null; }
+    if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+        localStream = null;
+    }
+    clearInterval(callTimer);
+    callSeconds = 0;
+    isMuted = false; isSpeaker = false;
+    
+    if (callRef && activeCallId) {
+        db.ref('calls/' + activeCallId).remove();
+    }
+    
+    currentCallUser = null;
+    callRef = null;
+    activeCallId = null;
+    
+    document.getElementById('callScreen').classList.remove('show');
+    var r = document.getElementById('ringAnim');
+    if (r) r.remove();
+    document.getElementById('muteBtn').classList.remove('active');
+    document.getElementById('speakerBtn').classList.remove('active');
+}
+
+function toggleMute() {
+    if (!localStream) return;
+    isMuted = !isMuted;
+    localStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+    document.getElementById('muteBtn').classList.toggle('active', isMuted);
+}
+
+function toggleSpeaker() {
+    isSpeaker = !isSpeaker;
+    document.getElementById('speakerBtn').classList.toggle('active', isSpeaker);
+    var audio = document.getElementById('remoteAudio');
+    if (audio.setSinkId) {
+        audio.setSinkId(isSpeaker ? 'speaker' : 'default').catch(function(){});
+    }
+}
+
+function listenIncomingCalls() {
+    db.ref('calls').on('child_added', function(snap) {
+        var data = snap.val();
+        if (!data) return;
+        if (data.receiver === myId && data.status === 'ringing' && data.caller !== myId) {
+            showIncomingCall(data, snap.key);
+        }
+    });
+}
+
+function showIncomingCall(data, callId) {
+    if (pc) return;
+    var ring = document.createElement('div');
+    ring.className = 'ring-anim show';
+    ring.id = 'ringAnim';
+    ring.innerHTML = 
+        '<div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:20px">' + (data.callerAvatar || '👤') + '</div>' +
+        '<h2>📞 ' + esc(data.callerName) + '</h2>' +
+        '<p>در حال تماس صوتی با شماست...</p>' +
+        '<div class="btns">' +
+        '<button class="call-btn end" onclick="rejectCall(\'' + callId + '\')">📞</button>' +
+        '<button class="call-btn mute" style="background:#4CAF50" onclick="acceptIncomingCall(\'' + callId + '\')">📱</button>' +
+        '</div>';
+    document.body.appendChild(ring);
+}
+
+function acceptIncomingCall(callId) {
+    db.ref('calls/' + callId).once('value', function(snap) {
+        var data = snap.val();
+        if (!data || !data.offer) { alert('خطا'); return; }
+        var r = document.getElementById('ringAnim');
+        if (r) r.remove();
+        acceptCall(data.caller, data.callerName, data.callerAvatar, data.offer);
+    });
+}
+
+function rejectCall(callId) {
+    db.ref('calls/' + callId).remove();
+    var r = document.getElementById('ringAnim');
+    if (r) r.remove();
+}
+
+function startVoiceCall(userId, userName, avatar) {
+    startCall(userId, userName, avatar);
+}
+// ============ پایان تماس صوتی ============
+
 function loadAvPick(){
     var p = document.getElementById('avPick'), h = '';
     avOpts.forEach(function(a){ h += '<span data-av="'+a+'">'+a+'</span>'; });
@@ -80,11 +321,9 @@ document.getElementById('loginBtn').onclick = function(){
 
 function startApp(){
     document.getElementById('loginScreen').style.display = 'none';
-    
     if (isAdminEmail(myEmail)) { isAdmin = true; myApproved = true; }
     
     if (!isAdmin && !myApproved) {
-        // منتظر تأیید
         sendApprovalRequest();
         return;
     }
@@ -104,6 +343,7 @@ function startApp(){
     listenNotifs();
     checkAdminBtn();
     listenAllEvents();
+    listenIncomingCalls();
 }
 
 function sendApprovalRequest(){
@@ -190,7 +430,7 @@ function approveUser(uid) {
         var a = snap.val();
         if (!a) return;
         db.ref('approvals/' + uid).update({approvedCode: a.code, approvedAt: Date.now()});
-        alert('✅ کد فعال شد!\n\nکد: ' + a.code + '\n\nایمیل: ' + (a.email || 'ندارد') + '\n\nکد رو برای کاربر ایمیل کن.');
+        alert('✅ کد فعال شد!\n\nکد: ' + a.code + '\n\nایمیل: ' + (a.email || 'ندارد'));
         showPendingUsers();
     });
 }
@@ -355,6 +595,8 @@ document.getElementById('publicChatItem').onclick = function(){
     curChat = "public"; curUser = null;
     document.getElementById('headerTitle').textContent = "گروه عمومی";
     document.getElementById('backBtn').style.display = 'block';
+    var cb = document.getElementById('callBtnHeader');
+    if (cb) cb.remove();
     showPage('pageChat');
     loadPubMsgs();
 };
@@ -403,6 +645,17 @@ function openPriv(uid, name, av){
     curChat = uid; curUser = {id:uid, name:name, avatar:av};
     document.getElementById('headerTitle').textContent = av + ' ' + name;
     document.getElementById('backBtn').style.display = 'block';
+    
+    var cb = document.getElementById('callBtnHeader');
+    if (!cb) {
+        cb = document.createElement('button');
+        cb.id = 'callBtnHeader';
+        cb.innerHTML = '📞';
+        cb.style.cssText = 'background:#00a884;border:none;color:#fff;font-size:20px;cursor:pointer;padding:8px 14px;border-radius:50%;margin-right:5px';
+        document.querySelector('.header').insertBefore(cb, document.getElementById('themeBtn'));
+    }
+    cb.onclick = function() { startVoiceCall(uid, name, av); };
+    
     showPage('pageChat');
     loadPriv(uid);
 }
@@ -551,6 +804,8 @@ function openGroup(gid, name){
     curUser = {id:gid, name:name, isGroup:true};
     document.getElementById('headerTitle').textContent = '👥 ' + name;
     document.getElementById('backBtn').style.display = 'block';
+    var cb = document.getElementById('callBtnHeader');
+    if (cb) cb.remove();
     showPage('pageChat');
     var a = document.getElementById('messagesArea');
     db.ref('groupmessages/' + gid).limitToLast(100).on('value', function(s){
@@ -685,6 +940,8 @@ document.querySelectorAll('.tbtn').forEach(function(b){
         b.classList.add('act');
         document.getElementById(t).classList.add('act');
         document.getElementById('backBtn').style.display = 'none';
+        var cb = document.getElementById('callBtnHeader');
+        if (cb) cb.remove();
         if (t === 'pageChats') document.getElementById('headerTitle').textContent = 'سوپر اپ';
         else if (t === 'pageBrowser') document.getElementById('headerTitle').textContent = 'مرورگر';
         else if (t === 'pageUsers') document.getElementById('headerTitle').textContent = 'کاربران';
@@ -739,7 +996,7 @@ function saveName(){
 
 function showAbout(){
     var mb = document.getElementById('mbox');
-    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی - ۹ سال<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• ارسال عکس 📷<br>• آواتار سفارشی<br>• واکنش با ایموجی<br>• پاسخ و حذف پیام<br>• ۴ تم رنگی 🎨<br>• اعلان 🔔<br>• آخرین بازدید ⏰<br>• سیستم مدیر ✅<br>• پیام همگانی<br>• پاکسازی خودکار (۱ سال)<br>• مرورگر با میانبر</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی - ۹ سال<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• ارسال عکس 📷<br>• <strong>تماس صوتی 📞</strong><br>• آواتار سفارشی<br>• واکنش با ایموجی<br>• پاسخ و حذف پیام<br>• ۴ تم رنگی 🎨<br>• اعلان 🔔<br>• آخرین بازدید ⏰<br>• سیستم مدیر ✅<br>• پیام همگانی<br>• پاکسازی خودکار (۱ سال)<br>• مرورگر با میانبر</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
     document.getElementById('modal').classList.add('show');
 }
 
