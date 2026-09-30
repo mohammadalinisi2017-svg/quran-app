@@ -136,5 +136,20 @@ body.theme-red .header,body.theme-red .tabs,body.theme-red .ibar,body.theme-red 
 .log-item.photo-new{border-right-color:#9C27B0}
 .log-item .log-time{color:#8696a0;font-size:11px}
 .log-item .log-text{color:#e9edef;margin-top:3px}
-.loading{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;color:#fff;font-size:16px}
-.loading.show{display:flex}
+.call-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;text-align:center;padding:20px}
+.call-screen.show{display:flex}
+.call-info{color:#8696a0;font-size:14px;margin-bottom:20px}
+.call-avatar{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#00a884,#005c4b);display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:20px;animation:pulse-call 2s infinite}
+@keyframes pulse-call{0%,100%{box-shadow:0 0 0 0 rgba(0,168,132,0.7)}50%{box-shadow:0 0 0 30px rgba(0,168,132,0)}}
+.call-name{font-size:24px;font-weight:bold;margin-bottom:10px}
+.call-timer{color:#8696a0;font-size:18px;font-family:Courier New,monospace;margin-bottom:40px}
+.call-btns{display:flex;gap:20px}
+.call-btn{width:70px;height:70px;border-radius:50%;border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.call-btn.mute,.call-btn.speaker{background:#2a3942;color:#fff}
+.call-btn.mute.active,.call-btn.speaker.active{background:#00a884}
+.call-btn.end{background:#e94560;color:#fff}
+.ring-anim{position:fixed;inset:0;background:rgba(0,0,0,0.95);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff}
+.ring-anim.show{display:flex}
+.ring-anim h2{font-size:24px;margin-bottom:15px}
+.ring-anim p{color:#8696a0;font-size:14px;margin-bottom:30px}
+.ring-anim .btns{display:flex;gap:20px}
