@@ -148,6 +148,20 @@
 <p id="notifText"></p>
 </div>
 
+<!-- صفحه تماس صوتی -->
+<div class="call-screen" id="callScreen">
+<div class="call-info" id="callInfo">در حال تماس...</div>
+<div class="call-avatar" id="callAvatar">👤</div>
+<div class="call-name" id="callName">کاربر</div>
+<div class="call-timer" id="callTimer">00:00</div>
+<audio id="remoteAudio" autoplay></audio>
+<div class="call-btns">
+<button class="call-btn mute" id="muteBtn" onclick="toggleMute()">🎤</button>
+<button class="call-btn end" onclick="endCall()">📞</button>
+<button class="call-btn speaker" id="speakerBtn" onclick="toggleSpeaker()">🔊</button>
+</div>
+</div>
+
 <script src="messenger.js"></script>
 </body>
 </html>
