@@ -2,165 +2,195 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>سوپر اپ پیشرفته</title>
+
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+
 <link rel="stylesheet" href="messenger.css">
 </head>
 <body class="theme-green">
 
+<!-- ==================== Login ==================== -->
 <div class="login" id="loginScreen">
-<div class="logo">💬</div>
-<h1>سوپر اپ پیشرفته</h1>
-<p>اسم و ایمیلت رو وارد کن</p>
-<input type="text" id="nameInput" placeholder="اسم شما" maxlength="20">
-<input type="email" id="emailInput" placeholder="ایمیل شما" maxlength="60" style="direction:ltr">
-<div class="av-pick" id="avPick"></div>
-<button id="loginBtn">ورود</button>
+    <div class="logo">💬</div>
+    <h1>سوپر اپ پیشرفته</h1>
+    <p>اسم و شماره تلفنت رو وارد کن</p>
+    <input type="text" id="nameInput" placeholder="اسمت چیه؟" maxlength="20">
+    <input type="tel" id="phoneInput" placeholder="شماره تلفن (09123456789)" maxlength="11">
+    <div class="av-pick" id="avPick"></div>
+    <button id="loginBtn">ورود</button>
 </div>
 
+<!-- ==================== Waiting ==================== -->
 <div class="waiting-screen" id="waitingScreen">
-<h1>⏳ منتظر تأیید مدیر</h1>
-<p>ایمیلت به مدیر ارسال شد<br>منتظر باش تا کد تأیید رو برات بفرسته...</p>
-<input type="text" id="verifyCodeInput" placeholder="کد 6 رقمی" maxlength="6">
-<br>
-<button onclick="verifyMyCode()">✅ تأیید کد</button>
-<button onclick="checkApproval()" style="background:transparent;color:#fff;border:2px solid #fff;font-size:14px;padding:12px 25px">🔄 بررسی مجدد</button>
+    <h1>⏳ منتظر تأیید مدیر</h1>
+    <p>درخواستت برای مدیر ارسال شد<br>مدیر به شماره‌ت پیام می‌ده</p>
+    <input type="text" id="verifyCodeInput" placeholder="کد تأیید" maxlength="10">
+    <br>
+    <button onclick="verifyMyCode()">✅ بررسی کد</button>
+    <button onclick="checkApproval()" style="margin-top:8px;background:#2a3942;color:#e9edef">🔄 بررسی مجدد</button>
 </div>
 
+<!-- ==================== Header ==================== -->
 <div class="header" id="header" style="display:none">
-<button class="back" id="backBtn">←</button>
-<div class="av" id="headerAv">👤<span class="dot"></span></div>
-<div class="info">
-<h2 id="headerTitle">سوپر اپ</h2>
-<p id="headerStatus">● آنلاین</p>
-</div>
-<button class="hbtn" id="themeBtn">🎨</button>
+    <button class="back" id="backBtn" style="display:none">→</button>
+    <div class="av" id="headerAv">👤<span class="dot"></span></div>
+    <div class="info">
+        <h2 id="headerTitle">سوپر اپ</h2>
+        <p id="headerStatus">● آنلاین</p>
+    </div>
+    <button class="hbtn" id="themeBtn">🎨</button>
 </div>
 
 <div class="content">
 
+<!-- ==================== Page: Chats ==================== -->
 <div class="page act" id="pageChats">
-<div class="sbar">
-<input type="text" id="searchChat" placeholder="🔍 جستجوی چت...">
-<button class="add-btn" id="newGroupBtn">+</button>
-</div>
-<div class="clist" id="chatList">
-<div class="citem" id="publicChatItem">
-<div class="av">👥</div>
-<div class="body"><h3>گروه عمومی</h3><p id="publicLastMsg">چت با همه کاربران</p></div>
-</div>
-<div id="groupsList"></div>
-</div>
+    <div class="sbar">
+        <input type="text" id="searchChat" placeholder="جستجو...">
+        <button class="add-btn" id="newGroupBtn">➕</button>
+    </div>
+    <div class="clist" id="chatList">
+        <div class="citem" id="publicChatItem">
+            <div class="av">💬</div>
+            <div class="body"><h3>گروه عمومی</h3><p id="publicLastMsg">چت با همه</p></div>
+        </div>
+        <div id="groupsList"></div>
+    </div>
 </div>
 
+<!-- ==================== Page: Chat Room ==================== -->
 <div class="page" id="pageChat">
-<div class="marea" id="messagesArea"><div class="empty"><span class="big">💬</span>هنوز پیامی نیست!</div></div>
-<div class="reply-prev" id="replyPrev">
-<div style="flex:1"><strong id="replyName"></strong><br><span id="replyText" style="font-size:12px"></span></div>
-<span class="x" onclick="cancelReply()">✕</span>
-</div>
-<div class="epanel" id="emojiPanel"></div>
-<div class="ibar">
-<button class="ibtn" id="emojiBtn">😊</button>
-<button class="ibtn photo" id="photoBtn">📷</button>
-<input type="file" id="photoInput" accept="image/*" style="display:none">
-<input type="text" id="msgInput" placeholder="پیام..." autocomplete="off">
-<button class="sbtn" id="sendBtn">➤</button>
-</div>
+    <div class="marea" id="messagesArea"></div>
+    <div class="reply-prev" id="replyPrev">
+        <div style="flex:1"><strong id="replyName">کاربر</strong><div id="replyText">متن</div></div>
+        <span class="x" onclick="cancelReply()">✕</span>
+    </div>
+    <div class="epanel" id="emojiPanel"></div>
+    <div class="ibar">
+        <button class="ibtn" id="emojiBtn">😊</button>
+        <button class="ibtn photo" id="photoBtn">📷</button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none">
+        <input type="text" id="msgInput" placeholder="پیام...">
+        <button class="sbtn" id="sendBtn">➤</button>
+    </div>
 </div>
 
+<!-- ==================== Page: Browser ==================== -->
 <div class="page" id="pageBrowser">
-<div class="bbar"><input type="text" id="urlInput" placeholder="آدرس سایت..."><button class="gbtn" id="goBtn">برو</button></div>
-<div class="bcont">
-<div class="bsec"><h3>🔍 جستجو</h3><div class="bgrid">
-<div class="bcard" data-url="https://www.google.com"><span class="ico">🔍</span><span class="nm">گوگل</span></div>
-<div class="bcard" data-url="https://www.bing.com"><span class="ico">🔎</span><span class="nm">Bing</span></div>
-<div class="bcard" data-url="https://duckduckgo.com"><span class="ico">🦆</span><span class="nm">DuckDuckGo</span></div>
-</div></div>
-<div class="bsec"><h3>📚 آموزش</h3><div class="bgrid">
-<div class="bcard" data-url="https://www.wikipedia.org"><span class="ico">📚</span><span class="nm">ویکی</span></div>
-<div class="bcard" data-url="https://mohammadalinisi2017-svg.github.io/quran-app/python1.html"><span class="ico">🐍</span><span class="nm">پایتون</span></div>
-<div class="bcard" data-url="https://quran.com"><span class="ico">📖</span><span class="nm">قرآن</span></div>
-<div class="bcard" data-url="https://www.w3schools.com"><span class="ico">💻</span><span class="nm">W3Schools</span></div>
-</div></div>
-<div class="bsec"><h3>🎬 سرگرمی</h3><div class="bgrid">
-<div class="bcard" data-url="https://www.youtube.com"><span class="ico">🎬</span><span class="nm">یوتیوب</span></div>
-<div class="bcard" data-url="https://www.aparat.com"><span class="ico">📹</span><span class="nm">آپارات</span></div>
-<div class="bcard" data-url="https://www.filimo.com"><span class="ico">🎥</span><span class="nm">فیلیمو</span></div>
-</div></div>
-<div class="bsec"><h3>🛒 خرید</h3><div class="bgrid">
-<div class="bcard" data-url="https://www.digikala.com"><span class="ico">🛒</span><span class="nm">دیجی‌کالا</span></div>
-<div class="bcard" data-url="https://www.divar.ir"><span class="ico">📰</span><span class="nm">دیوار</span></div>
-</div></div>
-<div class="bsec"><h3>🤖 هوش مصنوعی</h3><div class="bgrid">
-<div class="bcard" data-url="https://chat.openai.com"><span class="ico">🤖</span><span class="nm">ChatGPT</span></div>
-<div class="bcard" data-url="https://claude.ai"><span class="ico">🧠</span><span class="nm">Claude</span></div>
-<div class="bcard" data-url="https://gemini.google.com"><span class="ico">✨</span><span class="nm">Gemini</span></div>
-</div></div>
-</div>
+    <div class="bbar"><input type="text" id="urlInput" placeholder="آدرس سایت..."><button id="goBtn">برو</button></div>
+    <div class="bcont">
+        <div class="bsec"><h3>🔍 جستجو</h3><div class="brow">
+            <div class="bcard" data-url="https://www.google.com">Google</div>
+            <div class="bcard" data-url="https://www.bing.com">Bing</div>
+            <div class="bcard" data-url="https://duckduckgo.com">DuckDuckGo</div>
+        </div></div>
+        <div class="bsec"><h3>📚 آموزش</h3><div class="brow">
+            <div class="bcard" data-url="https://www.wikipedia.org">ویکی‌پدیا</div>
+            <div class="bcard" data-url="https://mohammadalinisi2017-svg.github.io/quran-app/">قرآن</div>
+            <div class="bcard" data-url="https://quran.com">Quran.com</div>
+        </div></div>
+        <div class="bsec"><h3>🎬 سرگرمی</h3><div class="brow">
+            <div class="bcard" data-url="https://www.youtube.com">YouTube</div>
+            <div class="bcard" data-url="https://www.aparat.com">آپارات</div>
+        </div></div>
+        <div class="bsec"><h3>🛒 خرید</h3><div class="brow">
+            <div class="bcard" data-url="https://www.digikala.com">دیجی‌کالا</div>
+            <div class="bcard" data-url="https://www.amazon.com">Amazon</div>
+        </div></div>
+        <div class="bsec"><h3>🤖 هوش مصنوعی</h3><div class="brow">
+            <div class="bcard" data-url="https://chat.openai.com">ChatGPT</div>
+            <div class="bcard" data-url="https://claude.ai">Claude</div>
+            <div class="bcard" data-url="https://gemini.google.com">Gemini</div>
+        </div></div>
+    </div>
 </div>
 
+<!-- ==================== Page: Users ==================== -->
 <div class="page" id="pageUsers">
-<div class="sbar"><input type="text" id="searchUser" placeholder="🔍 جستجوی کاربر..."></div>
-<div class="clist" id="usersList"><div class="empty">در حال بارگذاری...</div></div>
+    <div class="sbar"><input type="text" id="searchUser" placeholder="جستجوی کاربر..."></div>
+    <div class="clist" id="usersList"></div>
 </div>
 
+<!-- ==================== Page: Profile ==================== -->
 <div class="page" id="pageProfile">
-<div class="prof">
-<div class="av" id="profAv">👤</div>
-<h2 id="profName">کاربر</h2>
-<p class="st" id="profStatus">● آنلاین</p>
-<div class="stat-row">
-<div class="stat"><strong id="statMsgs">0</strong><span>پیام</span></div>
-<div class="stat"><strong id="statUsrs">0</strong><span>کاربر</span></div>
-</div>
-<div class="stt" onclick="changeAvatar()"><span>🖼️ تغییر آواتار</span><span>›</span></div>
-<div class="stt" onclick="changeName()"><span>✏️ تغییر نام</span><span>›</span></div>
-<div class="stt" onclick="showThemePicker()"><span>🎨 تغییر تم</span><span>›</span></div>
-<div class="stt" onclick="requestNotifPermission()"><span>🔔 فعال‌سازی اعلان</span><span>›</span></div>
-<div class="stt" onclick="showAbout()"><span>ℹ️ درباره</span><span>›</span></div>
-<div class="stt" id="adminBtn" onclick="showAdminLogin()"><span>✅ ورود مدیر</span><span>›</span></div>
-<button class="btn" id="logoutBtn">🚪 خروج</button>
-</div>
-</div>
-
+    <div class="prof">
+        <div class="av" id="profAv">👤</div>
+        <h2 id="profName">کاربر</h2>
+        <p class="st" id="profStatus">● آنلاین</p>
+    </div>
+    <div class="stat-row">
+        <div class="stat"><strong id="statMsgs">0</strong><span>پیام‌هام</span></div>
+        <div class="stat"><strong id="statUsrs">0</strong><span>آنلاین</span></div>
+    </div>
+    <div class="stt" onclick="changeAvatar()">🖼️ تغییر آواتار</div>
+    <div class="stt" onclick="changeName()">✏️ تغییر نام</div>
+    <div class="stt" onclick="showThemePicker()">🎨 تم رنگی</div>
+    <div class="stt" onclick="requestNotifPermission()">🔔 اعلان‌ها</div>
+    <div class="stt" onclick="showAbout()">ℹ️ درباره</div>
+    <div class="stt" id="adminBtn" onclick="showAdminLogin()">✅ ورود مدیر</div>
+    <button class="btn" id="logoutBtn">🚪 خروج</button>
 </div>
 
+</div>
+
+<!-- ==================== Tabs ==================== -->
 <div class="tabs" id="tabs" style="display:none">
-<button class="tbtn act" data-tab="pageChats"><span class="ico">💬</span><span>چت‌ها</span></button>
-<button class="tbtn" data-tab="pageBrowser"><span class="ico">🌐</span><span>مرورگر</span></button>
-<button class="tbtn" data-tab="pageUsers"><span class="ico">👥</span><span>کاربران</span></button>
-<button class="tbtn" data-tab="pageProfile"><span class="ico">👤</span><span>من</span></button>
+    <button class="tbtn act" data-tab="pageChats">💬<br>چت‌ها</button>
+    <button class="tbtn" data-tab="pageBrowser">🌐<br>مرورگر</button>
+    <button class="tbtn" data-tab="pageUsers">👥<br>کاربران</button>
+    <button class="tbtn" data-tab="pageProfile">👤<br>پروفایل</button>
 </div>
 
+<!-- ==================== Modal ==================== -->
 <div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+
+<!-- ==================== Message Menu ==================== -->
 <div class="mmenu" id="mmenu">
-<div class="rr" id="rr"></div>
-<button class="mb" onclick="replyMsg()">↩️ پاسخ</button>
-<button class="mb" onclick="copyMsg()">📋 کپی</button>
-<button class="mb dng" id="delBtn" onclick="deleteMsg()">🗑️ حذف</button>
-<button class="mb" onclick="closeMMenu()">✕ بستن</button>
-</div>
-<div class="notif-banner" id="notifBanner">
-<h4 id="notifTitle"></h4>
-<p id="notifText"></p>
+    <div class="rr" id="rr"></div>
+    <button class="mb" onclick="replyMsg()">↩️ پاسخ</button>
+    <button class="mb" onclick="copyMsg()">📋 کپی</button>
+    <button class="mb dng" id="delBtn" onclick="deleteMsg()">🗑️ حذف</button>
+    <button class="mb" onclick="closeMMenu()">✕ بستن</button>
 </div>
 
-<!-- صفحه تماس صوتی -->
+<!-- ==================== Notification Banner ==================== -->
+<div class="notif-banner" id="notifBanner">
+    <h4 id="notifTitle"></h4>
+    <p id="notifText"></p>
+</div>
+
+<!-- ==================== Call Screen ==================== -->
 <div class="call-screen" id="callScreen">
-<div class="call-info" id="callInfo">در حال تماس...</div>
-<div class="call-avatar" id="callAvatar">👤</div>
-<div class="call-name" id="callName">کاربر</div>
-<div class="call-timer" id="callTimer">00:00</div>
-<audio id="remoteAudio" autoplay></audio>
-<div class="call-btns">
-<button class="call-btn mute" id="muteBtn" onclick="toggleMute()">🎤</button>
-<button class="call-btn end" onclick="endCall()">📞</button>
-<button class="call-btn speaker" id="speakerBtn" onclick="toggleSpeaker()">🔊</button>
+    <div class="call-avatar" id="callAvatar">👤</div>
+    <div class="call-name" id="callName">کاربر</div>
+    <div class="call-status" id="callStatus">Ringing...</div>
+    <audio id="remoteAudio" autoplay></audio>
+
+    <div class="call-buttons" id="callActiveButtons" style="display:none">
+        <button class="call-btn mute" id="muteBtn">🎤</button>
+        <button class="call-btn end" id="endCallBtn">📞</button>
+    </div>
+
+    <div class="call-buttons" id="callIncomingButtons" style="display:none">
+        <button class="call-btn end" id="rejectCallBtn">📞</button>
+        <button class="call-btn accept" id="acceptCallBtn">📞</button>
+    </div>
 </div>
-</div>
+
+<!-- ==================== Service Worker ==================== -->
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/quran-app/firebase-messaging-sw.js')
+        .then(function() { console.log('SW OK'); })
+        .catch(function(err) { console.log('SW error:', err); });
+}
+</script>
 
 <script src="messenger.js"></script>
 </body>
