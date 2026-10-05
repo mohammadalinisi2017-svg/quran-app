@@ -42,6 +42,7 @@
     </div>
     <button class="hbtn" id="searchHeaderBtn" title="جستجو">🔍</button>
     <button class="hbtn" id="chatSettingsBtn" title="تنظیمات چت" style="display:none">⚙️</button>
+    <button class="hbtn" id="bgBtn" title="پس‌زمینه" style="display:none">🖼️</button>
     <button class="hbtn" id="themeBtn">🎨</button>
 </div>
 
@@ -67,11 +68,14 @@
 
     <div class="ibar">
         <button class="ibtn" id="emojiBtn">😊</button>
+        <button class="ibtn" id="stickerBtn" title="استیکر">🎨</button>
         <button class="ibtn" id="photoBtn">📷</button>
         <input type="file" id="photoInput" accept="image/*" style="display:none">
+        <button class="ibtn" id="cameraBtn" title="دوربین">📸</button>
         <button class="ibtn" id="fileBtn">📎</button>
         <input type="file" id="fileInput" style="display:none">
         <button class="ibtn" id="recBtn">🎤</button>
+        <button class="ibtn" id="locationBtn" title="موقعیت">📍</button>
         <input type="text" id="msgInput" placeholder="پیام...">
         <button class="sbtn" id="sendBtn">➤</button>
     </div>
@@ -124,6 +128,7 @@
     <div class="stt" onclick="changeAvatar()">🖼️ تغییر آواتار</div>
     <div class="stt" onclick="changeName()">✏️ تغییر نام</div>
     <div class="stt" onclick="showThemePicker()">🎨 تم رنگی</div>
+    <div class="stt" onclick="openBgPicker()">🖼️ پس‌زمینه چت</div>
     <div class="stt" onclick="askNotifPermission()">🔔 اجازه اعلان</div>
     <div class="stt" onclick="showAbout()">ℹ️ درباره</div>
     <div class="stt" id="adminBtn" onclick="showAdminLogin()">✅ ورود مدیر</div>
@@ -160,6 +165,23 @@
     <button class="pin-close" id="pinClose">✕</button>
 </div>
 
+<div class="sticker-panel" id="stickerPanel">
+    <div class="sp-tabs">
+        <button class="act" data-stab="tab-emoji">😊 ایموجی</button>
+        <button data-stab="tab-gif">🎞️ GIF</button>
+    </div>
+    <div class="sp-tab act" id="tab-emoji">
+        <div class="sticker-grid" id="stickerGrid"></div>
+    </div>
+    <div class="sp-tab" id="tab-gif">
+        <div class="gif-search">
+            <input type="text" id="gifQuery" placeholder="جستجوی GIF..." onkeypress="if(event.key==='Enter') searchGif()">
+            <button onclick="searchGif()">🔍</button>
+        </div>
+        <div class="gif-grid" id="gifGrid"></div>
+    </div>
+</div>
+
 <div class="rec-bar" id="recBar">
     <span class="dot-live"></span>
     <span class="time" id="recTime">00:00</span>
@@ -186,6 +208,17 @@
     </div>
 </div>
 
+<div class="camera-screen" id="cameraScreen">
+    <video id="cameraVideo" autoplay playsinline></video>
+    <div class="cam-flash" id="camFlash"></div>
+    <button class="cam-close" onclick="closeCamera()">✕</button>
+    <div class="cam-controls">
+        <button class="cam-btn switch" id="switchCam" onclick="switchCamera()">🔄</button>
+        <button class="cam-btn shoot" onclick="shootPhoto()"></button>
+        <div style="width:55px"></div>
+    </div>
+</div>
+
 <div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
 
 <div class="mmenu" id="mmenu">
@@ -194,6 +227,7 @@
     <button class="mb" id="editBtn" onclick="editMessage()">✏️ ویرایش</button>
     <button class="mb" id="fwdBtn" onclick="forwardMessage()">↪️ فوروارد</button>
     <button class="mb pin-btn" id="pinBtn" onclick="togglePin()">📌 پین کردن</button>
+    <button class="mb star-btn" id="starBtn" onclick="toggleStarMsg()">⭐ ستاره‌دار</button>
     <button class="mb" onclick="copyMsg()">📋 کپی</button>
     <button class="mb dng" id="delBtn" onclick="deleteMsg()">🗑️ حذف</button>
     <button class="mb" onclick="closeMMenu()">✕ بستن</button>
