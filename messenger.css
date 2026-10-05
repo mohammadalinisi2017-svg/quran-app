@@ -8,10 +8,10 @@ body { background: #0b141a; color: #e9edef; }
 /* ============================================================
    THEMES
 ============================================================ */
-body.theme-green  { --primary: #00a884; --accent: #00a884; }
-body.theme-blue   { --primary: #2196F3; --accent: #2196F3; }
-body.theme-purple { --primary: #9C27B0; --accent: #9C27B0; }
-body.theme-red    { --primary: #e94560; --accent: #e94560; }
+body.theme-green  { --primary: #00a884; }
+body.theme-blue   { --primary: #2196F3; }
+body.theme-purple { --primary: #9C27B0; }
+body.theme-red    { --primary: #e94560; }
 
 /* ============================================================
    LOGIN
@@ -115,11 +115,9 @@ body.theme-red    { --primary: #e94560; --accent: #e94560; }
     cursor: pointer; padding: 6px 0;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 2px;
+    gap: 2px; font-size: 18px;
 }
 .tbtn.act { color: var(--primary, #00a884); }
-.tbtn { font-size: 18px; }
-.tbtn::first-line { font-size: 22px; }
 
 /* ============================================================
    SEARCH BAR
@@ -464,7 +462,6 @@ body.theme-red    { --primary: #e94560; --accent: #e94560; }
 .mmenu .rr span {
     font-size: 26px; cursor: pointer;
     padding: 6px; border-radius: 50%;
-    transition: background 0.2s;
 }
 .mmenu .rr span:hover { background: #2a3942; }
 .mmenu .mb {
@@ -528,9 +525,7 @@ body.theme-red    { --primary: #e94560; --accent: #e94560; }
     width: 65px; height: 65px; border-radius: 50%;
     border: none; font-size: 26px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s;
 }
-.call-btn:active { transform: scale(0.9); }
 .call-btn.end { background: #e94560; color: #fff; }
 .call-btn.mute { background: #2a3942; color: #e9edef; }
 .call-btn.mute.active { background: #ff9800; color: #fff; }
