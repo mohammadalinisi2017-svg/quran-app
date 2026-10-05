@@ -1,3 +1,6 @@
+// ============================================================
+// Firebase
+// ============================================================
 var firebaseConfig = {
     apiKey: "AIzaSyCiattAZKHvXx_qUwkZRLYjoojLeaYbMm4",
     authDomain: "my-messenger-3d827.firebaseapp.com",
@@ -12,6 +15,9 @@ var db = firebase.database();
 var auth = firebase.auth();
 var VAPID_KEY = "";
 
+// ============================================================
+// Globals
+// ============================================================
 var myName = "", myId = "", myPhone = "", myAv = "😊";
 var curChat = "public", curUser = null;
 var replyTo = null, selMsg = null, selKey = null, selPath = null, selAv = "😊";
@@ -37,16 +43,27 @@ var fwdMsg = null;
 var searchMatches = [], searchIdx = -1;
 var unreadCounts = {}, unreadTotal = 0, notifPermGranted = false;
 var messaging = null;
-
 var chatSettings = JSON.parse(localStorage.getItem('app_chat_settings') || '{}');
 var pins = JSON.parse(localStorage.getItem('app_pins') || '{}');
 var pendingUnlock = null;
+var currentAudio = null;
+
+// PACK 3
+var stickersList = ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🌸','🌹','🌺','🌻','🌼','🌷','🌴','🌲','🌳','🌵','🍀','🍁','🍂','🌾','💐','🍎','🍊','🍋','🍌','🍉','🍇','🍓','🍒','🍑','🥝','🍍','🥥','🍅','🥑','🍕','🍔','🍟','🌭','🍿','🧂','🥓','🥚','🍳','🧇','🥞','🍞','🥐','🥨','🧀','🍗','😊','😂','🥰','😍','🤩','😎','🥳','😇','🤗','🤔','😴','🤤','😋','😜','🤪','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','❣️','💕','💞','💓','💗','💖','⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🎯','🎮','🎲','🎰','⭐','🌟','✨','⚡','🔥','💥','💫','🌈','☀️','🌙','✅','❌','❓','❗','💰','💎','🏆','👑','🎁','🎉','🎊','🎈','🎂','🍰','🧁','🍭','🍬','🍫','🍩'];
+var GIPHY_KEY = "dc6zaTOxFJmzC";
+var chatBgs = ['bg-1','bg-2','bg-3','bg-4','bg-5','bg-6','bg-7','bg-8'];
+var currentBg = localStorage.getItem('app_chat_bg') || 'bg-1';
+var starred = JSON.parse(localStorage.getItem('app_starred') || '{}');
+var cameraStream = null;
+var currentFacing = 'environment';
 
 var avOpts = ['😊','😎','🤓','🥳','😇','🤠','👦','👧','🧑','👨','👩','🧔','👶','🐱','🐶','🦊','🐻','🐼','🦁','🐯','🦄','🐸','🐵','🦉','🌟','⭐','💫','✨','🔥','⚡','🌸','🌹'];
 var emos = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','✅','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🎂','🍰','🐱','🐶','🌸'];
 var themes = ['theme-green','theme-blue','theme-purple','theme-red'];
 
-/* Avatar Picker */
+// ============================================================
+// Avatar Picker
+// ============================================================
 function loadAvPick(){
     var p = document.getElementById('avPick'), h = '';
     avOpts.forEach(function(a){ h += '<span data-av="'+a+'">'+a+'</span>'; });
@@ -63,7 +80,9 @@ function loadAvPick(){
 }
 loadAvPick();
 
-/* Login */
+// ============================================================
+// Login
+// ============================================================
 document.getElementById('loginBtn').onclick = async function(){
     var n = document.getElementById('nameInput').value.trim();
     var p = document.getElementById('phoneInput').value.trim();
@@ -101,7 +120,9 @@ auth.onAuthStateChanged(function(user){
     }
 });
 
-/* Start */
+// ============================================================
+// Start
+// ============================================================
 function startApp(){
     document.getElementById('loginScreen').style.display = 'none';
     if (!isAdmin && !myApproved) { sendApprovalRequest(); return; }
@@ -114,6 +135,7 @@ function startApp(){
     loadEmos();
     loadMyCount();
     loadTheme();
+    applyChatBg();
     cleanupOldMessages();
     checkAdminBtn();
     listenAllEvents();
@@ -121,15 +143,36 @@ function startApp(){
     initNotificationSystem();
     listenIncomingCalls();
     addCallButton();
+
     document.getElementById('recBtn').onclick = startRecording;
     document.getElementById('searchHeaderBtn').onclick = openSearch;
     document.getElementById('chatSettingsBtn').onclick = openChatSettings;
+    document.getElementById('bgBtn').onclick = openBgPicker;
     document.getElementById('fileBtn').onclick = function(){
         document.getElementById('fileInput').click();
     };
+    document.getElementById('stickerBtn').onclick = function(){
+        var p = document.getElementById('stickerPanel');
+        p.classList.toggle('show');
+        if (p.classList.contains('show')) loadStickerGrid();
+    };
+    document.getElementById('cameraBtn').onclick = openCamera;
+    document.getElementById('locationBtn').onclick = shareLocation;
+
+    // تب‌های پنل استیکر
+    document.querySelectorAll('.sp-tabs button').forEach(function(b){
+        b.onclick = function(){
+            document.querySelectorAll('.sp-tabs button').forEach(function(x){ x.classList.remove('act'); });
+            document.querySelectorAll('.sp-tab').forEach(function(x){ x.classList.remove('act'); });
+            b.classList.add('act');
+            document.getElementById(b.getAttribute('data-stab')).classList.add('act');
+        };
+    });
 }
 
-/* Presence */
+// ============================================================
+// Presence
+// ============================================================
 function initPresence(){
     var myStatusRef = db.ref('status/' + myId);
     var connRef = db.ref('.info/connected');
@@ -162,7 +205,9 @@ function watchUserStatus(uid, cb){
     });
 }
 
-/* Typing */
+// ============================================================
+// Typing
+// ============================================================
 function setTyping(chatId, isTyping){
     if (!myId) return;
     var r = db.ref('typing/' + chatId + '/' + myId);
@@ -199,7 +244,9 @@ function showTypingIndicator(chatId){
     });
 }
 
-/* Notifications */
+// ============================================================
+// Notifications
+// ============================================================
 async function initNotifications(){
     if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
     if (!VAPID_KEY) return;
@@ -216,7 +263,6 @@ async function initNotifications(){
         });
     } catch (err) { console.log('FCM error:', err); }
 }
-
 function askNotifPermission(){
     if (!('Notification' in window)) { showToast('مرورگرت اعلان پشتیبانی نمی‌کنه'); return; }
     if (Notification.permission === 'granted') { notifPermGranted = true; showToast('✅ اعلان‌ها فعالن'); return; }
@@ -227,7 +273,9 @@ function askNotifPermission(){
     });
 }
 
-/* Approval */
+// ============================================================
+// Approval
+// ============================================================
 function sendApprovalRequest(){
     if (!myApprovalCode) {
         myApprovalCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -268,7 +316,9 @@ function checkApproval(){
     });
 }
 
-/* Admin */
+// ============================================================
+// Admin
+// ============================================================
 function showAdminLogin(){
     if (isAdmin) { showAdminPanel(); return; }
     var mb = document.getElementById('mbox');
@@ -387,7 +437,9 @@ function logoutAdmin(){
     location.reload();
 }
 
-/* Logs */
+// ============================================================
+// Logs
+// ============================================================
 function logEvent(type, userId, userName, avatar, text) {
     db.ref('logs').push({
         type: type, userId: userId || '', userName: userName || '',
@@ -426,7 +478,9 @@ function clearAllLogs() {
     if (confirm('همه لاگ‌ها پاک بشن؟')) { db.ref('logs').remove(); showActivityLog(); }
 }
 
-/* Profile */
+// ============================================================
+// Profile
+// ============================================================
 function updateAv(){
     document.getElementById('headerAv').innerHTML = myAv + '<span class="dot"></span>';
     document.getElementById('profAv').textContent = myAv;
@@ -438,7 +492,9 @@ function updateAv(){
     document.getElementById('profStatus').textContent = '● آنلاین';
 }
 
-/* Chats List */
+// ============================================================
+// Chats List
+// ============================================================
 function loadChatsList(){
     var l = document.getElementById('chatList');
     if (!l) return;
@@ -487,6 +543,9 @@ function loadChatsList(){
                 var lastText = c.lastMsg.photo ? '📷 عکس'
                              : c.lastMsg.voice ? '🎤 پیام صوتی'
                              : c.lastMsg.fileData ? '📎 فایل'
+                             : c.lastMsg.sticker ? c.lastMsg.sticker + ' استیکر'
+                             : c.lastMsg.gif ? '🎞️ GIF'
+                             : c.lastMsg.location ? '📍 موقعیت'
                              : (c.lastMsg.text || '');
                 if (c.lastMsg.sender === myId) lastText = 'شما: ' + lastText;
                 var timeStr = timeAgoShort(c.lastTime);
@@ -525,6 +584,7 @@ function loadChatsList(){
                 document.getElementById('headerStatus').textContent = "● آنلاین";
                 document.getElementById('backBtn').style.display = 'block';
                 document.getElementById('chatSettingsBtn').style.display = 'none';
+                document.getElementById('bgBtn').style.display = 'none';
                 showPage('pageChat');
                 loadPubMsgs();
             };
@@ -552,10 +612,13 @@ function loadChatsList(){
     });
 }
 
-/* Public Chat */
+// ============================================================
+// Public Chat
+// ============================================================
 function loadPubMsgs(){
     var a = document.getElementById('messagesArea');
     document.getElementById('chatSettingsBtn').style.display = 'none';
+    document.getElementById('bgBtn').style.display = 'none';
     markChatAsRead('messages');
     db.ref('messages').limitToLast(100).on('value', function(s){
         a.innerHTML = '';
@@ -577,6 +640,7 @@ function loadPubMsgs(){
             if (m.photo) h += '<img class="photo" src="' + m.photo + '">';
             if (m.voice) h += renderVoiceHtml(m, mine);
             if (m.fileData) h += renderFileHtml(m);
+            h += renderExtraParts(m, mine);
             if (m.text) h += '<div class="text">' + esc(m.text) + '</div>';
             if (m.reacts && Object.keys(m.reacts).length > 0) {
                 h += '<div class="reacts">';
@@ -596,7 +660,9 @@ function loadPubMsgs(){
     });
 }
 
-/* Private Chat */
+// ============================================================
+// Private Chat
+// ============================================================
 function openPriv(uid, name, av){
     var chatKey = 'private/' + [myId, uid].sort().join('_');
     var s = getSettings(chatKey);
@@ -608,7 +674,6 @@ function openPriv(uid, name, av){
     }
     _openPrivReal(uid, name, av);
 }
-
 function _openPrivReal(uid, name, av){
     curChat = uid; curUser = {id:uid, name:name, avatar:av};
     markChatAsRead('private/' + [myId, uid].sort().join('_'));
@@ -616,6 +681,7 @@ function _openPrivReal(uid, name, av){
     document.getElementById('headerStatus').textContent = '...';
     document.getElementById('backBtn').style.display = 'block';
     document.getElementById('chatSettingsBtn').style.display = 'block';
+    document.getElementById('bgBtn').style.display = 'block';
     showPage('pageChat');
     loadPriv(uid);
     watchUserStatus(uid, function(status){
@@ -631,7 +697,6 @@ function _openPrivReal(uid, name, av){
     });
     showTypingIndicator('private_' + [myId, uid].sort().join('_'));
 }
-
 function loadPriv(oid){
     var cid = [myId, oid].sort().join('_');
     var a = document.getElementById('messagesArea');
@@ -655,6 +720,7 @@ function loadPriv(oid){
             if (m.photo) h += '<img class="photo" src="' + m.photo + '">';
             if (m.voice) h += renderVoiceHtml(m, mine);
             if (m.fileData) h += renderFileHtml(m);
+            h += renderExtraParts(m, mine);
             if (m.text) h += '<div class="text">' + esc(m.text) + '</div>';
             if (m.reacts && Object.keys(m.reacts).length > 0) {
                 h += '<div class="reacts">';
@@ -682,7 +748,9 @@ function loadPriv(oid){
     });
 }
 
-/* Send */
+// ============================================================
+// Send Message
+// ============================================================
 document.getElementById('sendBtn').onclick = sendMsg;
 document.getElementById('msgInput').onkeypress = function(e){ if (e.key === 'Enter') sendMsg(); };
 document.getElementById('msgInput').oninput = function(){
@@ -722,7 +790,9 @@ function sendMsg(){
     cancelReply();
 }
 
-/* Photo */
+// ============================================================
+// Photo
+// ============================================================
 document.getElementById('photoBtn').onclick = function(){ document.getElementById('photoInput').click(); };
 document.getElementById('photoInput').onchange = function(e){
     var file = e.target.files[0];
@@ -759,7 +829,9 @@ document.getElementById('photoInput').onchange = function(e){
     e.target.value = '';
 };
 
-/* File */
+// ============================================================
+// File
+// ============================================================
 document.getElementById('fileInput').onchange = function(e){
     var file = e.target.files[0];
     if (!file) return;
@@ -781,11 +853,9 @@ document.getElementById('fileInput').onchange = function(e){
             text: '', time: Date.now(), timeStr: ts,
             read: false, delivered: false
         };
-        if (curChat === "public") {
-            db.ref('messages').push(md);
-        } else if (curChat.indexOf('group_') === 0) {
-            var gid = curChat.replace('group_','');
-            db.ref('groupmessages/' + gid).push(md);
+        if (curChat === "public") { db.ref('messages').push(md); }
+        else if (curChat.indexOf('group_') === 0) {
+            db.ref('groupmessages/' + curChat.replace('group_','')).push(md);
         } else {
             var cid = [myId, curChat].sort().join('_');
             md.sender = myId;
@@ -796,7 +866,6 @@ document.getElementById('fileInput').onchange = function(e){
     reader.readAsDataURL(file);
     e.target.value = '';
 };
-
 function renderFileHtml(m) {
     var icon = '📄';
     var t = (m.fileType || '').toLowerCase();
@@ -828,7 +897,9 @@ function downloadFile(btn){
     document.body.removeChild(a);
 }
 
-/* Voice */
+// ============================================================
+// Voice Recording
+// ============================================================
 function startRecording() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('مرورگرت ضبط صدا رو پشتیبانی نمی‌کنه'); return;
@@ -905,7 +976,6 @@ function renderVoiceHtml(m, isMine) {
         '<span class="dur">' + mss + ':' + sss + '</span>' +
     '</div>';
 }
-var currentAudio = null;
 function playVoice(btn) {
     var wrap = btn.parentElement;
     var src = wrap.getAttribute('data-src');
@@ -933,7 +1003,9 @@ function playVoice(btn) {
     };
 }
 
-/* Search */
+// ============================================================
+// Search
+// ============================================================
 function openSearch(){
     document.getElementById('searchPanel').classList.add('show');
     setTimeout(function(){ document.getElementById('searchInput').focus(); }, 100);
@@ -983,7 +1055,9 @@ function searchNext(dir){
     document.getElementById('searchInfo').textContent = (searchIdx + 1) + ' از ' + searchMatches.length;
 }
 
-/* Edit */
+// ============================================================
+// Edit
+// ============================================================
 function editMessage(){
     if (!selMsg || !selKey) return;
     if (selMsg.sender !== myId && selMsg.uid !== myId) {
@@ -1010,7 +1084,9 @@ function commitEdit(){
     return true;
 }
 
-/* Forward */
+// ============================================================
+// Forward
+// ============================================================
 function forwardMessage(){
     if (!selMsg || !selKey) return;
     fwdMsg = selMsg;
@@ -1063,6 +1139,9 @@ function doForward(target, userData){
         fileName: fwdMsg.fileName || null,
         fileSize: fwdMsg.fileSize || 0,
         fileType: fwdMsg.fileType || null,
+        sticker: fwdMsg.sticker || null,
+        gif: fwdMsg.gif || null,
+        location: fwdMsg.location || null,
         forwarded: true,
         forwardedFrom: fwdMsg.name || 'کاربر',
         time: Date.now(), timeStr: ts,
@@ -1087,7 +1166,9 @@ function deleteChat(chatKey){
     setTimeout(function(){ loadChatsList(); }, 500);
 }
 
-/* Groups */
+// ============================================================
+// Groups
+// ============================================================
 document.getElementById('newGroupBtn').onclick = function(){
     db.ref('online').once('value', function(snap){
         var data = snap.val() || {};
@@ -1120,6 +1201,7 @@ function openGroup(gid, name){
     document.getElementById('headerStatus').textContent = 'گروه';
     document.getElementById('backBtn').style.display = 'block';
     document.getElementById('chatSettingsBtn').style.display = 'none';
+    document.getElementById('bgBtn').style.display = 'none';
     showPage('pageChat');
     var a = document.getElementById('messagesArea');
     db.ref('groupmessages/' + gid).limitToLast(100).on('value', function(s){
@@ -1137,6 +1219,7 @@ function openGroup(gid, name){
             if (m.photo) h += '<img class="photo" src="' + m.photo + '">';
             if (m.voice) h += renderVoiceHtml(m, mine);
             if (m.fileData) h += renderFileHtml(m);
+            h += renderExtraParts(m, mine);
             if (m.text) h += '<div class="text">' + esc(m.text) + '</div>';
             var editedTag = m.edited ? ' <span class="edited-tag">(ویرایش‌شده)</span>' : '';
             h += '<div class="meta">' + (m.timeStr||'') + editedTag + '</div>';
@@ -1151,7 +1234,9 @@ function openGroup(gid, name){
     showTypingIndicator('group_' + gid);
 }
 
-/* Message Menu */
+// ============================================================
+// Message Menu
+// ============================================================
 function openMM(m, k, p){
     selMsg = m; selKey = k; selPath = p;
     document.getElementById('mmenu').classList.add('show');
@@ -1173,6 +1258,9 @@ function openMM(m, k, p){
     var isPinned = pins[chatKey] && pins[chatKey].indexOf(selKey) >= 0;
     var pinBtn = document.getElementById('pinBtn');
     if (pinBtn) pinBtn.textContent = isPinned ? '📌 برداشتن پین' : '📌 پین کردن';
+    var isStarred = (starred[chatKey] || []).some(function(s){ return s.key === selKey; });
+    var sb = document.getElementById('starBtn');
+    if (sb) sb.textContent = isStarred ? '⭐ برداشتن ستاره' : '⭐ ستاره‌دار';
 }
 function closeMMenu(){
     document.getElementById('mmenu').classList.remove('show');
@@ -1208,7 +1296,9 @@ function deleteMsg(){
     closeMMenu();
 }
 
-/* Contacts */
+// ============================================================
+// Contacts
+// ============================================================
 function loadUsers(){
     var l = document.getElementById('usersList');
     if (!l) return;
@@ -1267,7 +1357,9 @@ function loadMyCount(){
     });
 }
 
-/* Emoji / Tabs / Theme */
+// ============================================================
+// Emoji / Tabs / Theme
+// ============================================================
 function loadEmos(){
     var p = document.getElementById('emojiPanel'), h = '';
     emos.forEach(function(e){ h += '<span>' + e + '</span>'; });
@@ -1290,6 +1382,7 @@ document.querySelectorAll('.tbtn').forEach(function(b){
         document.getElementById(t).classList.add('act');
         document.getElementById('backBtn').style.display = 'none';
         document.getElementById('chatSettingsBtn').style.display = 'none';
+        document.getElementById('bgBtn').style.display = 'none';
         if (t === 'pageChats') {
             document.getElementById('headerTitle').textContent = 'سوپر اپ';
             unreadCounts = {}; unreadTotal = 0; updateTotalBadge();
@@ -1305,7 +1398,9 @@ function showPage(id){
     document.getElementById(id).classList.add('act');
 }
 
-/* Profile Edit */
+// ============================================================
+// Profile Edit
+// ============================================================
 function changeAvatar(){
     var mb = document.getElementById('mbox');
     var h = '<h3>🖼️ انتخاب آواتار</h3><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:15px" id="mavPick">';
@@ -1344,12 +1439,14 @@ function saveName(){
 }
 function showAbout(){
     var mb = document.getElementById('mbox');
-    mb.innerHTML = '<h3>ℹ️ درباره</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی<br><br>✨ امکانات:<br>• چت و گروه<br>• 📷 🎤 📎<br>• 🔍 جستجو، ✏️ ویرایش، ↪️ فوروارد<br>• 📌 پین، 🚫 بلاک، 🔒 قفل<br>• 🔕 بی‌صدا، 📦 آرشیو<br>• ⚠️ گزارش تخلف<br>• 🔔 اعلان + Badge<br>• ✓✓ تیک پیام<br>• 📞 تماس صوتی</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = '<h3>ℹ️ درباره</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی<br><br>✨ امکانات:<br>• چت و گروه<br>• 📷 🎤 📎 🎨 🎞️ 📍 📸<br>• 🔍 جستجو، ✏️ ویرایش، ↪️ فوروارد<br>• 📌 پین، ⭐ ستاره، 🚫 بلاک، 🔒 قفل<br>• 🔕 بی‌صدا، 📦 آرشیو، ⚠️ گزارش<br>• 🖼️ پس‌زمینه چت<br>• 🔔 اعلان + Badge<br>• ✓✓ تیک پیام<br>• 📞 تماس صوتی</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
     document.getElementById('modal').classList.add('show');
 }
 function closeModal(){ document.getElementById('modal').classList.remove('show'); }
 
-/* Logout */
+// ============================================================
+// Logout
+// ============================================================
 document.getElementById('logoutBtn').onclick = async function(){
     if (confirm('خارج می‌شی؟')) {
         if (myId) db.ref('online/' + myId).remove();
@@ -1363,7 +1460,9 @@ document.getElementById('logoutBtn').onclick = async function(){
     }
 };
 
-/* Search & Browser */
+// ============================================================
+// Search & Browser
+// ============================================================
 document.getElementById('searchUser').oninput = function(e){
     var q = e.target.value.toLowerCase();
     document.querySelectorAll('#usersList .citem').forEach(function(it){
@@ -1394,9 +1493,9 @@ document.querySelectorAll('.bcard').forEach(function(c){
     c.onclick = function(){ openUrl(c.getAttribute('data-url')); };
 });
 
-/* ============================================================
-   NOTIFICATION SYSTEM
-============================================================ */
+// ============================================================
+// Notification System
+// ============================================================
 function playNotifSound() {
     try {
         var ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1483,7 +1582,6 @@ function handleIncomingMessage(m, chatKey) {
     if (!m) return;
     if (m.uid === myId || m.sender === myId) return;
     if (m.name === myName && !m.uid) return;
-
     if (chatKey.indexOf('private/') === 0) {
         var _s = getSettings(chatKey);
         if (_s.blocked) return;
@@ -1494,7 +1592,6 @@ function handleIncomingMessage(m, chatKey) {
             return;
         }
     }
-
     var chatOpen = isCurrentChat(chatKey);
     var pageChatVisible = document.getElementById('pageChat').classList.contains('act') && chatOpen;
     if (pageChatVisible && document.visibilityState === 'visible') {
@@ -1507,6 +1604,9 @@ function handleIncomingMessage(m, chatKey) {
     if (m.photo) preview = '📷 عکس';
     else if (m.voice) preview = '🎤 پیام صوتی';
     else if (m.fileData) preview = '📎 ' + (m.fileName || 'فایل');
+    else if (m.sticker) preview = m.sticker + ' استیکر';
+    else if (m.gif) preview = '🎞️ GIF';
+    else if (m.location) preview = '📍 موقعیت';
     if (!preview) preview = '📨 پیام جدید';
     var title = m.name || 'کاربر';
     if (chatKey === 'messages') title = '📢 ' + title;
@@ -1587,12 +1687,10 @@ function listenAllEvents(){
     });
 }
 
-/* ============================================================
-   PACK 2: Block / Report / Lock / Mute / Archive / Pin
-============================================================ */
-function saveSettings() {
-    localStorage.setItem('app_chat_settings', JSON.stringify(chatSettings));
-}
+// ============================================================
+// PACK 2: Block / Report / Lock / Mute / Archive / Pin
+// ============================================================
+function saveSettings() { localStorage.setItem('app_chat_settings', JSON.stringify(chatSettings)); }
 function getSettings(chatKey) {
     if (!chatSettings[chatKey]) {
         chatSettings[chatKey] = { muted: false, archived: false, locked: false, pass: '', blocked: false };
@@ -1607,7 +1705,7 @@ function togglePin() {
     var idx = pins[chatKey].indexOf(selKey);
     if (idx >= 0) {
         pins[chatKey].splice(idx, 1);
-        showToast('📌 از پین برداشته شد');
+        showToast('📌 برداشته شد');
     } else {
         pins[chatKey].push(selKey);
         showToast('📌 پین شد');
@@ -1745,7 +1843,7 @@ function confirmUnlock() {
     s.locked = false; s.pass = '';
     saveSettings();
     closeModal();
-    showToast('🔓 قفل باز شد');
+    showToast('🔓 باز شد');
     if (typeof loadChatsList === 'function') loadChatsList();
 }
 function showLockScreen(userData, callback) {
@@ -1899,7 +1997,252 @@ function quickDeleteChat(cid){
     setTimeout(function(){ deleteChat('private/' + cid); }, 200);
 }
 
-/* Utility */
+// ============================================================
+// PACK 3: Stickers / GIF / Background / Location / Camera / Star
+// ============================================================
+function loadStickerGrid() {
+    var g = document.getElementById('stickerGrid');
+    if (!g) return;
+    var h = '';
+    stickersList.forEach(function(s){
+        h += '<div class="st" onclick="sendSticker(\'' + s + '\')">' + s + '</div>';
+    });
+    g.innerHTML = h;
+}
+function sendSticker(sticker) {
+    var n = new Date();
+    var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+    var md = {
+        name: myName, uid: myId, avatar: myAv,
+        sticker: sticker,
+        text: '', time: Date.now(), timeStr: ts,
+        read: false, delivered: false
+    };
+    if (curChat === "public") { db.ref('messages').push(md); }
+    else if (curChat.indexOf('group_') === 0) {
+        db.ref('groupmessages/' + curChat.replace('group_','')).push(md);
+    } else {
+        var cid = [myId, curChat].sort().join('_');
+        md.sender = myId;
+        db.ref('private/' + cid).push(md);
+    }
+    closeStickerPanel();
+    showToast('🎨 ارسال شد');
+}
+function closeStickerPanel() {
+    document.getElementById('stickerPanel').classList.remove('show');
+}
+function searchGif() {
+    var q = document.getElementById('gifQuery').value.trim();
+    if (!q) { showToast('چیزی برای جستجو بنویس'); return; }
+    var url = 'https://api.giphy.com/v1/gifs/search?api_key=' + GIPHY_KEY + '&q=' + encodeURIComponent(q) + '&limit=20&rating=g';
+    fetch(url)
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+            var g = document.getElementById('gifGrid');
+            var h = '';
+            (data.data || []).forEach(function(item){
+                var small = item.images.fixed_height_small.url;
+                var full = item.images.fixed_height.url;
+                h += '<img src="' + small + '" onclick="sendGif(\'' + full + '\')" loading="lazy">';
+            });
+            if (h === '') h = '<div style="text-align:center;color:#8696a0;padding:20px">چیزی پیدا نشد</div>';
+            g.innerHTML = h;
+        })
+        .catch(function(err){
+            console.log('GIF error:', err);
+            showToast('❌ خطا در جستجو');
+        });
+}
+function sendGif(url) {
+    var n = new Date();
+    var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+    var md = {
+        name: myName, uid: myId, avatar: myAv,
+        gif: url,
+        text: '', time: Date.now(), timeStr: ts,
+        read: false, delivered: false
+    };
+    if (curChat === "public") { db.ref('messages').push(md); }
+    else if (curChat.indexOf('group_') === 0) {
+        db.ref('groupmessages/' + curChat.replace('group_','')).push(md);
+    } else {
+        var cid = [myId, curChat].sort().join('_');
+        md.sender = myId;
+        db.ref('private/' + cid).push(md);
+    }
+    closeStickerPanel();
+    showToast('🎞️ ارسال شد');
+}
+function applyChatBg() {
+    var m = document.getElementById('messagesArea');
+    if (!m) return;
+    chatBgs.forEach(function(b){ m.classList.remove(b); });
+    m.classList.add(currentBg);
+}
+function openBgPicker() {
+    var mb = document.getElementById('mbox');
+    var h = '<h3>🖼️ پس‌زمینه چت</h3>';
+    h += '<div class="chat-bg-picker">';
+    chatBgs.forEach(function(b){
+        h += '<div class="bg-opt ' + b + (b === currentBg ? ' sel' : '') + '" data-bg="' + b + '" onclick="setBg(\'' + b + '\')"></div>';
+    });
+    h += '</div>';
+    h += '<div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = h;
+    document.getElementById('modal').classList.add('show');
+}
+function setBg(b) {
+    currentBg = b;
+    localStorage.setItem('app_chat_bg', b);
+    applyChatBg();
+    openBgPicker();
+    showToast('✅ اعمال شد');
+}
+function shareLocation() {
+    if (!navigator.geolocation) {
+        showToast('❌ مرورگرت موقعیت پشتیبانی نمی‌کنه');
+        return;
+    }
+    if (!confirm('موقعیت فعلیت ارسال بشه؟')) return;
+    showToast('📍 در حال گرفتن موقعیت...');
+    navigator.geolocation.getCurrentPosition(function(pos){
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var n = new Date();
+        var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+        var md = {
+            name: myName, uid: myId, avatar: myAv,
+            location: { lat: lat, lng: lng },
+            text: '', time: Date.now(), timeStr: ts,
+            read: false, delivered: false
+        };
+        if (curChat === "public") { db.ref('messages').push(md); }
+        else if (curChat.indexOf('group_') === 0) {
+            db.ref('groupmessages/' + curChat.replace('group_','')).push(md);
+        } else {
+            var cid = [myId, curChat].sort().join('_');
+            md.sender = myId;
+            db.ref('private/' + cid).push(md);
+        }
+        showToast('📍 ارسال شد');
+    }, function(err){
+        console.log(err);
+        showToast('❌ دسترسی به موقعیت رد شد');
+    }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    });
+}
+function renderLocationHtml(m) {
+    var lat = m.location.lat.toFixed(6);
+    var lng = m.location.lng.toFixed(6);
+    var gmaps = 'https://www.google.com/maps?q=' + m.location.lat + ',' + m.location.lng;
+    return '<div class="location-msg">' +
+        '<div class="loc-map"><span class="loc-pin">📍</span></div>' +
+        '<div class="loc-info">' +
+            '<span style="font-size:11px;opacity:0.75">' + lat + ' , ' + lng + '</span>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+            '<button class="loc-open" onclick="window.open(\'' + gmaps + '\',\'_blank\')">🗺️ نقشه</button>' +
+            '<button class="loc-open" onclick="navigator.clipboard.writeText(\'' + lat + ',' + lng + '\');showToast(\'📋 کپی شد\')">📋 کپی</button>' +
+        '</div>' +
+    '</div>';
+}
+function openCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('مرورگرت دوربین پشتیبانی نمی‌کنه');
+        return;
+    }
+    navigator.mediaDevices.getUserMedia({
+        video: { facingMode: currentFacing }
+    }).then(function(stream){
+        cameraStream = stream;
+        var v = document.getElementById('cameraVideo');
+        v.srcObject = stream;
+        document.getElementById('cameraScreen').classList.add('show');
+    }).catch(function(err){
+        console.log(err);
+        showToast('❌ دسترسی به دوربین رد شد');
+    });
+}
+function closeCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(function(t){ t.stop(); });
+        cameraStream = null;
+    }
+    document.getElementById('cameraScreen').classList.remove('show');
+}
+function switchCamera() {
+    currentFacing = currentFacing === 'environment' ? 'user' : 'environment';
+    closeCamera();
+    openCamera();
+}
+function shootPhoto() {
+    if (!cameraStream) return;
+    var v = document.getElementById('cameraVideo');
+    var canvas = document.createElement('canvas');
+    var maxW = 800;
+    var scale = Math.min(1, maxW / v.videoWidth);
+    canvas.width = v.videoWidth * scale;
+    canvas.height = v.videoHeight * scale;
+    canvas.getContext('2d').drawImage(v, 0, 0, canvas.width, canvas.height);
+    var compressed = canvas.toDataURL('image/jpeg', 0.7);
+    var f = document.getElementById('camFlash');
+    f.classList.add('flash');
+    setTimeout(function(){ f.classList.remove('flash'); }, 300);
+    var n = new Date();
+    var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+    var md = {
+        name: myName, uid: myId, avatar: myAv,
+        photo: compressed,
+        text: '', time: Date.now(), timeStr: ts,
+        read: false, delivered: false
+    };
+    if (curChat === "public") { db.ref('messages').push(md); }
+    else if (curChat.indexOf('group_') === 0) {
+        db.ref('groupmessages/' + curChat.replace('group_','')).push(md);
+    } else {
+        var cid = [myId, curChat].sort().join('_');
+        md.sender = myId;
+        db.ref('private/' + cid).push(md);
+    }
+    closeCamera();
+    showToast('📸 ارسال شد');
+}
+function saveStarred() { localStorage.setItem('app_starred', JSON.stringify(starred)); }
+function toggleStarMsg() {
+    if (!selMsg || !selKey) return;
+    var chatKey = getChatKey();
+    if (!starred[chatKey]) starred[chatKey] = [];
+    var idx = starred[chatKey].findIndex(function(s){ return s.key === selKey; });
+    if (idx >= 0) {
+        starred[chatKey].splice(idx, 1);
+        showToast('⭐ برداشته شد');
+    } else {
+        starred[chatKey].push({
+            key: selKey,
+            text: selMsg.text || (selMsg.photo ? '📷 عکس' : selMsg.voice ? '🎤 صوتی' : selMsg.fileData ? '📎 فایل' : selMsg.sticker ? selMsg.sticker + ' استیکر' : selMsg.gif ? '🎞️ GIF' : selMsg.location ? '📍 موقعیت' : '📌 پیام'),
+            name: selMsg.name || 'کاربر',
+            time: selMsg.time || Date.now()
+        });
+        showToast('⭐ ستاره‌دار شد');
+    }
+    saveStarred();
+    closeMMenu();
+}
+function renderExtraParts(m, mine) {
+    var h = '';
+    if (m.sticker) h += '<div class="sticker-msg">' + m.sticker + '</div>';
+    if (m.gif) h += '<img class="gif-msg" src="' + m.gif + '" alt="gif">';
+    if (m.location) h += renderLocationHtml(m);
+    return h;
+}
+
+// ============================================================
+// Utility
+// ============================================================
 function timeAgo(time){
     if (!time) return 'خیلی وقت پیش';
     var diff = Math.floor((Date.now() - time) / 1000);
@@ -1958,9 +2301,9 @@ function esc(t){
     return d.innerHTML;
 }
 
-/* ============================================================
-   WebRTC Voice Call
-============================================================ */
+// ============================================================
+// WebRTC Voice Call
+// ============================================================
 function startCall(peerId, peerName, peerAvatar) {
     if (pc) { alert('در حال تماس هستید'); return; }
     if (!peerId) return;
