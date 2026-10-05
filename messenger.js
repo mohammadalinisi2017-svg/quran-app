@@ -14,7 +14,6 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 var auth = firebase.auth();
 
-// ⚠️ اگه VAPID Key داری، اینجا بذار. اگه نداری، خالی بذار.
 var VAPID_KEY = "";
 
 // ============================================================
@@ -44,7 +43,6 @@ var rtcConfig = {
 var typingTimeout = null;
 var typingListenerRef = null;
 
-// FCM
 var messaging = null;
 
 var avOpts = ['😊','😎','🤓','🥳','😇','🤠','👦','👧','🧑','👨','👩','🧔','👶','🐱','🐶','🦊','🐻','🐼','🦁','🐯','🦄','🐸','🐵','🦉','🌟','⭐','💫','✨','🔥','⚡','🌸','🌹'];
@@ -77,7 +75,7 @@ document.getElementById('loginBtn').onclick = async function(){
     var n = document.getElementById('nameInput').value.trim();
     var p = document.getElementById('phoneInput').value.trim();
     if (!n) { alert('اسمت رو وارد کن!'); return; }
-    if (!p || !/^09\d{9}$/.test(p)) { alert('شماره تلفن معتبر وارد کن (۱۱ رقم، با ۰۹ شروع بشه)'); return; }
+    if (!p || !/^09\d{9}$/.test(p)) { alert('شماره تلفن معتبر وارد کن'); return; }
 
     try {
         if (auth.currentUser) await auth.signOut();
@@ -104,9 +102,6 @@ document.getElementById('loginBtn').onclick = async function(){
     }
 };
 
-// ============================================================
-// Auth state
-// ============================================================
 auth.onAuthStateChanged(function(user){
     if (user) {
         myId = user.uid;
@@ -134,9 +129,8 @@ function startApp(){
     document.getElementById('tabs').style.display = 'flex';
     updateAv();
     initPresence();
-    loadPubMsgs();
     loadUsers();
-    loadGroups();
+    loadChatsList();
     loadEmos();
     loadMyCount();
     loadTheme();
@@ -146,6 +140,7 @@ function startApp(){
     initNotifications();
     listenIncomingCalls();
     addCallButton();
+    listenPublicLast();
 }
 
 // ============================================================
@@ -230,11 +225,11 @@ function showTypingIndicator(chatId){
 }
 
 // ============================================================
-// Notifications (FCM)
+// FCM
 // ============================================================
 async function initNotifications(){
     if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
-    if (!VAPID_KEY) { console.log('FCM disabled (no VAPID)'); return; }
+    if (!VAPID_KEY) return;
     try {
         var reg = await navigator.serviceWorker.register('/quran-app/firebase-messaging-sw.js');
         var perm = await Notification.requestPermission();
@@ -306,8 +301,8 @@ function showAdminLogin(){
     if (isAdmin) { showAdminPanel(); return; }
     var mb = document.getElementById('mbox');
     mb.innerHTML = '<h3>✅ ورود مدیر</h3>' +
-        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">کد مدیر رو وارد کن:</p>' +
-        '<input type="text" id="adminCodeInput" placeholder="کد مدیر" maxlength="30">' +
+        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">کد مدیر:</p>' +
+        '<input type="text" id="adminCodeInput" placeholder="کد" maxlength="30">' +
         '<div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="checkAdminCode()">ورود</button></div>';
     document.getElementById('modal').classList.add('show');
 }
@@ -377,7 +372,7 @@ function showPendingUsers(){
             pending.sort(function(a,b){ return (a.data.time||0) - (b.data.time||0); });
             pending.forEach(function(p) {
                 var u = p.data;
-                h += '<div class="pending-user"><div class="row"><div class="u-name">' + u.avatar + ' ' + esc(u.name) + '</div></div>';
+                h += '<div class="pending-user"><div class="u-name">' + u.avatar + ' ' + esc(u.name) + '</div>';
                 if (u.phone) h += '<div class="u-email">📱 ' + esc(u.phone) + '</div>';
                 h += '<div class="u-time">⏰ ' + timeAgo(u.time) + '</div>';
                 h += '<p style="color:#8696a0;font-size:12px;margin-top:8px">کد تأیید:</p>';
@@ -487,16 +482,143 @@ function updateAv(){
 }
 
 // ============================================================
+// CHATS LIST (مثل واتساپ)
+// ============================================================
+function loadChatsList(){
+    var l = document.getElementById('chatList');
+    if (!l) return;
+
+    db.ref('private').on('value', function(snap){
+        var d = snap.val() || {};
+        var chats = [];
+
+        Object.keys(d).forEach(function(cid){
+            var parts = cid.split('_');
+            if (parts.indexOf(myId) === -1) return;
+
+            var otherId = parts[0] === myId ? parts[1] : parts[0];
+            var msgs = d[cid];
+            var keys = Object.keys(msgs);
+            if (keys.length === 0) return;
+
+            // پیدا کردن آخرین پیام
+            var lastTime = 0, lastMsg = null;
+            keys.forEach(function(k){
+                var m = msgs[k];
+                if ((m.time || 0) > lastTime) {
+                    lastTime = m.time || 0;
+                    lastMsg = m;
+                }
+            });
+
+            if (lastMsg) {
+                chats.push({
+                    cid: cid,
+                    otherId: otherId,
+                    lastMsg: lastMsg,
+                    lastTime: lastTime
+                });
+            }
+        });
+
+        chats.sort(function(a,b){ return b.lastTime - a.lastTime; });
+
+        // گروه‌های کاربر
+        db.ref('groups').once('value', function(gSnap){
+            var gd = gSnap.val() || {};
+            var groups = [];
+            Object.keys(gd).forEach(function(gid){
+                var g = gd[gid];
+                if (!g.members || !g.members[myId]) return;
+                groups.push({ gid: gid, name: g.name, time: g.time || 0 });
+            });
+            groups.sort(function(a,b){ return b.time - a.time; });
+
+            var h = '';
+
+            // گروه عمومی
+            h += '<div class="citem" id="publicChatItem">' +
+                    '<div class="av">💬</div>' +
+                    '<div class="body">' +
+                        '<h3>گروه عمومی</h3>' +
+                        '<p id="publicLastMsg">چت با همه</p>' +
+                    '</div>' +
+                 '</div>';
+
+            // گروه‌ها
+            groups.forEach(function(g){
+                h += '<div class="citem" data-gid="' + g.gid + '">' +
+                        '<div class="av">👥</div>' +
+                        '<div class="body">' +
+                            '<h3>' + esc(g.name) + '</h3>' +
+                            '<p>گروه</p>' +
+                        '</div>' +
+                     '</div>';
+            });
+
+            // چت‌های خصوصی
+            chats.forEach(function(c){
+                var u = allUsers[c.otherId] || {};
+                var name = u.name || 'کاربر';
+                var avatar = u.avatar || '👤';
+                var lastText = c.lastMsg.photo ? '📷 عکس' : (c.lastMsg.text || '');
+                if (c.lastMsg.sender === myId) lastText = 'شما: ' + lastText;
+                var timeStr = timeAgoShort(c.lastTime);
+
+                h += '<div class="citem" data-uid="' + c.otherId + '" data-name="' + esc(name) + '" data-avatar="' + avatar + '">' +
+                        '<div class="av">' + avatar + '</div>' +
+                        '<div class="body">' +
+                            '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                                '<h3>' + esc(name) + '</h3>' +
+                                '<span style="font-size:11px;color:#8696a0">' + timeStr + '</span>' +
+                            '</div>' +
+                            '<p>' + esc(lastText) + '</p>' +
+                        '</div>' +
+                     '</div>';
+            });
+
+            l.innerHTML = h;
+
+            var pub = document.getElementById('publicChatItem');
+            if (pub) pub.onclick = function(){
+                curChat = "public"; curUser = null;
+                document.getElementById('headerTitle').textContent = "گروه عمومی";
+                document.getElementById('headerStatus').textContent = "● آنلاین";
+                document.getElementById('backBtn').style.display = 'block';
+                showPage('pageChat');
+                loadPubMsgs();
+            };
+
+            l.querySelectorAll('.citem[data-gid]').forEach(function(el){
+                el.onclick = function(){
+                    openGroup(el.getAttribute('data-gid'), el.querySelector('h3').textContent);
+                };
+            });
+
+            l.querySelectorAll('.citem[data-uid]').forEach(function(el){
+                el.onclick = function(){
+                    openPriv(el.getAttribute('data-uid'), el.getAttribute('data-name'), el.getAttribute('data-avatar'));
+                };
+            });
+        });
+    });
+}
+
+function listenPublicLast(){
+    db.ref('messages').limitToLast(1).on('value', function(ms){
+        var d = ms.val();
+        if (!d) return;
+        var k = Object.keys(d)[0];
+        var m = d[k];
+        var txt = m.photo ? '📷 عکس' : m.text;
+        var el = document.getElementById('publicLastMsg');
+        if (el) el.textContent = m.avatar + ' ' + m.name + ': ' + txt;
+    });
+}
+
+// ============================================================
 // Public Chat
 // ============================================================
-document.getElementById('publicChatItem').onclick = function(){
-    curChat = "public"; curUser = null;
-    document.getElementById('headerTitle').textContent = "گروه عمومی";
-    document.getElementById('backBtn').style.display = 'block';
-    showPage('pageChat');
-    loadPubMsgs();
-};
-
 function loadPubMsgs(){
     var a = document.getElementById('messagesArea');
     db.ref('messages').limitToLast(100).on('value', function(s){
@@ -529,11 +651,6 @@ function loadPubMsgs(){
             a.appendChild(div);
         });
         a.scrollTop = a.scrollHeight;
-        var last = d[ks[ks.length-1]];
-        if (last) {
-            var txt = last.photo ? '📷 عکس' : last.text;
-            document.getElementById('publicLastMsg').textContent = last.avatar + ' ' + last.name + ': ' + txt;
-        }
     });
 }
 
@@ -544,7 +661,6 @@ function openPriv(uid, name, av){
     curChat = uid; curUser = {id:uid, name:name, avatar:av};
     document.getElementById('headerTitle').textContent = av + ' ' + name;
     document.getElementById('headerStatus').textContent = '...';
-    document.getElementById('headerStatus').className = 'status-text';
     document.getElementById('backBtn').style.display = 'block';
     showPage('pageChat');
     loadPriv(uid);
@@ -556,7 +672,7 @@ function openPriv(uid, name, av){
             el.textContent = '● آنلاین';
             el.className = 'status-text online';
         } else {
-            el.textContent = 'آخرین بازدید ' + timeAgo(status.lastChanged || Date.now());
+            el.textContent = status.lastChanged ? 'آخرین بازدید ' + timeAgo(status.lastChanged) : 'آفلاین';
             el.className = 'status-text';
         }
     });
@@ -716,23 +832,6 @@ function createGroup(){
     closeModal();
 }
 
-function loadGroups(){
-    var l = document.getElementById('groupsList');
-    db.ref('groups').on('value', function(s){
-        l.innerHTML = '';
-        var d = s.val(); if (!d) return;
-        Object.keys(d).forEach(function(gid){
-            var g = d[gid];
-            if (!g.members || !g.members[myId]) return;
-            var div = document.createElement('div');
-            div.className = 'citem';
-            div.innerHTML = '<div class="av">👥</div><div class="body"><h3>' + esc(g.name) + '</h3><p>' + Object.keys(g.members).length + ' عضو</p></div>';
-            div.onclick = function(){ openGroup(gid, g.name); };
-            l.appendChild(div);
-        });
-    });
-}
-
 function openGroup(gid, name){
     curChat = 'group_' + gid;
     curUser = {id:gid, name:name, isGroup:true};
@@ -822,29 +921,68 @@ function deleteMsg(){
 }
 
 // ============================================================
-// Users Online
+// CONTACTS (tab مخاطبین — همه کاربرا)
 // ============================================================
 function loadUsers(){
     var l = document.getElementById('usersList');
-    db.ref('online').on('value', function(s){
+    if (!l) return;
+
+    db.ref('users').on('value', function(s){
         l.innerHTML = '';
-        var d = s.val(), cnt = 0;
-        if (d) {
-            Object.keys(d).forEach(function(uid){
-                if (uid === myId) return;
-                var u = d[uid]; cnt++;
-                allUsers[uid] = u;
-                var badge = u.isAdmin ? ' <span class="admin-badge">✅</span>' : '';
+        var d = s.val() || {};
+        var arr = [];
+
+        Object.keys(d).forEach(function(uid){
+            if (uid === myId) return;
+            var u = d[uid];
+            allUsers[uid] = u;
+            arr.push({
+                uid: uid,
+                name: u.name || 'کاربر',
+                avatar: u.avatar || '👤',
+                isAdmin: u.isAdmin
+            });
+        });
+
+        arr.sort(function(a,b){ return (a.name || '').localeCompare(b.name || '', 'fa'); });
+
+        if (arr.length === 0) {
+            l.innerHTML = '<div class="empty"><span class="big">👤</span>هنوز مخاطبی نیست</div>';
+            return;
+        }
+
+        var onlineCount = 0;
+        var pending = arr.length;
+
+        arr.forEach(function(c){
+            db.ref('status/' + c.uid).once('value', function(stSnap){
+                var st = stSnap.val() || {};
+                var isOnline = st.state === 'online';
+                if (isOnline) onlineCount++;
+
+                var badge = c.isAdmin ? ' <span class="admin-badge">✅</span>' : '';
+                var statusText = isOnline
+                    ? '<span style="color:#00a884">● آنلاین</span>'
+                    : (st.lastChanged ? 'آخرین بازدید ' + timeAgo(st.lastChanged) : 'آفلاین');
+
                 var div = document.createElement('div');
                 div.className = 'citem';
-                div.innerHTML = '<div class="av">' + u.avatar + '<span class="dot"></span></div><div class="body"><h3>' + esc(u.name) + badge + '</h3><p style="color:#00a884">● آنلاین</p></div>';
-                div.onclick = function(){ openPriv(uid, u.name, u.avatar); };
+                div.innerHTML =
+                    '<div class="av">' + c.avatar + (isOnline ? '<span class="dot"></span>' : '') + '</div>' +
+                    '<div class="body">' +
+                        '<h3>' + esc(c.name) + badge + '</h3>' +
+                        '<p style="font-size:12px;color:#8696a0">' + statusText + '</p>' +
+                    '</div>';
+                div.onclick = function(){ openPriv(c.uid, c.name, c.avatar); };
                 l.appendChild(div);
+
+                pending--;
+                if (pending === 0) {
+                    var el = document.getElementById('statUsrs');
+                    if (el) el.textContent = onlineCount;
+                }
             });
-        }
-        if (cnt === 0) l.innerHTML = '<div class="empty"><span class="big">👤</span>هیچ کاربری آنلاین نیست</div>';
-        var el = document.getElementById('statUsrs');
-        if (el) el.textContent = cnt + 1;
+        });
     });
 }
 
@@ -887,7 +1025,7 @@ document.querySelectorAll('.tbtn').forEach(function(b){
         document.getElementById('backBtn').style.display = 'none';
         if (t === 'pageChats') document.getElementById('headerTitle').textContent = 'سوپر اپ';
         else if (t === 'pageBrowser') document.getElementById('headerTitle').textContent = 'مرورگر';
-        else if (t === 'pageUsers') document.getElementById('headerTitle').textContent = 'کاربران';
+        else if (t === 'pageUsers') document.getElementById('headerTitle').textContent = 'مخاطبین';
         else document.getElementById('headerTitle').textContent = 'پروفایل';
     };
 });
@@ -924,6 +1062,7 @@ function saveAvatar(){
     updateAv();
     initPresence();
     closeModal();
+    loadChatsList();
 }
 
 function changeName(){
@@ -972,6 +1111,13 @@ document.getElementById('logoutBtn').onclick = async function(){
 document.getElementById('searchUser').oninput = function(e){
     var q = e.target.value.toLowerCase();
     document.querySelectorAll('#usersList .citem').forEach(function(it){
+        var n = it.querySelector('h3').textContent.toLowerCase();
+        it.style.display = n.includes(q) ? 'flex' : 'none';
+    });
+};
+document.getElementById('searchChat').oninput = function(e){
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('#chatList .citem').forEach(function(it){
         var n = it.querySelector('h3').textContent.toLowerCase();
         it.style.display = n.includes(q) ? 'flex' : 'none';
     });
@@ -1028,6 +1174,17 @@ function timeAgo(time){
     return Math.floor(diff/31536000) + ' سال پیش';
 }
 
+function timeAgoShort(time){
+    if (!time) return '';
+    var diff = Math.floor((Date.now() - time) / 1000);
+    if (diff < 60) return 'الان';
+    if (diff < 3600) return Math.floor(diff/60) + 'د';
+    if (diff < 86400) return Math.floor(diff/3600) + 'س';
+    if (diff < 604800) return Math.floor(diff/86400) + 'ر';
+    var d = new Date(time);
+    return d.getDate() + '/' + (d.getMonth()+1);
+}
+
 function cleanupOldMessages(){
     var cutoff = Date.now() - (365 * 24 * 60 * 60 * 1000);
     db.ref('messages').once('value', function(snap){
@@ -1069,7 +1226,7 @@ function esc(t){
 }
 
 // ============================================================
-// ============ WebRTC Voice Call ============
+// WebRTC Voice Call
 // ============================================================
 function startCall(peerId, peerName, peerAvatar) {
     if (pc) { alert('شما در حال حاضر در یک تماس هستید'); return; }
