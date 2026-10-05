@@ -1174,3 +1174,219 @@ body.theme-red    { --primary: #ff3d6e; --secondary: #ff8a3d; --accent: #ff2e9f;
     background: linear-gradient(180deg, var(--primary), var(--secondary));
     border-radius: 3px;
 }
+
+/* ============================================================
+   PACK 2: Block / Report / Lock / Mute / Archive / Pin
+============================================================ */
+
+.chat-marks {
+    display: flex; gap: 4px; align-items: center;
+    margin-right: auto; margin-left: 4px;
+}
+.chat-marks .m { font-size: 12px; opacity: 0.65; }
+.chat-marks .m.pin { color: #ffb800; opacity: 1; }
+
+.citem.archived {
+    opacity: 0.55;
+    border-style: dashed;
+}
+.citem.locked .lock-icon {
+    color: #ffb800;
+    text-shadow: 0 0 10px #ffb800;
+}
+.citem.blocked {
+    opacity: 0.5;
+    border-color: rgba(255, 61, 110, 0.4);
+}
+.citem.blocked h3::after {
+    content: ' 🚫';
+    font-size: 12px;
+}
+
+.mmenu .mb.pin-btn { color: #ffb800; }
+
+.pinned-bar {
+    position: absolute; top: 68px; left: 0; right: 0;
+    background: rgba(20, 26, 45, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1.5px solid rgba(255, 184, 0, 0.40);
+    padding: 10px 14px;
+    display: none;
+    align-items: center; gap: 10px;
+    z-index: 55;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255, 184, 0, 0.20);
+}
+.pinned-bar.show { display: flex; }
+.pinned-bar .pin-ic {
+    color: #ffb800; font-size: 18px;
+    text-shadow: 0 0 10px #ffb800;
+}
+.pinned-bar .pin-text {
+    flex: 1; min-width: 0;
+    font-size: 13px; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pinned-bar .pin-close {
+    background: none; border: none;
+    color: var(--text-dim); font-size: 18px;
+    cursor: pointer; padding: 4px 8px;
+}
+
+.pin-item {
+    background: rgba(30, 40, 65, 0.60);
+    border: 1.5px solid rgba(255, 184, 0, 0.30);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.pin-item:hover {
+    border-color: #ffb800;
+    box-shadow: 0 0 20px rgba(255, 184, 0, 0.20);
+}
+.pin-item .pin-name {
+    font-size: 12px; color: #ffb800;
+    font-weight: 800; margin-bottom: 4px;
+}
+.pin-item .pin-msg {
+    font-size: 13px; color: var(--text);
+    line-height: 1.5;
+}
+
+.lock-screen {
+    position: fixed; inset: 0;
+    background: rgba(5, 7, 13, 0.95);
+    backdrop-filter: blur(30px);
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 30px;
+}
+.lock-screen.show { display: flex; }
+.lock-screen .lock-icon {
+    font-size: 70px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 25px #ffb800);
+}
+.lock-screen h3 {
+    color: var(--text); margin-bottom: 20px;
+    font-size: 18px;
+}
+.lock-screen input {
+    width: 100%; max-width: 300px;
+    padding: 15px;
+    background: rgba(20, 26, 45, 0.75);
+    border: 1.5px solid rgba(255, 184, 0, 0.40);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: Tahoma; font-size: 22px;
+    text-align: center;
+    letter-spacing: 8px;
+    margin-bottom: 14px;
+}
+.lock-screen input:focus {
+    outline: none;
+    border-color: #ffb800;
+    box-shadow: 0 0 0 4px rgba(255, 184, 0, 0.15);
+}
+.lock-screen .lock-actions {
+    display: flex; gap: 10px;
+    width: 100%; max-width: 300px;
+}
+.lock-screen .lock-actions button {
+    flex: 1; padding: 13px;
+    border: none; border-radius: 12px;
+    font-family: Tahoma; font-size: 14px;
+    cursor: pointer; font-weight: 700;
+}
+.lock-screen .lock-actions .unlock {
+    background: linear-gradient(135deg, #ffb800, #ff8a3d);
+    color: #05070d;
+}
+.lock-screen .lock-actions .cancel {
+    background: rgba(30, 40, 65, 0.70);
+    color: var(--text);
+    border: 1.5px solid var(--glass-border);
+}
+
+.report-options {
+    display: flex; flex-direction: column;
+    gap: 8px; margin-bottom: 16px;
+}
+.report-options label {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px;
+    background: rgba(30, 40, 65, 0.60);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 14px;
+}
+.report-options label:hover {
+    border-color: var(--primary);
+    background: rgba(0, 229, 255, 0.08);
+}
+.report-options input[type=radio] {
+    width: auto; margin: 0;
+    accent-color: var(--primary);
+}
+
+.chat-settings-list {
+    display: flex; flex-direction: column;
+    gap: 8px;
+}
+.chat-settings-list .setting-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px;
+    background: rgba(30, 40, 65, 0.60);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+    font-size: 14px;
+}
+.chat-settings-list .setting-item:hover {
+    border-color: var(--primary);
+    background: rgba(0, 229, 255, 0.08);
+}
+.chat-settings-list .setting-item .ic { font-size: 20px; }
+.chat-settings-list .setting-item .txt { flex: 1; }
+.chat-settings-list .setting-item .val {
+    font-size: 12px; color: var(--text-dim);
+}
+.chat-settings-list .setting-item .toggle {
+    width: 42px; height: 24px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.chat-settings-list .setting-item .toggle::after {
+    content: '';
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+}
+.chat-settings-list .setting-item.on .toggle {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+.chat-settings-list .setting-item.on .toggle::after {
+    transform: translateX(18px);
+}
+.chat-settings-list .setting-item.danger {
+    border-color: rgba(255, 61, 110, 0.40);
+    color: #ff3d6e;
+}
+.chat-settings-list .setting-item.danger:hover {
+    background: rgba(255, 61, 110, 0.10);
+    border-color: #ff3d6e;
+}
