@@ -1,116 +1,269 @@
+// ============================================================
+// Firebase
+// ============================================================
 var firebaseConfig = {
-  apiKey: "AIzaSyCiattAZKHvXx_qUwkZRLYjoojLeaYbMm4",
-  authDomain: "my-messenger-3d827.firebaseapp.com",
-  databaseURL: "https://my-messenger-3d827-default-rtdb.firebaseio.com",
-  projectId: "my-messenger-3d827",
-  storageBucket: "my-messenger-3d827.firebasestorage.app",
-  messagingSenderId: "452001582539",
-  appId: "1:452001582539:web:6233a4c49f227e41787a4e"
+    apiKey: "AIzaSyCiattAZKHvXx_qUwkZRLYjoojLeaYbMm4",
+    authDomain: "my-messenger-3d827.firebaseapp.com",
+    databaseURL: "https://my-messenger-3d827-default-rtdb.firebaseio.com",
+    projectId: "my-messenger-3d827",
+    storageBucket: "my-messenger-3d827.firebasestorage.app",
+    messagingSenderId: "452001582539",
+    appId: "1:452001582539:web:6233a4c49f227e41787a4e"
 };
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
+var auth = firebase.auth();
 
-var myName = "", myId = "", myEmail = "", myAv = "😊", curChat = "public", curUser = null;
+// ⚠️ اگه VAPID Key داری، اینجا بذار. اگه نداری، خالی بذار.
+var VAPID_KEY = "";
+
+// ============================================================
+// Globals
+// ============================================================
+var myName = "", myId = "", myPhone = "", myAv = "😊";
+var curChat = "public", curUser = null;
 var replyTo = null, selMsg = null, selKey = null, selPath = null, selAv = "😊";
-var unread = {}, allUsers = {}, lastSeenRef = null;
+var allUsers = {}, lastSeenRef = null;
 var myApprovalCode = localStorage.getItem('app_approval_code') || '';
 var myApproved = localStorage.getItem('app_approved') === 'true';
 
-var ADMIN_EMAIL = "neysi@admin.com";
 var ADMIN_CODE = "neysi2025";
 var isAdmin = localStorage.getItem('app_admin') === 'true';
 
-function isAdminEmail(email) {
-    if (!email) return false;
-    return email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
-}
+// WebRTC
+var pc = null, localStream = null, currentCallId = null, currentCallPeer = null;
+var isCaller = false, isMuted = false, ringtoneCtx = null, callTimeoutHandle = null;
+var rtcConfig = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+};
+
+// Typing
+var typingTimeout = null;
+var typingListenerRef = null;
+
+// FCM
+var messaging = null;
 
 var avOpts = ['😊','😎','🤓','🥳','😇','🤠','👦','👧','🧑','👨','👩','🧔','👶','🐱','🐶','🦊','🐻','🐼','🦁','🐯','🦄','🐸','🐵','🦉','🌟','⭐','💫','✨','🔥','⚡','🌸','🌹'];
 var emos = ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😜','🤗','🤔','😐','😑','🙄','😏','😥','😮','😴','😌','😔','😢','😭','😱','😡','😷','👍','👎','👌','✌️','🤞','🤙','👉','👈','👆','👇','✋','🙏','💪','❤️','🧡','💛','💚','💙','💜','💔','💕','💖','🌹','🌟','⭐','✨','🔥','🎉','🎊','🎁','🏆','✅','💎','🌈','☀️','🌙','⚡','🍕','🍔','☕','⚽','🎮','🎵','📱','💻','🚀','🎂','🍰','🐱','🐶','🌸'];
 var themes = ['theme-green','theme-blue','theme-purple','theme-red'];
 
+// ============================================================
+// Avatar Picker
+// ============================================================
 function loadAvPick(){
     var p = document.getElementById('avPick'), h = '';
     avOpts.forEach(function(a){ h += '<span data-av="'+a+'">'+a+'</span>'; });
     p.innerHTML = h;
-    p.querySelectorAll('span').forEach(function(s){
+    var spans = p.querySelectorAll('span');
+    spans.forEach(function(s){
         s.onclick = function(){
-            p.querySelectorAll('span').forEach(function(x){ x.classList.remove('sel'); });
-            s.classList.add('sel'); selAv = s.getAttribute('data-av');
+            spans.forEach(function(x){ x.classList.remove('sel'); });
+            s.classList.add('sel');
+            selAv = s.getAttribute('data-av');
         };
     });
-    p.querySelector('span').classList.add('sel');
+    if (spans[0]) spans[0].classList.add('sel');
 }
 loadAvPick();
 
-var sn = localStorage.getItem('app_name');
-if (sn) {
-    myName = sn;
-    myEmail = localStorage.getItem('app_email') || '';
-    myId = localStorage.getItem('app_id') || 'user_' + Date.now();
-    myAv = localStorage.getItem('app_av') || '😊';
-    if (isAdminEmail(myEmail)) { isAdmin = true; myApproved = true; }
-    localStorage.setItem('app_id', myId);
-    startApp();
-}
-
-document.getElementById('loginBtn').onclick = function(){
+// ============================================================
+// Login
+// ============================================================
+document.getElementById('loginBtn').onclick = async function(){
     var n = document.getElementById('nameInput').value.trim();
-    var e = document.getElementById('emailInput').value.trim();
+    var p = document.getElementById('phoneInput').value.trim();
     if (!n) { alert('اسمت رو وارد کن!'); return; }
-    if (!e || !e.includes('@') || !e.includes('.')) { alert('ایمیل معتبر وارد کن'); return; }
-    myName = n; myEmail = e; myAv = selAv;
-    myId = 'user_' + Date.now() + '_' + Math.floor(Math.random()*9999);
-    localStorage.setItem('app_name', n);
-    localStorage.setItem('app_email', e);
-    localStorage.setItem('app_id', myId);
-    localStorage.setItem('app_av', myAv);
-    localStorage.removeItem('app_approved');
-    localStorage.removeItem('app_approval_code');
-    myApproved = false; myApprovalCode = '';
-    
-    if (isAdminEmail(e)) {
-        isAdmin = true; myApproved = true;
-        localStorage.setItem('app_admin', 'true');
-        localStorage.setItem('app_approved', 'true');
-        setTimeout(function(){ alert('✅ خوش آمدی مدیر!'); }, 300);
+    if (!p || !/^09\d{9}$/.test(p)) { alert('شماره تلفن معتبر وارد کن (۱۱ رقم، با ۰۹ شروع بشه)'); return; }
+
+    try {
+        if (auth.currentUser) await auth.signOut();
+        var cred = await auth.signInAnonymously();
+        myId = cred.user.uid;
+        myName = n;
+        myPhone = p;
+        myAv = selAv;
+
+        localStorage.setItem('app_name', n);
+        localStorage.setItem('app_phone', p);
+        localStorage.setItem('app_id', myId);
+        localStorage.setItem('app_av', myAv);
+
+        db.ref('users/' + myId).set({
+            name: myName, phone: myPhone, avatar: myAv,
+            isAdmin: false, createdAt: Date.now()
+        });
+
+        startApp();
+    } catch (err) {
+        console.error('Login error:', err);
+        alert('خطا در ورود: ' + err.message);
     }
-    startApp();
 };
 
+// ============================================================
+// Auth state
+// ============================================================
+auth.onAuthStateChanged(function(user){
+    if (user) {
+        myId = user.uid;
+        myName = localStorage.getItem('app_name') || '';
+        myPhone = localStorage.getItem('app_phone') || '';
+        myAv = localStorage.getItem('app_av') || '😊';
+        if (myName) startApp();
+    } else {
+        document.getElementById('loginScreen').style.display = 'flex';
+    }
+});
+
+// ============================================================
+// Start
+// ============================================================
 function startApp(){
     document.getElementById('loginScreen').style.display = 'none';
-    if (isAdminEmail(myEmail)) { isAdmin = true; myApproved = true; }
-    
+
     if (!isAdmin && !myApproved) {
         sendApprovalRequest();
         return;
     }
-    
+
     document.getElementById('header').style.display = 'flex';
     document.getElementById('tabs').style.display = 'flex';
     updateAv();
-    setOnline();
+    initPresence();
     loadPubMsgs();
     loadUsers();
     loadGroups();
     loadEmos();
     loadMyCount();
     loadTheme();
-    requestNotifPermission();
     cleanupOldMessages();
-    listenNotifs();
     checkAdminBtn();
     listenAllEvents();
+    initNotifications();
+    listenIncomingCalls();
+    addCallButton();
 }
 
+// ============================================================
+// Presence
+// ============================================================
+function initPresence(){
+    var myStatusRef = db.ref('status/' + myId);
+    var connRef = db.ref('.info/connected');
+
+    connRef.on('value', function(snap){
+        if (snap.val() === false) return;
+        myStatusRef.onDisconnect().set({
+            state: 'offline',
+            lastChanged: firebase.database.ServerValue.TIMESTAMP
+        }).then(function(){
+            myStatusRef.set({
+                state: 'online',
+                lastChanged: firebase.database.ServerValue.TIMESTAMP,
+                name: myName, avatar: myAv, isAdmin: isAdmin
+            });
+        });
+    });
+
+    var r = db.ref('online/' + myId);
+    r.set({ name: myName, avatar: myAv, time: Date.now(), isAdmin: isAdmin });
+    r.onDisconnect().remove();
+
+    if (lastSeenRef) lastSeenRef.off();
+    lastSeenRef = db.ref('lastseen/' + myId);
+    lastSeenRef.set({ name: myName, avatar: myAv, time: Date.now() });
+    lastSeenRef.onDisconnect().set({ name: myName, avatar: myAv, time: Date.now() });
+}
+
+function watchUserStatus(uid, cb){
+    var r = db.ref('status/' + uid);
+    return r.on('value', function(snap){
+        cb(snap.val() || { state: 'offline' });
+    });
+}
+
+// ============================================================
+// Typing
+// ============================================================
+function setTyping(chatId, isTyping){
+    if (!myId) return;
+    var r = db.ref('typing/' + chatId + '/' + myId);
+    if (isTyping) {
+        r.set(true);
+        r.onDisconnect().remove();
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(function(){ r.remove(); }, 4000);
+    } else {
+        r.remove();
+    }
+}
+
+function watchTyping(chatId, cb){
+    if (typingListenerRef) typingListenerRef.off();
+    typingListenerRef = db.ref('typing/' + chatId);
+    typingListenerRef.on('value', function(snap){
+        var val = snap.val() || {};
+        var others = Object.keys(val).filter(function(u){ return u !== myId; });
+        cb(others);
+    });
+}
+
+function showTypingIndicator(chatId){
+    watchTyping(chatId, function(uids){
+        var area = document.getElementById('messagesArea');
+        var old = document.getElementById('typingIndicator');
+        if (old) old.remove();
+        if (uids.length > 0) {
+            var div = document.createElement('div');
+            div.id = 'typingIndicator';
+            div.className = 'typing-indicator';
+            var nm = allUsers[uids[0]] ? allUsers[uids[0]].name : 'کاربر';
+            div.innerHTML = '<span>' + esc(nm) + ' در حال تایپ</span><div class="typing-dots"><span></span><span></span><span></span></div>';
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+    });
+}
+
+// ============================================================
+// Notifications (FCM)
+// ============================================================
+async function initNotifications(){
+    if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+    if (!VAPID_KEY) { console.log('FCM disabled (no VAPID)'); return; }
+    try {
+        var reg = await navigator.serviceWorker.register('/quran-app/firebase-messaging-sw.js');
+        var perm = await Notification.requestPermission();
+        if (perm !== 'granted') return;
+        messaging = firebase.messaging();
+        var token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+        if (token && myId) db.ref('users/' + myId + '/fcmToken').set(token);
+        messaging.onMessage(function(payload){
+            var n = payload.notification || {};
+            showNotifBanner(n.title || 'پیام جدید', n.body || '');
+        });
+    } catch (err) { console.log('FCM error:', err); }
+}
+
+function requestNotifPermission(){
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') Notification.requestPermission();
+}
+
+// ============================================================
+// Approval
+// ============================================================
 function sendApprovalRequest(){
     if (!myApprovalCode) {
         myApprovalCode = Math.floor(100000 + Math.random() * 900000).toString();
         localStorage.setItem('app_approval_code', myApprovalCode);
     }
     db.ref('approvals/' + myId).set({
-        name: myName, avatar: myAv, email: myEmail,
+        name: myName, avatar: myAv, phone: myPhone,
         code: myApprovalCode, time: Date.now(),
         approved: false, userId: myId
     });
@@ -129,9 +282,7 @@ function verifyMyCode(){
             document.getElementById('waitingScreen').classList.remove('show');
             alert('🎉 تأیید شدی!');
             startApp();
-        } else {
-            alert('❌ کد اشتباهه!');
-        }
+        } else alert('❌ کد اشتباهه!');
     });
 }
 
@@ -144,9 +295,70 @@ function checkApproval(){
             document.getElementById('waitingScreen').classList.remove('show');
             alert('🎉 تأیید شدی!');
             startApp();
-        } else {
-            alert('⏳ هنوز تأیید نشدی');
-        }
+        } else alert('⏳ هنوز تأیید نشدی');
+    });
+}
+
+// ============================================================
+// Admin
+// ============================================================
+function showAdminLogin(){
+    if (isAdmin) { showAdminPanel(); return; }
+    var mb = document.getElementById('mbox');
+    mb.innerHTML = '<h3>✅ ورود مدیر</h3>' +
+        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">کد مدیر رو وارد کن:</p>' +
+        '<input type="text" id="adminCodeInput" placeholder="کد مدیر" maxlength="30">' +
+        '<div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="checkAdminCode()">ورود</button></div>';
+    document.getElementById('modal').classList.add('show');
+}
+
+function checkAdminCode(){
+    var code = document.getElementById('adminCodeInput').value.trim();
+    if (code === ADMIN_CODE) {
+        isAdmin = true; myApproved = true;
+        localStorage.setItem('app_admin', 'true');
+        localStorage.setItem('app_approved', 'true');
+        closeModal();
+        alert('🎉 خوش آمدی مدیر!');
+        updateAv(); initPresence(); checkAdminBtn();
+        startApp();
+    } else alert('❌ کد اشتباهه!');
+}
+
+function checkAdminBtn(){
+    var btn = document.getElementById('adminBtn');
+    if (!btn) return;
+    if (isAdmin) btn.textContent = '✅ پنل مدیر';
+}
+
+function showAdminPanel(){
+    db.ref('online').once('value', function(snap){
+        var users = snap.val() || {};
+        var count = Object.keys(users).length;
+        db.ref('messages').once('value', function(ms){
+            var d = ms.val() || {};
+            var totalMsgs = Object.keys(d).length;
+            db.ref('approvals').once('value', function(as){
+                var ad = as.val() || {};
+                var pendCount = 0;
+                Object.keys(ad).forEach(function(uid){ if (!ad[uid].approved) pendCount++; });
+
+                var mb = document.getElementById('mbox');
+                var h = '<h3>✅ پنل مدیریت</h3>';
+                h += '<div class="admin-stat"><strong>' + count + '</strong><span>کاربر آنلاین</span></div>';
+                h += '<div class="admin-stat"><strong>' + totalMsgs + '</strong><span>کل پیام‌ها</span></div>';
+                h += '<button onclick="showPendingUsers()" style="width:100%;background:#ff9800;color:#fff;border:none;padding:14px;border-radius:10px;font-family:Tahoma;cursor:pointer;font-weight:bold;margin-bottom:10px">⏳ کاربران در انتظار (' + pendCount + ')</button>';
+                h += '<button onclick="showActivityLog()" style="width:100%;background:#2196F3;color:#fff;border:none;padding:14px;border-radius:10px;font-family:Tahoma;cursor:pointer;font-weight:bold;margin-bottom:10px">📋 اتفاق‌های اخیر</button>';
+                h += '<p style="color:#8696a0;font-size:12px;margin:15px 0 8px">📢 پیام همگانی:</p>';
+                h += '<input type="text" id="broadcastText" placeholder="متن پیام..." maxlength="200">';
+                h += '<div class="acts"><button class="s" onclick="closeModal()">بستن</button><button class="p" onclick="broadcastMessage()">📢 ارسال</button></div>';
+                h += '<div style="margin-top:15px;border-top:1px solid rgba(255,255,255,0.1);padding-top:15px">';
+                h += '<button style="width:100%;background:#e94560;color:#fff;border:none;padding:12px;border-radius:10px;font-family:Tahoma;cursor:pointer" onclick="logoutAdmin()">🚪 خروج از حالت مدیر</button>';
+                h += '</div>';
+                mb.innerHTML = h;
+                document.getElementById('modal').classList.add('show');
+            });
+        });
     });
 }
 
@@ -165,16 +377,13 @@ function showPendingUsers(){
             pending.sort(function(a,b){ return (a.data.time||0) - (b.data.time||0); });
             pending.forEach(function(p) {
                 var u = p.data;
-                h += '<div class="pending-user">';
-                h += '<div class="row"><div class="u-name">' + u.avatar + ' ' + esc(u.name) + '</div></div>';
-                if (u.email) h += '<div class="u-email">📧 ' + esc(u.email) + '</div>';
+                h += '<div class="pending-user"><div class="row"><div class="u-name">' + u.avatar + ' ' + esc(u.name) + '</div></div>';
+                if (u.phone) h += '<div class="u-email">📱 ' + esc(u.phone) + '</div>';
                 h += '<div class="u-time">⏰ ' + timeAgo(u.time) + '</div>';
                 h += '<p style="color:#8696a0;font-size:12px;margin-top:8px">کد تأیید:</p>';
                 h += '<div style="text-align:center;margin-bottom:8px"><span class="u-code">' + u.code + '</span></div>';
-                h += '<div class="acts">';
-                h += '<button class="approve" onclick="approveUser(\'' + p.id + '\')">✅ فعال‌سازی</button>';
-                h += '<button class="reject" onclick="rejectUser(\'' + p.id + '\')">❌ رد</button>';
-                h += '</div></div>';
+                h += '<div class="acts"><button class="approve" onclick="approveUser(\'' + p.id + '\')">✅ فعال‌سازی</button>';
+                h += '<button class="reject" onclick="rejectUser(\'' + p.id + '\')">❌ رد</button></div></div>';
             });
         }
         h += '<div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
@@ -188,7 +397,7 @@ function approveUser(uid) {
         var a = snap.val();
         if (!a) return;
         db.ref('approvals/' + uid).update({approvedCode: a.code, approvedAt: Date.now()});
-        alert('✅ کد فعال شد!\n\nکد: ' + a.code + '\n\nایمیل: ' + (a.email || 'ندارد'));
+        alert('✅ کد فعال شد!\n\nکد: ' + a.code + '\n\nشماره: ' + (a.phone || 'ندارد') + '\n\n(این کد رو به کاربر پیامک کن)');
         showPendingUsers();
     });
 }
@@ -201,6 +410,28 @@ function rejectUser(uid) {
     showPendingUsers();
 }
 
+function broadcastMessage(){
+    var txt = document.getElementById('broadcastText').value.trim();
+    if (!txt) { alert('متن رو وارد کن'); return; }
+    if (!confirm('ارسال به همه؟')) return;
+    var n = new Date();
+    var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+    db.ref('messages').push({name:'مدیر', avatar:'✅', text:'📢 '+txt, time:Date.now(), timeStr:ts, read:false, isBroadcast:true, uid: myId});
+    alert('✅ ارسال شد!');
+    closeModal();
+}
+
+function logoutAdmin(){
+    if (!confirm('از حالت مدیر خارج می‌شی؟')) return;
+    isAdmin = false;
+    localStorage.removeItem('app_admin');
+    closeModal();
+    location.reload();
+}
+
+// ============================================================
+// Logs
+// ============================================================
 function logEvent(type, userId, userName, avatar, text) {
     db.ref('logs').push({
         type: type, userId: userId || '', userName: userName || '',
@@ -228,8 +459,7 @@ function showActivityLog() {
                 };
                 h += '<div class="log-item ' + (l.type||'') + '">';
                 h += '<div class="log-time">' + (icons[l.type]||'') + ' ' + timeAgo(l.time) + '</div>';
-                h += '<div class="log-text">' + esc(texts[l.type] || l.type) + '</div>';
-                h += '</div>';
+                h += '<div class="log-text">' + esc(texts[l.type] || l.type) + '</div></div>';
             });
         }
         h += '<div class="acts"><button class="s" onclick="clearAllLogs()">🗑️ پاک کردن</button><button class="p" onclick="closeModal()">بستن</button></div>';
@@ -239,12 +469,12 @@ function showActivityLog() {
 }
 
 function clearAllLogs() {
-    if (confirm('همه لاگ‌ها پاک بشن؟')) {
-        db.ref('logs').remove();
-        showActivityLog();
-    }
+    if (confirm('همه لاگ‌ها پاک بشن؟')) { db.ref('logs').remove(); showActivityLog(); }
 }
 
+// ============================================================
+// Profile
+// ============================================================
 function updateAv(){
     document.getElementById('headerAv').innerHTML = myAv + '<span class="dot"></span>';
     document.getElementById('profAv').textContent = myAv;
@@ -256,99 +486,9 @@ function updateAv(){
     document.getElementById('profStatus').textContent = '● آنلاین';
 }
 
-function setOnline(){
-    var r = db.ref('online/' + myId);
-    r.set({ name: myName, avatar: myAv, time: Date.now(), isAdmin: isAdmin });
-    r.onDisconnect().remove();
-    logEvent('user_new', myId, myName, myAv, '');
-    if (lastSeenRef) lastSeenRef.off();
-    lastSeenRef = db.ref('lastseen/' + myId);
-    lastSeenRef.set({ name: myName, avatar: myAv, time: Date.now() });
-}
-
-function checkAdminBtn(){
-    var btn = document.getElementById('adminBtn');
-    if (isAdmin) {
-        btn.innerHTML = '<span>✅ پنل مدیر</span><span>›</span>';
-        btn.classList.add('admin');
-        btn.onclick = showAdminPanel;
-    }
-}
-
-function showAdminLogin(){
-    if (isAdmin) { showAdminPanel(); return; }
-    var mb = document.getElementById('mbox');
-    mb.innerHTML = '<h3>✅ ورود مدیر</h3>' +
-        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">ایمیل یا کد مدیر:</p>' +
-        '<input type="text" id="adminCodeInput" placeholder="ایمیل یا کد" maxlength="60">' +
-        '<div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="checkAdminCode()">ورود</button></div>';
-    document.getElementById('modal').classList.add('show');
-}
-
-function checkAdminCode(){
-    var code = document.getElementById('adminCodeInput').value.trim();
-    if (code === ADMIN_CODE || isAdminEmail(code)) {
-        isAdmin = true; myApproved = true;
-        localStorage.setItem('app_admin', 'true');
-        localStorage.setItem('app_approved', 'true');
-        closeModal();
-        alert('🎉 خوش آمدی مدیر!');
-        updateAv(); setOnline(); checkAdminBtn();
-    } else {
-        alert('❌ کد اشتباهه!');
-    }
-}
-
-function showAdminPanel(){
-    db.ref('online').once('value', function(snap){
-        var users = snap.val() || {};
-        var count = Object.keys(users).length;
-        db.ref('messages').once('value', function(ms){
-            var d = ms.val() || {};
-            var totalMsgs = Object.keys(d).length;
-            db.ref('approvals').once('value', function(as){
-                var ad = as.val() || {};
-                var pendCount = 0;
-                Object.keys(ad).forEach(function(uid){ if (!ad[uid].approved) pendCount++; });
-                
-                var mb = document.getElementById('mbox');
-                var h = '<h3>✅ پنل مدیریت</h3>';
-                h += '<div class="admin-stat"><strong>' + count + '</strong><span>کاربر آنلاین</span></div>';
-                h += '<div class="admin-stat"><strong>' + totalMsgs + '</strong><span>کل پیام‌ها</span></div>';
-                h += '<button onclick="showPendingUsers()" style="width:100%;background:#ff9800;color:#fff;border:none;padding:14px;border-radius:10px;font-family:Tahoma;cursor:pointer;font-weight:bold;margin-bottom:10px">⏳ کاربران در انتظار (' + pendCount + ')</button>';
-                h += '<button onclick="showActivityLog()" style="width:100%;background:#2196F3;color:#fff;border:none;padding:14px;border-radius:10px;font-family:Tahoma;cursor:pointer;font-weight:bold;margin-bottom:10px">📋 اتفاق‌های اخیر</button>';
-                h += '<p style="color:#8696a0;font-size:12px;margin:15px 0 8px">📢 پیام همگانی:</p>';
-                h += '<input type="text" id="broadcastText" placeholder="متن پیام..." maxlength="200">';
-                h += '<div class="acts"><button class="s" onclick="closeModal()">بستن</button><button class="p" onclick="broadcastMessage()">📢 ارسال</button></div>';
-                h += '<div style="margin-top:15px;border-top:1px solid rgba(255,255,255,0.1);padding-top:15px">';
-                h += '<button style="width:100%;background:#e94560;color:#fff;border:none;padding:12px;border-radius:10px;font-family:Tahoma;cursor:pointer" onclick="logoutAdmin()">🚪 خروج از حالت مدیر</button>';
-                h += '</div>';
-                mb.innerHTML = h;
-                document.getElementById('modal').classList.add('show');
-            });
-        });
-    });
-}
-
-function broadcastMessage(){
-    var txt = document.getElementById('broadcastText').value.trim();
-    if (!txt) { alert('متن رو وارد کن'); return; }
-    if (!confirm('ارسال به همه؟')) return;
-    var n = new Date();
-    var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
-    db.ref('messages').push({name:'مدیر', avatar:'✅', text:'📢 '+txt, time:Date.now(), timeStr:ts, read:false, isBroadcast:true});
-    alert('✅ ارسال شد!');
-    closeModal();
-}
-
-function logoutAdmin(){
-    if (!confirm('از حالت مدیر خارج می‌شی؟')) return;
-    isAdmin = false;
-    localStorage.removeItem('app_admin');
-    closeModal();
-    location.reload();
-}
-
+// ============================================================
+// Public Chat
+// ============================================================
 document.getElementById('publicChatItem').onclick = function(){
     curChat = "public"; curUser = null;
     document.getElementById('headerTitle').textContent = "گروه عمومی";
@@ -365,7 +505,7 @@ function loadPubMsgs(){
         if (!d) { a.innerHTML = '<div class="empty"><span class="big">💬</span>هنوز پیامی نیست!</div>'; return; }
         var ks = Object.keys(d).sort(function(x,y){ return (d[x].time||0) - (d[y].time||0); });
         ks.forEach(function(k){
-            var m = d[k], mine = (m.name === myName);
+            var m = d[k], mine = (m.uid === myId) || (m.name === myName && !m.uid);
             var div = document.createElement('div');
             div.className = 'msg ' + (mine ? 'sent' : 'rec');
             if (m.isBroadcast) div.classList.add('broadcast');
@@ -383,7 +523,7 @@ function loadPubMsgs(){
                 Object.keys(rc).forEach(function(r){ h += '<span>' + r + ' ' + rc[r] + '</span>'; });
                 h += '</div>';
             }
-            h += '<div class="meta">' + (m.timeStr||'') + (mine ? ' ✓✓' : '') + '</div>';
+            h += '<div class="meta">' + (m.timeStr||'') + (mine ? ' <span class="tick sent">✓✓</span>' : '') + '</div>';
             div.innerHTML = h;
             div.onclick = (function(msg,k){ return function(){ openMM(msg, k, 'messages'); }; })(m, k);
             a.appendChild(div);
@@ -397,12 +537,31 @@ function loadPubMsgs(){
     });
 }
 
+// ============================================================
+// Private Chat
+// ============================================================
 function openPriv(uid, name, av){
     curChat = uid; curUser = {id:uid, name:name, avatar:av};
     document.getElementById('headerTitle').textContent = av + ' ' + name;
+    document.getElementById('headerStatus').textContent = '...';
+    document.getElementById('headerStatus').className = 'status-text';
     document.getElementById('backBtn').style.display = 'block';
     showPage('pageChat');
     loadPriv(uid);
+
+    watchUserStatus(uid, function(status){
+        var el = document.getElementById('headerStatus');
+        if (!el) return;
+        if (status.state === 'online') {
+            el.textContent = '● آنلاین';
+            el.className = 'status-text online';
+        } else {
+            el.textContent = 'آخرین بازدید ' + timeAgo(status.lastChanged || Date.now());
+            el.className = 'status-text';
+        }
+    });
+
+    showTypingIndicator('private_' + [myId, uid].sort().join('_'));
 }
 
 function loadPriv(oid){
@@ -427,18 +586,37 @@ function loadPriv(oid){
                 Object.keys(rc).forEach(function(r){ h += '<span>' + r + ' ' + rc[r] + '</span>'; });
                 h += '</div>';
             }
-            h += '<div class="meta">' + (m.timeStr||'') + (mine ? ' ✓✓' : '') + '</div>';
+            var tick = '';
+            if (mine) {
+                if (m.read) tick = ' <span class="tick read">✓✓</span>';
+                else if (m.delivered) tick = ' <span class="tick delivered">✓✓</span>';
+                else tick = ' <span class="tick sent">✓</span>';
+            }
+            h += '<div class="meta">' + (m.timeStr||'') + tick + '</div>';
             div.innerHTML = h;
             div.onclick = (function(msg,k){ return function(){ openMM(msg, k, 'private/' + cid); }; })(m, k);
             a.appendChild(div);
-            if (!mine && !m.read) db.ref('private/' + cid + '/' + k).update({read:true});
+
+            if (!mine && !m.delivered) db.ref('private/' + cid + '/' + k).update({ delivered: true });
+            if (!mine && !m.read) db.ref('private/' + cid + '/' + k).update({ read: true, readAt: Date.now() });
         });
         a.scrollTop = a.scrollHeight;
     });
 }
 
+// ============================================================
+// Send Message
+// ============================================================
 document.getElementById('sendBtn').onclick = sendMsg;
 document.getElementById('msgInput').onkeypress = function(e){ if (e.key === 'Enter') sendMsg(); };
+document.getElementById('msgInput').oninput = function(){
+    if (curChat === 'public') return;
+    if (curChat.indexOf('group_') === 0) {
+        setTyping('group_' + curChat.replace('group_',''), true);
+    } else if (curChat) {
+        setTyping('private_' + [myId, curChat].sort().join('_'), true);
+    }
+};
 
 function sendMsg(){
     var inp = document.getElementById('msgInput');
@@ -446,23 +624,32 @@ function sendMsg(){
     if (!t || !myName) return;
     var n = new Date();
     var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
-    var md = { name:myName, avatar:myAv, text:t, time:Date.now(), timeStr:ts, read:false };
+    var md = {
+        name: myName, uid: myId, avatar: myAv, text: t,
+        time: Date.now(), timeStr: ts, read: false, delivered: false
+    };
     if (replyTo) md.reply = {name:replyTo.name, text:replyTo.text};
+
     if (curChat === "public") {
         db.ref('messages').push(md);
         logEvent('msg_new', myId, myName, myAv, t);
     } else if (curChat.indexOf('group_') === 0) {
         var gid = curChat.replace('group_','');
         db.ref('groupmessages/' + gid).push(md);
+        setTyping('group_' + gid, false);
     } else {
         var cid = [myId, curChat].sort().join('_');
         md.sender = myId;
         db.ref('private/' + cid).push(md);
+        setTyping('private_' + cid, false);
     }
     inp.value = '';
     cancelReply();
 }
 
+// ============================================================
+// Photo
+// ============================================================
 document.getElementById('photoBtn').onclick = function(){ document.getElementById('photoInput').click(); };
 
 document.getElementById('photoInput').onchange = function(e){
@@ -477,12 +664,11 @@ document.getElementById('photoInput').onchange = function(e){
             var scale = Math.min(1, 600 / img.width);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
             var compressed = canvas.toDataURL('image/jpeg', 0.6);
             var n = new Date();
             var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
-            var md = { name:myName, avatar:myAv, photo:compressed, text:'', time:Date.now(), timeStr:ts, read:false };
+            var md = { name:myName, uid:myId, avatar:myAv, photo:compressed, text:'', time:Date.now(), timeStr:ts, read:false, delivered:false };
             if (curChat === "public") {
                 db.ref('messages').push(md);
                 logEvent('photo_new', myId, myName, myAv, '');
@@ -501,6 +687,9 @@ document.getElementById('photoInput').onchange = function(e){
     e.target.value = '';
 };
 
+// ============================================================
+// Groups
+// ============================================================
 document.getElementById('newGroupBtn').onclick = function(){
     db.ref('online').once('value', function(snap){
         var data = snap.val() || {};
@@ -548,6 +737,7 @@ function openGroup(gid, name){
     curChat = 'group_' + gid;
     curUser = {id:gid, name:name, isGroup:true};
     document.getElementById('headerTitle').textContent = '👥 ' + name;
+    document.getElementById('headerStatus').textContent = 'گروه';
     document.getElementById('backBtn').style.display = 'block';
     showPage('pageChat');
     var a = document.getElementById('messagesArea');
@@ -557,7 +747,7 @@ function openGroup(gid, name){
         if (!d) { a.innerHTML = '<div class="empty">هنوز پیامی نیست!</div>'; return; }
         var ks = Object.keys(d).sort(function(x,y){ return (d[x].time||0) - (d[y].time||0); });
         ks.forEach(function(k){
-            var m = d[k], mine = (m.name === myName);
+            var m = d[k], mine = (m.uid === myId) || (m.name === myName && !m.uid);
             var div = document.createElement('div');
             div.className = 'msg ' + (mine ? 'sent' : 'rec');
             var h = '';
@@ -570,8 +760,12 @@ function openGroup(gid, name){
         });
         a.scrollTop = a.scrollHeight;
     });
+    showTypingIndicator('group_' + gid);
 }
 
+// ============================================================
+// Message Menu
+// ============================================================
 function openMM(m, k, p){
     selMsg = m; selKey = k; selPath = p;
     document.getElementById('mmenu').classList.add('show');
@@ -585,7 +779,7 @@ function openMM(m, k, p){
         rr.appendChild(s);
     });
     var canDel = (m.name === myName || m.sender === myId || isAdmin);
-    document.getElementById('delBtn').style.display = canDel ? 'flex' : 'none';
+    document.getElementById('delBtn').style.display = canDel ? 'block' : 'none';
 }
 
 function closeMMenu(){
@@ -601,7 +795,7 @@ function addReact(e){
 
 function replyMsg(){
     if (!selMsg) return;
-    replyTo = { name: selMsg.name || selMsg.senderName, text: selMsg.text || '📷 عکس' };
+    replyTo = { name: selMsg.name || 'کاربر', text: selMsg.text || '📷 عکس' };
     document.getElementById('replyName').textContent = replyTo.name;
     document.getElementById('replyText').textContent = replyTo.text;
     document.getElementById('replyPrev').classList.add('show');
@@ -627,6 +821,9 @@ function deleteMsg(){
     closeMMenu();
 }
 
+// ============================================================
+// Users Online
+// ============================================================
 function loadUsers(){
     var l = document.getElementById('usersList');
     db.ref('online').on('value', function(s){
@@ -646,7 +843,8 @@ function loadUsers(){
             });
         }
         if (cnt === 0) l.innerHTML = '<div class="empty"><span class="big">👤</span>هیچ کاربری آنلاین نیست</div>';
-        document.getElementById('statUsrs').textContent = cnt + 1;
+        var el = document.getElementById('statUsrs');
+        if (el) el.textContent = cnt + 1;
     });
 }
 
@@ -655,12 +853,16 @@ function loadMyCount(){
         var d = s.val();
         if (d) {
             var c = 0;
-            Object.keys(d).forEach(function(k){ if (d[k].name === myName) c++; });
-            document.getElementById('statMsgs').textContent = c;
+            Object.keys(d).forEach(function(k){ if (d[k].uid === myId || d[k].name === myName) c++; });
+            var el = document.getElementById('statMsgs');
+            if (el) el.textContent = c;
         }
     });
 }
 
+// ============================================================
+// Emoji / Tabs / Theme
+// ============================================================
 function loadEmos(){
     var p = document.getElementById('emojiPanel'), h = '';
     emos.forEach(function(e){ h += '<span>' + e + '</span>'; });
@@ -695,6 +897,9 @@ function showPage(id){
     document.getElementById(id).classList.add('act');
 }
 
+// ============================================================
+// Profile Edit
+// ============================================================
 function changeAvatar(){
     var mb = document.getElementById('mbox');
     var h = '<h3>🖼️ انتخاب آواتار</h3><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:15px" id="mavPick">';
@@ -715,8 +920,9 @@ function changeAvatar(){
 function saveAvatar(){
     myAv = window._tmpAv();
     localStorage.setItem('app_av', myAv);
+    if (myId) db.ref('users/' + myId).update({ avatar: myAv });
     updateAv();
-    setOnline();
+    initPresence();
     closeModal();
 }
 
@@ -730,30 +936,39 @@ function saveName(){
     if (!n) { alert('اسم رو وارد کن'); return; }
     myName = n;
     localStorage.setItem('app_name', n);
+    if (myId) db.ref('users/' + myId).update({ name: myName });
     updateAv();
-    setOnline();
+    initPresence();
     closeModal();
 }
 
 function showAbout(){
     var mb = document.getElementById('mbox');
-    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی - ۹ سال<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• ارسال عکس 📷<br>• آواتار سفارشی<br>• واکنش با ایموجی<br>• پاسخ و حذف پیام<br>• ۴ تم رنگی 🎨<br>• اعلان 🔔<br>• آخرین بازدید ⏰<br>• سیستم مدیر ✅<br>• پیام همگانی<br>• پاکسازی خودکار (۱ سال)<br>• مرورگر با میانبر</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• ارسال عکس 📷<br>• آواتار سفارشی<br>• واکنش با ایموجی<br>• پاسخ و حذف پیام<br>• ۴ تم رنگی 🎨<br>• اعلان 🔔<br>• آخرین بازدید ⏰<br>• تیک پیام ✓✓<br>• در حال تایپ<br>• 📞 تماس صوتی<br>• امنیت Firebase Auth</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
     document.getElementById('modal').classList.add('show');
 }
 
 function closeModal(){ document.getElementById('modal').classList.remove('show'); }
 
-document.getElementById('logoutBtn').onclick = function(){
+// ============================================================
+// Logout
+// ============================================================
+document.getElementById('logoutBtn').onclick = async function(){
     if (confirm('خارج می‌شی؟')) {
-        db.ref('online/' + myId).remove();
+        if (myId) db.ref('online/' + myId).remove();
         localStorage.removeItem('app_name');
         localStorage.removeItem('app_id');
         localStorage.removeItem('app_av');
         localStorage.removeItem('app_admin');
+        localStorage.removeItem('app_phone');
+        try { await auth.signOut(); } catch(e) {}
         location.reload();
     }
 };
 
+// ============================================================
+// Search & Browser
+// ============================================================
 document.getElementById('searchUser').oninput = function(e){
     var q = e.target.value.toLowerCase();
     document.querySelectorAll('#usersList .citem').forEach(function(it){
@@ -778,26 +993,16 @@ document.querySelectorAll('.bcard').forEach(function(c){
     c.onclick = function(){ openUrl(c.getAttribute('data-url')); };
 });
 
-function requestNotifPermission(){
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'default') Notification.requestPermission();
-}
-
+// ============================================================
+// Notification Banner
+// ============================================================
 function showNotifBanner(title, text){
     var b = document.getElementById('notifBanner');
+    if (!b) return;
     document.getElementById('notifTitle').textContent = title;
     document.getElementById('notifText').textContent = text;
     b.classList.add('show');
     setTimeout(function(){ b.classList.remove('show'); }, 3000);
-}
-
-function listenNotifs(){
-    db.ref('messages').limitToLast(1).on('child_added', function(snap){
-        var m = snap.val();
-        if (m.name !== myName && curChat !== 'public') {
-            showNotifBanner('💬 ' + m.name, m.photo ? '📷 عکس' : m.text);
-        }
-    });
 }
 
 function listenAllEvents(){
@@ -805,13 +1010,15 @@ function listenAllEvents(){
         var u = snap.val();
         if (!u || snap.key === myId) return;
         var diff = Date.now() - (u.time || 0);
-        if (diff < 10000 && isAdmin) {
-            showNotifBanner('👤 کاربر جدید', u.name + ' آنلاین شد');
-        }
+        if (diff < 10000 && isAdmin) showNotifBanner('👤 کاربر جدید', u.name + ' آنلاین شد');
     });
 }
 
+// ============================================================
+// Utility
+// ============================================================
 function timeAgo(time){
+    if (!time) return 'خیلی وقت پیش';
     var diff = Math.floor((Date.now() - time) / 1000);
     if (diff < 60) return 'همین الان';
     if (diff < 3600) return Math.floor(diff/60) + ' دقیقه پیش';
@@ -859,4 +1066,235 @@ function esc(t){
     var d = document.createElement('div');
     d.textContent = t;
     return d.innerHTML;
+}
+
+// ============================================================
+// ============ WebRTC Voice Call ============
+// ============================================================
+function startCall(peerId, peerName, peerAvatar) {
+    if (pc) { alert('شما در حال حاضر در یک تماس هستید'); return; }
+    if (!peerId) { alert('کاربر معتبر نیست'); return; }
+
+    currentCallId = 'call_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+    currentCallPeer = peerId;
+    isCaller = true;
+    isMuted = false;
+
+    document.getElementById('callScreen').classList.add('show');
+    document.getElementById('callAvatar').textContent = peerAvatar || '👤';
+    document.getElementById('callName').textContent = peerName || 'کاربر';
+    document.getElementById('callStatus').textContent = 'در حال زنگ زدن...';
+    document.getElementById('callActiveButtons').style.display = 'flex';
+    document.getElementById('callIncomingButtons').style.display = 'none';
+    document.getElementById('muteBtn').textContent = '🎤';
+    document.getElementById('muteBtn').classList.remove('active');
+
+    db.ref('calls/' + currentCallId).set({
+        caller: myId, callerName: myName, callerAvatar: myAv,
+        receiver: peerId, receiverName: peerName,
+        status: 'ringing', time: Date.now()
+    });
+
+    initWebRTC(true);
+    setCallTimeout(currentCallId);
+}
+
+function listenIncomingCalls() {
+    db.ref('calls').on('child_added', function(snap) {
+        var call = snap.val();
+        if (!call) return;
+        if (call.receiver !== myId) return;
+        if (call.status !== 'ringing') return;
+        if (pc) return;
+
+        currentCallId = snap.key;
+        currentCallPeer = call.caller;
+        isCaller = false;
+        isMuted = false;
+
+        document.getElementById('callScreen').classList.add('show');
+        document.getElementById('callAvatar').textContent = call.callerAvatar || '👤';
+        document.getElementById('callName').textContent = call.callerName || 'ناشناس';
+        document.getElementById('callStatus').textContent = '📞 تماس ورودی...';
+        document.getElementById('callActiveButtons').style.display = 'none';
+        document.getElementById('callIncomingButtons').style.display = 'flex';
+
+        playRingtone();
+    });
+}
+
+document.getElementById('acceptCallBtn').onclick = function() {
+    stopRingtone();
+    if (!currentCallId) return;
+    document.getElementById('callIncomingButtons').style.display = 'none';
+    document.getElementById('callActiveButtons').style.display = 'flex';
+    document.getElementById('callStatus').textContent = 'در حال اتصال...';
+    db.ref('calls/' + currentCallId).update({ status: 'accepted' });
+    initWebRTC(false);
+    listenCallEnd();
+};
+
+document.getElementById('rejectCallBtn').onclick = function() {
+    stopRingtone();
+    if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'rejected' });
+    endCall();
+};
+
+document.getElementById('endCallBtn').onclick = function() {
+    if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'ended' });
+    endCall();
+};
+
+function endCall() {
+    stopRingtone();
+    if (callTimeoutHandle) { clearTimeout(callTimeoutHandle); callTimeoutHandle = null; }
+    if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+    if (localStream) { localStream.getTracks().forEach(function(t){ t.stop(); }); localStream = null; }
+
+    document.getElementById('callScreen').classList.remove('show');
+    document.getElementById('remoteAudio').srcObject = null;
+
+    if (currentCallId) {
+        db.ref('calls/' + currentCallId + '/status').off();
+        db.ref('calls/' + currentCallId + '/answer').off();
+        db.ref('calls/' + currentCallId + '/offer').off();
+        if (currentCallPeer) db.ref('calls/' + currentCallId + '/ice_' + currentCallPeer).off();
+        db.ref('calls/' + currentCallId + '/ice_' + myId).off();
+    }
+
+    currentCallId = null; currentCallPeer = null;
+    isCaller = false; isMuted = false;
+}
+
+function listenCallEnd() {
+    if (!currentCallId) return;
+    db.ref('calls/' + currentCallId + '/status').on('value', function(snap) {
+        var s = snap.val();
+        if (s === 'ended' || s === 'rejected' || s === 'missed') endCall();
+    });
+}
+
+function setCallTimeout(callId) {
+    callTimeoutHandle = setTimeout(function() {
+        db.ref('calls/' + callId + '/status').once('value', function(snap) {
+            if (snap.val() === 'ringing') {
+                db.ref('calls/' + callId).update({ status: 'missed' });
+                endCall();
+            }
+        });
+    }, 30000);
+}
+
+async function initWebRTC(caller) {
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        pc = new RTCPeerConnection(rtcConfig);
+
+        localStream.getTracks().forEach(function(track) { pc.addTrack(track, localStream); });
+
+        pc.ontrack = function(event) {
+            var audio = document.getElementById('remoteAudio');
+            if (audio.srcObject !== event.streams[0]) {
+                audio.srcObject = event.streams[0];
+                audio.play().catch(function(e){ console.log('play error', e); });
+            }
+        };
+
+        pc.onicecandidate = function(event) {
+            if (event.candidate && currentCallId) {
+                db.ref('calls/' + currentCallId + '/ice_' + myId).push(event.candidate.toJSON());
+            }
+        };
+
+        pc.onconnectionstatechange = function() {
+            if (!pc) return;
+            if (pc.connectionState === 'connected') {
+                document.getElementById('callStatus').textContent = '⏱️ در حال صحبت...';
+            } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'ended' });
+                endCall();
+            }
+        };
+
+        if (caller) {
+            var offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            db.ref('calls/' + currentCallId + '/offer').set({ sdp: offer.sdp, type: offer.type });
+            db.ref('calls/' + currentCallId + '/answer').on('value', async function(snap) {
+                var answer = snap.val();
+                if (answer && pc && pc.signalingState !== 'stable') {
+                    try { await pc.setRemoteDescription(new RTCSessionDescription(answer)); }
+                    catch(e) { console.log('setRemote error', e); }
+                }
+            });
+        } else {
+            db.ref('calls/' + currentCallId + '/offer').once('value', async function(snap) {
+                var offer = snap.val();
+                if (!offer) return;
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                var answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                db.ref('calls/' + currentCallId + '/answer').set({ sdp: answer.sdp, type: answer.type });
+            });
+        }
+
+        if (currentCallPeer) {
+            db.ref('calls/' + currentCallId + '/ice_' + currentCallPeer).on('child_added', function(snap) {
+                var candidate = snap.val();
+                if (candidate && pc && pc.remoteDescription) {
+                    pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(function(e) {
+                        console.log('ICE error:', e);
+                    });
+                }
+            });
+        }
+    } catch (err) {
+        console.error('WebRTC Error:', err);
+        alert('❌ دسترسی به میکروفون امکان‌پذیر نیست.');
+        if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'ended' });
+        endCall();
+    }
+}
+
+document.getElementById('muteBtn').onclick = function() {
+    if (!localStream) return;
+    isMuted = !isMuted;
+    localStream.getAudioTracks().forEach(function(t) { t.enabled = !isMuted; });
+    this.classList.toggle('active', isMuted);
+    this.textContent = isMuted ? '🔇' : '🎤';
+};
+
+function playRingtone() {
+    try {
+        ringtoneCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ringtoneCtx.createOscillator();
+        var gain = ringtoneCtx.createGain();
+        osc.connect(gain);
+        gain.connect(ringtoneCtx.destination);
+        osc.frequency.value = 440;
+        gain.gain.value = 0.15;
+        osc.start();
+        osc.stop(ringtoneCtx.currentTime + 30);
+    } catch(e) {}
+}
+function stopRingtone() {
+    if (ringtoneCtx) { try { ringtoneCtx.close(); } catch(e) {} ringtoneCtx = null; }
+}
+
+function addCallButton() {
+    var header = document.getElementById('header');
+    if (!header) return;
+    if (document.getElementById('callBtn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'callBtn';
+    btn.innerHTML = '📞';
+    btn.title = 'تماس صوتی';
+    btn.onclick = function() {
+        if (curChat === 'public' || !curUser || curUser.isGroup) {
+            alert('فقط در چت خصوصی می‌تونی تماس بگیری');
+            return;
+        }
+        startCall(curUser.id, curUser.name, curUser.avatar);
+    };
+    header.appendChild(btn);
 }
