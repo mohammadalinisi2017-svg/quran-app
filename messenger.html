@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>سوپر اپ پیشرفته</title>
 
-<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -44,6 +43,7 @@
         <h2 id="headerTitle">سوپر اپ</h2>
         <p id="headerStatus">● آنلاین</p>
     </div>
+    <button class="hbtn" id="searchHeaderBtn" title="جستجو">🔍</button>
     <button class="hbtn" id="themeBtn">🎨</button>
 </div>
 
@@ -52,30 +52,36 @@
 <!-- ==================== Page: Chats ==================== -->
 <div class="page act" id="pageChats">
     <div class="sbar">
-        <input type="text" id="searchChat" placeholder="جستجو...">
+        <input type="text" id="searchChat" placeholder="جستجو در چت‌ها...">
         <button class="add-btn" id="newGroupBtn">➕</button>
     </div>
-    <div class="clist" id="chatList">
-        <div class="citem" id="publicChatItem">
-            <div class="av">💬</div>
-            <div class="body"><h3>گروه عمومی</h3><p id="publicLastMsg">چت با همه</p></div>
-        </div>
-        <div id="groupsList"></div>
-    </div>
+    <div class="clist" id="chatList"></div>
 </div>
 
 <!-- ==================== Page: Chat Room ==================== -->
 <div class="page" id="pageChat">
     <div class="marea" id="messagesArea"></div>
+
+    <!-- Reply preview -->
     <div class="reply-prev" id="replyPrev">
         <div style="flex:1"><strong id="replyName">کاربر</strong><div id="replyText">متن</div></div>
         <span class="x" onclick="cancelReply()">✕</span>
     </div>
+
+    <!-- Emoji panel -->
     <div class="epanel" id="emojiPanel"></div>
+
+    <!-- Input bar -->
     <div class="ibar">
         <button class="ibtn" id="emojiBtn">😊</button>
-        <button class="ibtn photo" id="photoBtn">📷</button>
+        <button class="ibtn" id="photoBtn">📷</button>
         <input type="file" id="photoInput" accept="image/*" style="display:none">
+
+        <button class="ibtn" id="fileBtn">📎</button>
+        <input type="file" id="fileInput" style="display:none">
+
+        <button class="ibtn" id="recBtn">🎤</button>
+
         <input type="text" id="msgInput" placeholder="پیام...">
         <button class="sbtn" id="sendBtn">➤</button>
     </div>
@@ -111,9 +117,9 @@
     </div>
 </div>
 
-<!-- ==================== Page: Users ==================== -->
+<!-- ==================== Page: Contacts ==================== -->
 <div class="page" id="pageUsers">
-    <div class="sbar"><input type="text" id="searchUser" placeholder="جستجوی کاربر..."></div>
+    <div class="sbar"><input type="text" id="searchUser" placeholder="جستجوی مخاطب..."></div>
     <div class="clist" id="usersList"></div>
 </div>
 
@@ -131,7 +137,7 @@
     <div class="stt" onclick="changeAvatar()">🖼️ تغییر آواتار</div>
     <div class="stt" onclick="changeName()">✏️ تغییر نام</div>
     <div class="stt" onclick="showThemePicker()">🎨 تم رنگی</div>
-    <div class="stt" onclick="requestNotifPermission()">🔔 اعلان‌ها</div>
+    <div class="stt" onclick="askNotifPermission()">🔔 اجازه اعلان</div>
     <div class="stt" onclick="showAbout()">ℹ️ درباره</div>
     <div class="stt" id="adminBtn" onclick="showAdminLogin()">✅ ورود مدیر</div>
     <button class="btn" id="logoutBtn">🚪 خروج</button>
@@ -147,6 +153,39 @@
     <button class="tbtn" data-tab="pageProfile">👤<br>پروفایل</button>
 </div>
 
+<!-- ==================== Search Panel ==================== -->
+<div class="search-panel" id="searchPanel">
+    <div class="sp-row">
+        <input type="text" id="searchInput" placeholder="جستجو در پیام‌ها..." oninput="doSearch(this.value)">
+        <button class="sp-close" onclick="closeSearch()">✕</button>
+    </div>
+    <div class="sp-row">
+        <div class="sp-info" id="searchInfo"></div>
+        <div class="sp-nav" style="margin-right:auto">
+            <button onclick="searchNext(-1)">▲</button>
+            <button onclick="searchNext(1)">▼</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== Recording Bar ==================== -->
+<div class="rec-bar" id="recBar">
+    <span class="dot-live"></span>
+    <span class="time" id="recTime">00:00</span>
+    <span class="lbl">در حال ضبط...</span>
+    <button class="cancel" onclick="stopRecording(false)">انصراف</button>
+    <button class="send" onclick="stopRecording(true)">ارسال</button>
+</div>
+
+<!-- ==================== Forward Overlay ==================== -->
+<div class="fwd-overlay" id="fwdOverlay">
+    <div class="fwd-head">
+        <h3>↪️ فوروارد به...</h3>
+        <button onclick="closeFwd()">لغو</button>
+    </div>
+    <div class="fwd-list" id="fwdList"></div>
+</div>
+
 <!-- ==================== Modal ==================== -->
 <div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
 
@@ -154,6 +193,8 @@
 <div class="mmenu" id="mmenu">
     <div class="rr" id="rr"></div>
     <button class="mb" onclick="replyMsg()">↩️ پاسخ</button>
+    <button class="mb" id="editBtn" onclick="editMessage()">✏️ ویرایش</button>
+    <button class="mb" id="fwdBtn" onclick="forwardMessage()">↪️ فوروارد</button>
     <button class="mb" onclick="copyMsg()">📋 کپی</button>
     <button class="mb dng" id="delBtn" onclick="deleteMsg()">🗑️ حذف</button>
     <button class="mb" onclick="closeMMenu()">✕ بستن</button>
@@ -161,9 +202,18 @@
 
 <!-- ==================== Notification Banner ==================== -->
 <div class="notif-banner" id="notifBanner">
-    <h4 id="notifTitle"></h4>
-    <p id="notifText"></p>
+    <div class="notif-row">
+        <div class="notif-av" id="notifAv">💬</div>
+        <div class="notif-body">
+            <h4 id="notifTitle"></h4>
+            <p id="notifText"></p>
+            <div class="notif-time">همین الان</div>
+        </div>
+    </div>
 </div>
+
+<!-- ==================== Toast ==================== -->
+<div id="toast" class="toast"></div>
 
 <!-- ==================== Call Screen ==================== -->
 <div class="call-screen" id="callScreen">
