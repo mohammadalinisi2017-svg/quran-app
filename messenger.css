@@ -983,3 +983,297 @@ body.theme-red    { --primary: #ff3d6e; --secondary: #ff8a3d; --accent: #ff2e9f;
     background: linear-gradient(180deg, var(--primary), var(--secondary));
     border-radius: 3px;
 }
+/* ============================================================
+   PACK 3: Stickers / GIF / Background / Location / Camera
+============================================================ */
+
+/* استیکرها */
+.sticker-panel {
+    position: absolute; bottom: 70px; left: 0; right: 0;
+    background: rgba(20, 26, 45, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    padding: 12px;
+    display: none;
+    z-index: 100;
+    max-height: 320px;
+    overflow-y: auto;
+}
+.sticker-panel.show { display: block; }
+.sticker-panel .sp-tabs {
+    display: flex; gap: 8px; margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.sticker-panel .sp-tabs button {
+    flex: 1;
+    padding: 10px;
+    background: rgba(30, 40, 65, 0.60);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 12px;
+    color: var(--text-dim);
+    font-family: Tahoma;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.sticker-panel .sp-tabs button.act {
+    background: linear-gradient(135deg, rgba(0,229,255,0.25), rgba(177,74,255,0.25));
+    color: var(--primary);
+    border-color: var(--primary);
+}
+.sticker-panel .sp-tab { display: none; }
+.sticker-panel .sp-tab.act { display: block; }
+
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+}
+.sticker-grid .st {
+    font-size: 38px;
+    text-align: center;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.15s;
+    user-select: none;
+}
+.sticker-grid .st:hover {
+    background: rgba(0, 229, 255, 0.12);
+    transform: scale(1.15);
+}
+.sticker-grid .st:active {
+    transform: scale(0.95);
+}
+
+/* گیف */
+.gif-search {
+    display: flex; gap: 8px; margin-bottom: 10px;
+}
+.gif-search input {
+    flex: 1;
+    padding: 10px 14px;
+    background: rgba(30, 40, 65, 0.70);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: Tahoma;
+    font-size: 13px;
+}
+.gif-search input:focus { outline: none; border-color: var(--primary); }
+.gif-search button {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #05070d;
+    border: none;
+    padding: 0 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: Tahoma;
+    font-weight: 700;
+}
+.gif-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+.gif-grid img {
+    width: 100%;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.gif-grid img:hover { transform: scale(1.03); }
+
+/* استیکر داخل پیام */
+.msg .sticker-msg {
+    font-size: 60px;
+    text-align: center;
+    padding: 4px 8px;
+    line-height: 1;
+}
+.msg .gif-msg {
+    max-width: 220px;
+    border-radius: 12px;
+    margin: 4px 0;
+}
+
+/* پس‌زمینه چت */
+.chat-bg-picker {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.chat-bg-picker .bg-opt {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+.chat-bg-picker .bg-opt:hover {
+    transform: scale(1.08);
+    border-color: var(--primary);
+}
+.chat-bg-picker .bg-opt.sel {
+    border-color: var(--primary);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.50);
+}
+
+/* پس‌زمینه‌های آماده */
+.bg-1 { background: #0b141a; }
+.bg-2 { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+.bg-3 { background: linear-gradient(135deg, #2d1b3d, #1a1a2e); }
+.bg-4 { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
+.bg-5 { background: linear-gradient(135deg, #3d1b1b, #2d1b3d); }
+.bg-6 { background: radial-gradient(circle at 50% 50%, #1e3a5f, #0b141a); }
+.bg-7 { background: #000000; }
+.bg-8 { background: linear-gradient(135deg, #134e5e, #71b280); }
+
+/* موقعیت */
+.location-msg {
+    display: flex; flex-direction: column;
+    gap: 8px;
+    padding: 4px 0;
+    min-width: 200px;
+}
+.location-msg .loc-map {
+    width: 100%;
+    height: 160px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #1a3a2e, #0b141a);
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    border: 1.5px solid rgba(0, 229, 150, 0.30);
+}
+.location-msg .loc-map::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+        linear-gradient(0deg, transparent 24%, rgba(0,229,150,0.15) 25%, rgba(0,229,150,0.15) 26%, transparent 27%, transparent 74%, rgba(0,229,150,0.15) 75%, rgba(0,229,150,0.15) 76%, transparent 77%),
+        linear-gradient(90deg, transparent 24%, rgba(0,229,150,0.15) 25%, rgba(0,229,150,0.15) 26%, transparent 27%, transparent 74%, rgba(0,229,150,0.15) 75%, rgba(0,229,150,0.15) 76%, transparent 77%);
+    background-size: 30px 30px;
+    pointer-events: none;
+}
+.location-msg .loc-pin {
+    position: relative; z-index: 2;
+    filter: drop-shadow(0 0 15px rgba(255, 61, 110, 0.80));
+    animation: pinBounce 1.5s infinite;
+}
+@keyframes pinBounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+}
+.location-msg .loc-info {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px;
+}
+.location-msg .loc-open {
+    background: rgba(0,0,0,0.25);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: inherit;
+    cursor: pointer;
+    font-family: Tahoma;
+    font-size: 13px;
+}
+
+/* دوربین داخلی */
+.camera-screen {
+    position: fixed; inset: 0;
+    background: #000;
+    z-index: 600;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.camera-screen.show { display: flex; }
+.camera-screen video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+}
+.camera-screen .cam-controls {
+    position: absolute;
+    bottom: 40px;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    z-index: 2;
+}
+.camera-screen .cam-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: rgba(255,255,255,0.20);
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s;
+}
+.camera-screen .cam-btn:active { transform: scale(0.90); }
+.camera-screen .cam-btn.shoot {
+    background: #fff;
+    width: 80px;
+    height: 80px;
+}
+.camera-screen .cam-btn.shoot::after {
+    content: '';
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 3px solid #000;
+}
+.camera-screen .cam-btn.switch {
+    width: 55px;
+    height: 55px;
+    font-size: 20px;
+    background: rgba(0,0,0,0.40);
+}
+.camera-screen .cam-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.50);
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 2;
+}
+.camera-screen .cam-flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 3;
+}
+.camera-screen .cam-flash.flash {
+    animation: flashAnim 0.3s;
+}
+@keyframes flashAnim {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+}
+
+/* پیام ستاره‌دار */
+.mmenu .mb.star-btn { color: #ffb800; }
+.starred-badge {
+    display: inline-block;
+    font-size: 10px;
+    color: #ffb800;
+    margin-right: 4px;
+}
