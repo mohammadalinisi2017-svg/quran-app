@@ -43,6 +43,29 @@ var rtcConfig = {
 var typingTimeout = null;
 var typingListenerRef = null;
 
+// Media / Recording
+var mediaRecorder = null;
+var audioChunks = [];
+var recTimer = null;
+var recSeconds = 0;
+
+// Edit
+var editingMsg = null;
+
+// Forward
+var fwdMsg = null;
+
+// Search
+var searchMatches = [];
+var searchIdx = -1;
+
+// Notifications
+var unreadCounts = {};
+var unreadTotal = 0;
+var notifPermGranted = false;
+var notificationAudio = null;
+
+// FCM
 var messaging = null;
 
 var avOpts = ['😊','😎','🤓','🥳','😇','🤠','👦','👧','🧑','👨','👩','🧔','👶','🐱','🐶','🦊','🐻','🐼','🦁','🐯','🦄','🐸','🐵','🦉','🌟','⭐','💫','✨','🔥','⚡','🌸','🌹'];
@@ -138,9 +161,16 @@ function startApp(){
     checkAdminBtn();
     listenAllEvents();
     initNotifications();
+    initNotificationSystem();
     listenIncomingCalls();
     addCallButton();
-    listenPublicLast();
+
+    // جدید
+    document.getElementById('recBtn').onclick = startRecording;
+    document.getElementById('searchHeaderBtn').onclick = openSearch;
+    document.getElementById('fileBtn').onclick = function(){
+        document.getElementById('fileInput').click();
+    };
 }
 
 // ============================================================
@@ -225,7 +255,7 @@ function showTypingIndicator(chatId){
 }
 
 // ============================================================
-// FCM
+// Notifications - FCM
 // ============================================================
 async function initNotifications(){
     if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
@@ -239,14 +269,29 @@ async function initNotifications(){
         if (token && myId) db.ref('users/' + myId + '/fcmToken').set(token);
         messaging.onMessage(function(payload){
             var n = payload.notification || {};
-            showNotifBanner(n.title || 'پیام جدید', n.body || '');
+            showNotifBanner2(n.title || 'پیام جدید', n.body || '', '💬', null);
         });
     } catch (err) { console.log('FCM error:', err); }
 }
 
-function requestNotifPermission(){
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'default') Notification.requestPermission();
+function askNotifPermission(){
+    if (!('Notification' in window)) {
+        showToast('مرورگرت اعلان پشتیبانی نمی‌کنه');
+        return;
+    }
+    if (Notification.permission === 'granted') {
+        notifPermGranted = true;
+        showToast('✅ اعلان‌ها فعالن');
+        return;
+    }
+    if (Notification.permission === 'denied') {
+        showToast('❌ اعلان‌ها رد شده. از تنظیمات مرورگر فعال کن');
+        return;
+    }
+    Notification.requestPermission().then(function(p){
+        notifPermGranted = (p === 'granted');
+        showToast(p === 'granted' ? '✅ اعلان‌ها فعال شدن' : '❌ لغو شد');
+    });
 }
 
 // ============================================================
@@ -482,7 +527,7 @@ function updateAv(){
 }
 
 // ============================================================
-// CHATS LIST (مثل واتساپ)
+// CHATS LIST
 // ============================================================
 function loadChatsList(){
     var l = document.getElementById('chatList');
@@ -501,7 +546,6 @@ function loadChatsList(){
             var keys = Object.keys(msgs);
             if (keys.length === 0) return;
 
-            // پیدا کردن آخرین پیام
             var lastTime = 0, lastMsg = null;
             keys.forEach(function(k){
                 var m = msgs[k];
@@ -513,17 +557,14 @@ function loadChatsList(){
 
             if (lastMsg) {
                 chats.push({
-                    cid: cid,
-                    otherId: otherId,
-                    lastMsg: lastMsg,
-                    lastTime: lastTime
+                    cid: cid, otherId: otherId,
+                    lastMsg: lastMsg, lastTime: lastTime
                 });
             }
         });
 
         chats.sort(function(a,b){ return b.lastTime - a.lastTime; });
 
-        // گروه‌های کاربر
         db.ref('groups').once('value', function(gSnap){
             var gd = gSnap.val() || {};
             var groups = [];
@@ -536,7 +577,6 @@ function loadChatsList(){
 
             var h = '';
 
-            // گروه عمومی
             h += '<div class="citem" id="publicChatItem">' +
                     '<div class="av">💬</div>' +
                     '<div class="body">' +
@@ -545,7 +585,6 @@ function loadChatsList(){
                     '</div>' +
                  '</div>';
 
-            // گروه‌ها
             groups.forEach(function(g){
                 h += '<div class="citem" data-gid="' + g.gid + '">' +
                         '<div class="av">👥</div>' +
@@ -556,12 +595,14 @@ function loadChatsList(){
                      '</div>';
             });
 
-            // چت‌های خصوصی
             chats.forEach(function(c){
                 var u = allUsers[c.otherId] || {};
                 var name = u.name || 'کاربر';
                 var avatar = u.avatar || '👤';
-                var lastText = c.lastMsg.photo ? '📷 عکس' : (c.lastMsg.text || '');
+                var lastText = c.lastMsg.photo ? '📷 عکس'
+                             : c.lastMsg.voice ? '🎤 پیام صوتی'
+                             : c.lastMsg.fileData ? '📎 فایل'
+                             : (c.lastMsg.text || '');
                 if (c.lastMsg.sender === myId) lastText = 'شما: ' + lastText;
                 var timeStr = timeAgoShort(c.lastTime);
 
@@ -570,7 +611,7 @@ function loadChatsList(){
                         '<div class="body">' +
                             '<div style="display:flex;justify-content:space-between;align-items:center">' +
                                 '<h3>' + esc(name) + '</h3>' +
-                                '<span style="font-size:11px;color:#8696a0">' + timeStr + '</span>' +
+                                '<span style="font-size:11px;color:#7a8aa8">' + timeStr + '</span>' +
                             '</div>' +
                             '<p>' + esc(lastText) + '</p>' +
                         '</div>' +
@@ -582,6 +623,7 @@ function loadChatsList(){
             var pub = document.getElementById('publicChatItem');
             if (pub) pub.onclick = function(){
                 curChat = "public"; curUser = null;
+                markChatAsRead('messages');
                 document.getElementById('headerTitle').textContent = "گروه عمومی";
                 document.getElementById('headerStatus').textContent = "● آنلاین";
                 document.getElementById('backBtn').style.display = 'block';
@@ -596,23 +638,23 @@ function loadChatsList(){
             });
 
             l.querySelectorAll('.citem[data-uid]').forEach(function(el){
+                var uid = el.getAttribute('data-uid');
+                var cid = [myId, uid].sort().join('_');
                 el.onclick = function(){
-                    openPriv(el.getAttribute('data-uid'), el.getAttribute('data-name'), el.getAttribute('data-avatar'));
+                    openPriv(uid, el.getAttribute('data-name'), el.getAttribute('data-avatar'));
                 };
+                // long press برای حذف چت
+                var pressTimer;
+                el.addEventListener('touchstart', function(){
+                    pressTimer = setTimeout(function(){ deleteChat('private/' + cid); }, 800);
+                });
+                el.addEventListener('touchend', function(){ clearTimeout(pressTimer); });
+                el.addEventListener('mousedown', function(){
+                    pressTimer = setTimeout(function(){ deleteChat('private/' + cid); }, 800);
+                });
+                el.addEventListener('mouseup', function(){ clearTimeout(pressTimer); });
             });
         });
-    });
-}
-
-function listenPublicLast(){
-    db.ref('messages').limitToLast(1).on('value', function(ms){
-        var d = ms.val();
-        if (!d) return;
-        var k = Object.keys(d)[0];
-        var m = d[k];
-        var txt = m.photo ? '📷 عکس' : m.text;
-        var el = document.getElementById('publicLastMsg');
-        if (el) el.textContent = m.avatar + ' ' + m.name + ': ' + txt;
     });
 }
 
@@ -621,6 +663,7 @@ function listenPublicLast(){
 // ============================================================
 function loadPubMsgs(){
     var a = document.getElementById('messagesArea');
+    markChatAsRead('messages');
     db.ref('messages').limitToLast(100).on('value', function(s){
         a.innerHTML = '';
         var d = s.val();
@@ -636,8 +679,11 @@ function loadPubMsgs(){
                 var badge = m.isBroadcast ? ' <span class="admin-badge">✅</span>' : '';
                 h += '<div class="sender">' + m.avatar + ' ' + esc(m.name) + badge + '</div>';
             }
+            if (m.forwarded) h += '<div class="fwd-tag">↪️ فوروارد از ' + esc(m.forwardedFrom || 'کاربر') + '</div>';
             if (m.reply) h += '<div class="reply-box"><strong>' + esc(m.reply.name) + '</strong><br>' + esc(m.reply.text) + '</div>';
             if (m.photo) h += '<img class="photo" src="' + m.photo + '">';
+            if (m.voice) h += renderVoiceHtml(m, mine);
+            if (m.fileData) h += renderFileHtml(m);
             if (m.text) h += '<div class="text">' + esc(m.text) + '</div>';
             if (m.reacts && Object.keys(m.reacts).length > 0) {
                 h += '<div class="reacts">';
@@ -645,7 +691,8 @@ function loadPubMsgs(){
                 Object.keys(rc).forEach(function(r){ h += '<span>' + r + ' ' + rc[r] + '</span>'; });
                 h += '</div>';
             }
-            h += '<div class="meta">' + (m.timeStr||'') + (mine ? ' <span class="tick sent">✓✓</span>' : '') + '</div>';
+            var editedTag = m.edited ? ' <span class="edited-tag">(ویرایش‌شده)</span>' : '';
+            h += '<div class="meta">' + (m.timeStr||'') + editedTag + (mine ? ' <span class="tick sent">✓✓</span>' : '') + '</div>';
             div.innerHTML = h;
             div.onclick = (function(msg,k){ return function(){ openMM(msg, k, 'messages'); }; })(m, k);
             a.appendChild(div);
@@ -659,6 +706,7 @@ function loadPubMsgs(){
 // ============================================================
 function openPriv(uid, name, av){
     curChat = uid; curUser = {id:uid, name:name, avatar:av};
+    markChatAsRead('private/' + [myId, uid].sort().join('_'));
     document.getElementById('headerTitle').textContent = av + ' ' + name;
     document.getElementById('headerStatus').textContent = '...';
     document.getElementById('backBtn').style.display = 'block';
@@ -693,8 +741,11 @@ function loadPriv(oid){
             var div = document.createElement('div');
             div.className = 'msg ' + (mine ? 'sent' : 'rec');
             var h = '';
+            if (m.forwarded) h += '<div class="fwd-tag">↪️ فوروارد از ' + esc(m.forwardedFrom || 'کاربر') + '</div>';
             if (m.reply) h += '<div class="reply-box"><strong>' + esc(m.reply.name) + '</strong><br>' + esc(m.reply.text) + '</div>';
             if (m.photo) h += '<img class="photo" src="' + m.photo + '">';
+            if (m.voice) h += renderVoiceHtml(m, mine);
+            if (m.fileData) h += renderFileHtml(m);
             if (m.text) h += '<div class="text">' + esc(m.text) + '</div>';
             if (m.reacts && Object.keys(m.reacts).length > 0) {
                 h += '<div class="reacts">';
@@ -708,7 +759,8 @@ function loadPriv(oid){
                 else if (m.delivered) tick = ' <span class="tick delivered">✓✓</span>';
                 else tick = ' <span class="tick sent">✓</span>';
             }
-            h += '<div class="meta">' + (m.timeStr||'') + tick + '</div>';
+            var editedTag = m.edited ? ' <span class="edited-tag">(ویرایش‌شده)</span>' : '';
+            h += '<div class="meta">' + (m.timeStr||'') + editedTag + tick + '</div>';
             div.innerHTML = h;
             div.onclick = (function(msg,k){ return function(){ openMM(msg, k, 'private/' + cid); }; })(m, k);
             a.appendChild(div);
@@ -735,6 +787,7 @@ document.getElementById('msgInput').oninput = function(){
 };
 
 function sendMsg(){
+    if (editingMsg) { commitEdit(); return; }
     var inp = document.getElementById('msgInput');
     var t = inp.value.trim();
     if (!t || !myName) return;
@@ -804,6 +857,400 @@ document.getElementById('photoInput').onchange = function(e){
 };
 
 // ============================================================
+// File Sending
+// ============================================================
+document.getElementById('fileInput').onchange = function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+        alert('حجم فایل نباید بیشتر از ۳ مگابایت باشه');
+        e.target.value = '';
+        return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(ev){
+        var n = new Date();
+        var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+        var md = {
+            name: myName, uid: myId, avatar: myAv,
+            fileData: ev.target.result,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type || 'application/octet-stream',
+            text: '', time: Date.now(), timeStr: ts,
+            read: false, delivered: false
+        };
+        if (curChat === "public") {
+            db.ref('messages').push(md);
+        } else if (curChat.indexOf('group_') === 0) {
+            var gid = curChat.replace('group_','');
+            db.ref('groupmessages/' + gid).push(md);
+        } else {
+            var cid = [myId, curChat].sort().join('_');
+            md.sender = myId;
+            db.ref('private/' + cid).push(md);
+        }
+        showToast('📎 فایل ارسال شد');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+};
+
+function renderFileHtml(m) {
+    var icon = '📄';
+    var t = (m.fileType || '').toLowerCase();
+    if (t.indexOf('pdf') >= 0) icon = '📕';
+    else if (t.indexOf('word') >= 0 || t.indexOf('document') >= 0) icon = '📘';
+    else if (t.indexOf('excel') >= 0 || t.indexOf('sheet') >= 0) icon = '📗';
+    else if (t.indexOf('zip') >= 0 || t.indexOf('rar') >= 0) icon = '🗜️';
+    else if (t.indexOf('video') >= 0) icon = '🎬';
+    else if (t.indexOf('audio') >= 0) icon = '🎵';
+    else if (t.indexOf('image') >= 0) icon = '🖼️';
+
+    var size = m.fileSize || 0;
+    var sizeStr = size < 1024 ? size + ' B'
+        : size < 1048576 ? (size/1024).toFixed(1) + ' KB'
+        : (size/1048576).toFixed(2) + ' MB';
+
+    return '<div class="file-msg">' +
+        '<div class="f-ic">' + icon + '</div>' +
+        '<div class="f-info">' +
+            '<div class="f-name">' + esc(m.fileName || 'file') + '</div>' +
+            '<div class="f-size">' + sizeStr + '</div>' +
+        '</div>' +
+        '<button class="f-dl" onclick="downloadFile(this)" ' +
+        'data-src="' + m.fileData + '" ' +
+        'data-name="' + esc(m.fileName || 'file') + '">⬇️</button>' +
+    '</div>';
+}
+
+function downloadFile(btn){
+    var src = btn.getAttribute('data-src');
+    var name = btn.getAttribute('data-name');
+    var a = document.createElement('a');
+    a.href = src;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// ============================================================
+// Voice Recording
+// ============================================================
+function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('مرورگرت ضبط صدا رو پشتیبانی نمی‌کنه');
+        return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        recSeconds = 0;
+
+        mediaRecorder.ondataavailable = function(e){
+            if (e.data.size > 0) audioChunks.push(e.data);
+        };
+        mediaRecorder.onstop = function(){
+            stream.getTracks().forEach(function(t){ t.stop(); });
+            var blob = new Blob(audioChunks, { type: 'audio/webm' });
+            if (blob.size < 1000) return;
+            var reader = new FileReader();
+            reader.onloadend = function(){
+                sendVoiceMessage(reader.result, recSeconds);
+            };
+            reader.readAsDataURL(blob);
+        };
+        mediaRecorder.start();
+
+        document.getElementById('recBar').classList.add('show');
+        document.getElementById('recTime').textContent = '00:00';
+
+        recTimer = setInterval(function(){
+            recSeconds++;
+            var m = Math.floor(recSeconds / 60);
+            var s = recSeconds % 60;
+            document.getElementById('recTime').textContent =
+                (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+            if (recSeconds >= 120) stopRecording(true);
+        }, 1000);
+    }).catch(function(err){
+        console.error(err);
+        alert('❌ دسترسی به میکروفون امکان‌پذیر نیست');
+    });
+}
+
+function stopRecording(send) {
+    if (recTimer) { clearInterval(recTimer); recTimer = null; }
+    document.getElementById('recBar').classList.remove('show');
+    if (!mediaRecorder) return;
+    if (!send) audioChunks = [];
+    try { mediaRecorder.stop(); } catch(e){}
+    mediaRecorder = null;
+}
+
+function sendVoiceMessage(base64, duration) {
+    var n = new Date();
+    var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+    var md = {
+        name: myName, uid: myId, avatar: myAv,
+        voice: base64, voiceDur: duration,
+        text: '', time: Date.now(), timeStr: ts,
+        read: false, delivered: false
+    };
+    if (curChat === "public") {
+        db.ref('messages').push(md);
+    } else if (curChat.indexOf('group_') === 0) {
+        var gid = curChat.replace('group_','');
+        db.ref('groupmessages/' + gid).push(md);
+    } else {
+        var cid = [myId, curChat].sort().join('_');
+        md.sender = myId;
+        db.ref('private/' + cid).push(md);
+    }
+    showToast('🎤 پیام صوتی ارسال شد');
+}
+
+function renderVoiceHtml(m, isMine) {
+    var dur = m.voiceDur || 0;
+    var bars = 28;
+    var wave = '';
+    for (var i = 0; i < bars; i++) {
+        var h = 6 + Math.floor(Math.random() * 18);
+        wave += '<span style="height:' + h + 'px"></span>';
+    }
+    var mss = (dur < 10 ? '0' : '') + Math.floor(dur/60);
+    var sss = (dur % 60 < 10 ? '0' : '') + (dur % 60);
+    return '<div class="voice-msg" data-src="' + m.voice + '">' +
+        '<button class="play-btn" onclick="playVoice(this)">▶</button>' +
+        '<div class="wave">' + wave + '</div>' +
+        '<span class="dur">' + mss + ':' + sss + '</span>' +
+    '</div>';
+}
+
+var currentAudio = null;
+function playVoice(btn) {
+    var wrap = btn.parentElement;
+    var src = wrap.getAttribute('data-src');
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+    var audio = new Audio(src);
+    currentAudio = audio;
+    btn.textContent = '⏸';
+    audio.play().catch(function(e){ console.log(e); });
+
+    var waveSpans = wrap.querySelectorAll('.wave span');
+    var total = waveSpans.length;
+    var idx = 0;
+    var tick = setInterval(function(){
+        waveSpans.forEach(function(s){ s.classList.remove('active'); });
+        if (idx < total) waveSpans[idx].classList.add('active');
+        idx++;
+    }, 100);
+
+    audio.onended = function(){
+        clearInterval(tick);
+        waveSpans.forEach(function(s){ s.classList.remove('active'); });
+        btn.textContent = '▶';
+        currentAudio = null;
+    };
+    btn.onclick = function(){
+        if (audio.paused) {
+            audio.play(); btn.textContent = '⏸';
+        } else {
+            audio.pause(); btn.textContent = '▶';
+        }
+    };
+}
+
+// ============================================================
+// Search
+// ============================================================
+function openSearch(){
+    document.getElementById('searchPanel').classList.add('show');
+    setTimeout(function(){ document.getElementById('searchInput').focus(); }, 100);
+}
+
+function closeSearch(){
+    document.getElementById('searchPanel').classList.remove('show');
+    document.getElementById('searchInput').value = '';
+    document.querySelectorAll('#messagesArea .msg').forEach(function(el){
+        el.classList.remove('highlight');
+        el.classList.remove('dim');
+    });
+    searchMatches = [];
+    searchIdx = -1;
+    document.getElementById('searchInfo').textContent = '';
+}
+
+function doSearch(q){
+    var msgs = document.querySelectorAll('#messagesArea .msg');
+    searchMatches = [];
+    if (!q.trim()) {
+        msgs.forEach(function(el){ el.classList.remove('highlight','dim'); });
+        document.getElementById('searchInfo').textContent = '';
+        return;
+    }
+    var lq = q.toLowerCase();
+    msgs.forEach(function(el){
+        var t = (el.textContent || '').toLowerCase();
+        if (t.indexOf(lq) >= 0) {
+            el.classList.add('highlight');
+            el.classList.remove('dim');
+            searchMatches.push(el);
+        } else {
+            el.classList.remove('highlight');
+            el.classList.add('dim');
+        }
+    });
+    if (searchMatches.length > 0) {
+        searchIdx = searchMatches.length - 1;
+        searchMatches[searchIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('searchInfo').textContent =
+            (searchIdx + 1) + ' از ' + searchMatches.length;
+    } else {
+        document.getElementById('searchInfo').textContent = 'چیزی پیدا نشد';
+        searchIdx = -1;
+    }
+}
+
+function searchNext(dir){
+    if (searchMatches.length === 0) return;
+    searchIdx += dir;
+    if (searchIdx < 0) searchIdx = searchMatches.length - 1;
+    if (searchIdx >= searchMatches.length) searchIdx = 0;
+    searchMatches[searchIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('searchInfo').textContent =
+        (searchIdx + 1) + ' از ' + searchMatches.length;
+}
+
+// ============================================================
+// Edit Message
+// ============================================================
+function editMessage(){
+    if (!selMsg || !selKey) return;
+    if (selMsg.sender !== myId && selMsg.uid !== myId) {
+        alert('فقط پیام‌های خودت رو می‌تونی ویرایش کنی');
+        closeMMenu();
+        return;
+    }
+    if (!selMsg.text) {
+        alert('فقط پیام‌های متنی قابل ویرایش هستن');
+        closeMMenu();
+        return;
+    }
+    editingMsg = { msg: selMsg, key: selKey, path: selPath };
+    var inp = document.getElementById('msgInput');
+    inp.value = selMsg.text;
+    inp.focus();
+    document.getElementById('sendBtn').innerHTML = '✔️';
+    showToast('✏️ در حال ویرایش...');
+    closeMMenu();
+}
+
+function commitEdit(){
+    if (!editingMsg) return false;
+    db.ref(editingMsg.path + '/' + editingMsg.key).update({
+        text: document.getElementById('msgInput').value.trim(),
+        edited: true
+    });
+    editingMsg = null;
+    document.getElementById('sendBtn').innerHTML = '➤';
+    document.getElementById('msgInput').value = '';
+    return true;
+}
+
+// ============================================================
+// Forward
+// ============================================================
+function forwardMessage(){
+    if (!selMsg || !selKey) return;
+    fwdMsg = selMsg;
+    var ov = document.getElementById('fwdOverlay');
+    ov.classList.add('show');
+    var list = document.getElementById('fwdList');
+    list.innerHTML = '';
+
+    var pub = document.createElement('div');
+    pub.className = 'fwd-item';
+    pub.innerHTML = '<div class="av">💬</div><div class="name">گروه عمومی</div><div class="go">›</div>';
+    pub.onclick = function(){ doForward('public', null); };
+    list.appendChild(pub);
+
+    Object.keys(allUsers).forEach(function(uid){
+        if (uid === myId) return;
+        var u = allUsers[uid];
+        var it = document.createElement('div');
+        it.className = 'fwd-item';
+        it.innerHTML = '<div class="av">' + (u.avatar||'👤') + '</div><div class="name">' + esc(u.name) + '</div><div class="go">›</div>';
+        it.onclick = function(){ doForward(uid, u); };
+        list.appendChild(it);
+    });
+
+    db.ref('groups').once('value', function(s){
+        var d = s.val() || {};
+        Object.keys(d).forEach(function(gid){
+            var g = d[gid];
+            if (!g.members || !g.members[myId]) return;
+            var it = document.createElement('div');
+            it.className = 'fwd-item';
+            it.innerHTML = '<div class="av">👥</div><div class="name">' + esc(g.name) + '</div><div class="go">›</div>';
+            it.onclick = function(){ doForward('group_' + gid, null); };
+            list.appendChild(it);
+        });
+    });
+
+    closeMMenu();
+}
+
+function closeFwd(){
+    document.getElementById('fwdOverlay').classList.remove('show');
+    fwdMsg = null;
+}
+
+function doForward(target, userData){
+    if (!fwdMsg) return;
+    var n = new Date();
+    var ts = n.getHours() + ':' + (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
+    var md = {
+        name: myName, uid: myId, avatar: myAv,
+        text: fwdMsg.text || '',
+        photo: fwdMsg.photo || null,
+        voice: fwdMsg.voice || null,
+        voiceDur: fwdMsg.voiceDur || 0,
+        fileData: fwdMsg.fileData || null,
+        fileName: fwdMsg.fileName || null,
+        fileSize: fwdMsg.fileSize || 0,
+        fileType: fwdMsg.fileType || null,
+        forwarded: true,
+        forwardedFrom: fwdMsg.name || 'کاربر',
+        time: Date.now(), timeStr: ts,
+        read: false, delivered: false
+    };
+
+    if (target === 'public') {
+        db.ref('messages').push(md);
+    } else if (target.indexOf('group_') === 0) {
+        var gid = target.replace('group_','');
+        db.ref('groupmessages/' + gid).push(md);
+    } else {
+        var cid = [myId, target].sort().join('_');
+        md.sender = myId;
+        db.ref('private/' + cid).push(md);
+    }
+    showToast('↪️ فوروارد شد');
+    closeFwd();
+}
+
+function deleteChat(chatKey){
+    if (!confirm('کل این چت پاک بشه؟ برگشت‌پذیر نیست!')) return;
+    db.ref(chatKey).remove();
+    showToast('🗑️ چت حذف شد');
+    document.querySelector('.tbtn[data-tab="pageChats"]').click();
+    setTimeout(function(){ loadChatsList(); }, 500);
+}
+
+// ============================================================
 // Groups
 // ============================================================
 document.getElementById('newGroupBtn').onclick = function(){
@@ -835,6 +1282,7 @@ function createGroup(){
 function openGroup(gid, name){
     curChat = 'group_' + gid;
     curUser = {id:gid, name:name, isGroup:true};
+    markChatAsRead('groupmessages/' + gid);
     document.getElementById('headerTitle').textContent = '👥 ' + name;
     document.getElementById('headerStatus').textContent = 'گروه';
     document.getElementById('backBtn').style.display = 'block';
@@ -851,10 +1299,15 @@ function openGroup(gid, name){
             div.className = 'msg ' + (mine ? 'sent' : 'rec');
             var h = '';
             if (!mine) h += '<div class="sender">' + m.avatar + ' ' + esc(m.name) + '</div>';
+            if (m.forwarded) h += '<div class="fwd-tag">↪️ فوروارد</div>';
             if (m.photo) h += '<img class="photo" src="' + m.photo + '">';
+            if (m.voice) h += renderVoiceHtml(m, mine);
+            if (m.fileData) h += renderFileHtml(m);
             if (m.text) h += '<div class="text">' + esc(m.text) + '</div>';
-            h += '<div class="meta">' + (m.timeStr||'') + '</div>';
+            var editedTag = m.edited ? ' <span class="edited-tag">(ویرایش‌شده)</span>' : '';
+            h += '<div class="meta">' + (m.timeStr||'') + editedTag + '</div>';
             div.innerHTML = h;
+            div.onclick = (function(msg,k){ return function(){ openMM(msg, k, 'groupmessages/' + gid); }; })(m, k);
             a.appendChild(div);
         });
         a.scrollTop = a.scrollHeight;
@@ -877,8 +1330,12 @@ function openMM(m, k, p){
         s.onclick = function(){ addReact(r); };
         rr.appendChild(s);
     });
-    var canDel = (m.name === myName || m.sender === myId || isAdmin);
+    var canDel = (m.name === myName || m.sender === myId || m.uid === myId || isAdmin);
     document.getElementById('delBtn').style.display = canDel ? 'block' : 'none';
+
+    var canEdit = (m.sender === myId || m.uid === myId) && m.text;
+    var eb = document.getElementById('editBtn');
+    if (eb) eb.style.display = canEdit ? 'block' : 'none';
 }
 
 function closeMMenu(){
@@ -910,7 +1367,7 @@ function cancelReply(){
 function copyMsg(){
     if (!selMsg) return;
     var t = selMsg.text || '📷 عکس';
-    navigator.clipboard.writeText(t).then(function(){ alert('کپی شد!'); }).catch(function(){ alert('نشد'); });
+    navigator.clipboard.writeText(t).then(function(){ showToast('📋 کپی شد'); }).catch(function(){ showToast('نشد'); });
     closeMMenu();
 }
 
@@ -921,7 +1378,7 @@ function deleteMsg(){
 }
 
 // ============================================================
-// CONTACTS (tab مخاطبین — همه کاربرا)
+// Contacts
 // ============================================================
 function loadUsers(){
     var l = document.getElementById('usersList');
@@ -962,7 +1419,7 @@ function loadUsers(){
 
                 var badge = c.isAdmin ? ' <span class="admin-badge">✅</span>' : '';
                 var statusText = isOnline
-                    ? '<span style="color:#00a884">● آنلاین</span>'
+                    ? '<span style="color:#00e5a0">● آنلاین</span>'
                     : (st.lastChanged ? 'آخرین بازدید ' + timeAgo(st.lastChanged) : 'آفلاین');
 
                 var div = document.createElement('div');
@@ -971,7 +1428,7 @@ function loadUsers(){
                     '<div class="av">' + c.avatar + (isOnline ? '<span class="dot"></span>' : '') + '</div>' +
                     '<div class="body">' +
                         '<h3>' + esc(c.name) + badge + '</h3>' +
-                        '<p style="font-size:12px;color:#8696a0">' + statusText + '</p>' +
+                        '<p style="font-size:12px;color:#7a8aa8">' + statusText + '</p>' +
                     '</div>';
                 div.onclick = function(){ openPriv(c.uid, c.name, c.avatar); };
                 l.appendChild(div);
@@ -1023,7 +1480,10 @@ document.querySelectorAll('.tbtn').forEach(function(b){
         b.classList.add('act');
         document.getElementById(t).classList.add('act');
         document.getElementById('backBtn').style.display = 'none';
-        if (t === 'pageChats') document.getElementById('headerTitle').textContent = 'سوپر اپ';
+        if (t === 'pageChats') {
+            document.getElementById('headerTitle').textContent = 'سوپر اپ';
+            unreadCounts = {}; unreadTotal = 0; updateTotalBadge();
+        }
         else if (t === 'pageBrowser') document.getElementById('headerTitle').textContent = 'مرورگر';
         else if (t === 'pageUsers') document.getElementById('headerTitle').textContent = 'مخاطبین';
         else document.getElementById('headerTitle').textContent = 'پروفایل';
@@ -1048,7 +1508,7 @@ function changeAvatar(){
     document.querySelectorAll('#mavPick span').forEach(function(s){
         s.onclick = function(){
             document.querySelectorAll('#mavPick span').forEach(function(x){ x.style.background = ''; });
-            s.style.background = '#00a884';
+            s.style.background = 'rgba(0,229,255,0.3)';
             tmp = s.getAttribute('data-av');
         };
     });
@@ -1062,7 +1522,6 @@ function saveAvatar(){
     updateAv();
     initPresence();
     closeModal();
-    loadChatsList();
 }
 
 function changeName(){
@@ -1083,7 +1542,7 @@ function saveName(){
 
 function showAbout(){
     var mb = document.getElementById('mbox');
-    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• ارسال عکس 📷<br>• آواتار سفارشی<br>• واکنش با ایموجی<br>• پاسخ و حذف پیام<br>• ۴ تم رنگی 🎨<br>• اعلان 🔔<br>• آخرین بازدید ⏰<br>• تیک پیام ✓✓<br>• در حال تایپ<br>• 📞 تماس صوتی<br>• امنیت Firebase Auth</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = '<h3>ℹ️ درباره سوپر اپ</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی<br><br>✨ امکانات:<br>• چت عمومی و خصوصی<br>• گروه‌سازی<br>• 📷 عکس / 🎤 ویس / 📎 فایل<br>• 🔍 جستجو در پیام‌ها<br>• ✏️ ویرایش و ↪️ فوروارد<br>• 🔔 اعلان‌ها + Badge<br>• ✓✓ تیک پیام<br>• ⌨️ در حال تایپ<br>• 🖼️ آواتار سفارشی<br>• 🎨 ۴ تم رنگی<br>• 📞 تماس صوتی<br>• ✅ سیستم مدیر</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
     document.getElementById('modal').classList.add('show');
 }
 
@@ -1140,23 +1599,237 @@ document.querySelectorAll('.bcard').forEach(function(c){
 });
 
 // ============================================================
-// Notification Banner
+// NOTIFICATION SYSTEM
 // ============================================================
-function showNotifBanner(title, text){
-    var b = document.getElementById('notifBanner');
-    if (!b) return;
-    document.getElementById('notifTitle').textContent = title;
-    document.getElementById('notifText').textContent = text;
-    b.classList.add('show');
-    setTimeout(function(){ b.classList.remove('show'); }, 3000);
+function playNotifSound() {
+    try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var now = ctx.currentTime;
+        [880, 1320].forEach(function(freq, i) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, now + i * 0.15);
+            gain.gain.linearRampToValueAtTime(0.15, now + i * 0.15 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.20);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.25);
+        });
+        setTimeout(function(){ try { ctx.close(); } catch(e){} }, 800);
+    } catch(e) {}
 }
 
+function vibrateNotif() {
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+}
+
+function showBrowserNotif(title, body) {
+    if (!notifPermGranted) return;
+    if (document.visibilityState === 'visible') return;
+    try {
+        var n = new Notification(title, {
+            body: body,
+            icon: '/quran-app/icon-192.png',
+            dir: 'rtl'
+        });
+        n.onclick = function(){ window.focus(); n.close(); };
+        setTimeout(function(){ n.close(); }, 5000);
+    } catch(e) {}
+}
+
+function showToast(text) {
+    var t = document.getElementById('toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        t.className = 'toast';
+        document.body.appendChild(t);
+    }
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(t._to);
+    t._to = setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+function updateBadge(tabId, count) {
+    var btn = document.querySelector('.tbtn[data-tab="' + tabId + '"]');
+    if (!btn) return;
+    var old = btn.querySelector('.badge');
+    if (old) old.remove();
+    if (count > 0) {
+        var b = document.createElement('span');
+        b.className = 'badge';
+        b.textContent = count > 99 ? '99+' : count;
+        btn.appendChild(b);
+    }
+}
+
+function updateTotalBadge() {
+    updateBadge('pageChats', unreadTotal);
+}
+
+function showNotifBanner2(title, text, avatar, onClick) {
+    var b = document.getElementById('notifBanner');
+    if (!b) return;
+
+    document.getElementById('notifAv').textContent = avatar || '💬';
+    document.getElementById('notifTitle').textContent = title;
+    document.getElementById('notifText').textContent = text;
+
+    b.classList.add('show');
+    b.onclick = function(){
+        b.classList.remove('show');
+        if (typeof onClick === 'function') onClick();
+    };
+    clearTimeout(b._to);
+    b._to = setTimeout(function(){ b.classList.remove('show'); }, 4000);
+}
+
+function isCurrentChat(chatKey) {
+    if (!curChat) return false;
+    if (curChat === 'public' && chatKey === 'messages') return true;
+    if (curChat.indexOf('group_') === 0 && chatKey === 'groupmessages/' + curChat.replace('group_','')) return true;
+    if (chatKey.indexOf('private/') === 0) {
+        var cid = chatKey.replace('private/','');
+        var myCid = [myId, curChat].sort().join('_');
+        return cid === myCid;
+    }
+    return false;
+}
+
+function handleIncomingMessage(m, chatKey) {
+    if (!m) return;
+    if (m.uid === myId || m.sender === myId) return;
+    if (m.name === myName && !m.uid) return;
+
+    var chatOpen = isCurrentChat(chatKey);
+    var pageChatVisible = document.getElementById('pageChat').classList.contains('act') && chatOpen;
+
+    if (pageChatVisible && document.visibilityState === 'visible') {
+        playNotifSound();
+        return;
+    }
+
+    unreadCounts[chatKey] = (unreadCounts[chatKey] || 0) + 1;
+    unreadTotal++;
+    updateTotalBadge();
+
+    var preview = m.text || '';
+    if (m.photo) preview = '📷 عکس';
+    else if (m.voice) preview = '🎤 پیام صوتی';
+    else if (m.fileData) preview = '📎 ' + (m.fileName || 'فایل');
+    if (!preview) preview = '📨 پیام جدید';
+
+    var title = m.name || 'کاربر';
+    if (chatKey === 'messages') title = '📢 ' + title;
+    else if (chatKey.indexOf('groupmessages/') === 0) title = '👥 ' + title;
+
+    playNotifSound();
+    vibrateNotif();
+
+    if (document.visibilityState === 'visible') {
+        showNotifBanner2(title, preview, m.avatar, function(){
+            openChatFromNotif(chatKey);
+        });
+    } else {
+        showBrowserNotif(title, preview);
+    }
+}
+
+function openChatFromNotif(chatKey) {
+    if (chatKey === 'messages') {
+        var pub = document.getElementById('publicChatItem');
+        if (pub) pub.click();
+    } else if (chatKey.indexOf('groupmessages/') === 0) {
+        var gid = chatKey.replace('groupmessages/','');
+        db.ref('groups/' + gid).once('value', function(s){
+            var g = s.val();
+            if (g) openGroup(gid, g.name);
+        });
+    } else if (chatKey.indexOf('private/') === 0) {
+        var cid = chatKey.replace('private/','');
+        var parts = cid.split('_');
+        var otherId = parts[0] === myId ? parts[1] : parts[0];
+        db.ref('users/' + otherId).once('value', function(s){
+            var u = s.val() || {};
+            openPriv(otherId, u.name || 'کاربر', u.avatar || '👤');
+        });
+    }
+    unreadCounts[chatKey] = 0;
+    updateTotalBadge();
+}
+
+function listenAllPrivateMessages() {
+    db.ref('private').on('child_added', function(cidSnap){
+        var cid = cidSnap.key;
+        var parts = cid.split('_');
+        if (parts.indexOf(myId) === -1) return;
+
+        db.ref('private/' + cid).limitToLast(1).on('child_added', function(msgSnap){
+            var m = msgSnap.val();
+            handleIncomingMessage(m, 'private/' + cid);
+        });
+    });
+}
+
+function listenAllGroupMessages() {
+    db.ref('groups').on('child_added', function(gSnap){
+        var gid = gSnap.key;
+        var g = gSnap.val();
+        if (!g.members || !g.members[myId]) return;
+
+        db.ref('groupmessages/' + gid).limitToLast(1).on('child_added', function(mSnap){
+            var m = mSnap.val();
+            handleIncomingMessage(m, 'groupmessages/' + gid);
+        });
+    });
+}
+
+function listenPublicMessages() {
+    db.ref('messages').limitToLast(1).on('child_added', function(mSnap){
+        var m = mSnap.val();
+        handleIncomingMessage(m, 'messages');
+    });
+}
+
+function markChatAsRead(chatKey) {
+    if (!unreadCounts[chatKey]) return;
+    unreadTotal = Math.max(0, unreadTotal - unreadCounts[chatKey]);
+    unreadCounts[chatKey] = 0;
+    updateTotalBadge();
+}
+
+function initNotificationSystem() {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        notifPermGranted = true;
+    }
+
+    listenPublicMessages();
+    listenAllPrivateMessages();
+    listenAllGroupMessages();
+}
+
+// ============================================================
+// Notification Banner wrapper (سازگاری با FCM)
+// ============================================================
+function showNotifBanner(title, text) {
+    showNotifBanner2(title, text, '💬', null);
+}
+
+// ============================================================
+// Notification Banner (قدیمی - نگه داشته شده برای سازگاری)
+// ============================================================
 function listenAllEvents(){
     db.ref('online').on('child_added', function(snap) {
         var u = snap.val();
         if (!u || snap.key === myId) return;
         var diff = Date.now() - (u.time || 0);
-        if (diff < 10000 && isAdmin) showNotifBanner('👤 کاربر جدید', u.name + ' آنلاین شد');
+        if (diff < 10000 && isAdmin) {
+            showToast('👤 ' + u.name + ' آنلاین شد');
+        }
     });
 }
 
@@ -1207,10 +1880,10 @@ function setTheme(t){
 }
 function showThemePicker(){
     var mb = document.getElementById('mbox');
-    var names = {'theme-green':'🟢 سبز','theme-blue':'🔵 آبی','theme-purple':'🟣 بنفش','theme-red':'🔴 قرمز'};
+    var names = {'theme-green':'🟢 سبز نئون','theme-blue':'🔵 آبی شفق','theme-purple':'🟣 بنفش کیهانی','theme-red':'🔴 قرمز آتش'};
     var h = '<h3>🎨 انتخاب تم</h3>';
     themes.forEach(function(t){
-        h += '<div onclick="setTheme(\''+t+'\');closeModal()" style="background:#2a3942;padding:15px;border-radius:10px;margin-bottom:8px;cursor:pointer">' + names[t] + '</div>';
+        h += '<div onclick="setTheme(\''+t+'\');closeModal()" style="background:rgba(30,40,65,0.7);padding:15px;border-radius:10px;margin-bottom:8px;cursor:pointer">' + names[t] + '</div>';
     });
     h += '<div class="acts"><button class="s" onclick="closeModal()">بستن</button></div>';
     mb.innerHTML = h;
@@ -1381,7 +2054,7 @@ async function initWebRTC(caller) {
                 var answer = snap.val();
                 if (answer && pc && pc.signalingState !== 'stable') {
                     try { await pc.setRemoteDescription(new RTCSessionDescription(answer)); }
-                    catch(e) { console.log('setRemote error', e); }
+                    catch(e) {}
                 }
             });
         } else {
@@ -1399,9 +2072,7 @@ async function initWebRTC(caller) {
             db.ref('calls/' + currentCallId + '/ice_' + currentCallPeer).on('child_added', function(snap) {
                 var candidate = snap.val();
                 if (candidate && pc && pc.remoteDescription) {
-                    pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(function(e) {
-                        console.log('ICE error:', e);
-                    });
+                    pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(function(e) {});
                 }
             });
         }
