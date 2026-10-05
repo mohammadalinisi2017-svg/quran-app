@@ -1301,4 +1301,853 @@ document.querySelectorAll('.tbtn').forEach(function(b){
 });
 document.getElementById('backBtn').onclick = function(){ document.querySelector('.tbtn[data-tab="pageChats"]').click(); };
 function showPage(id){
-    document
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('act'); });
+    document.getElementById(id).classList.add('act');
+}
+
+/* Profile Edit */
+function changeAvatar(){
+    var mb = document.getElementById('mbox');
+    var h = '<h3>🖼️ انتخاب آواتار</h3><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:15px" id="mavPick">';
+    avOpts.forEach(function(a){ h += '<span data-av="' + a + '" style="font-size:24px;text-align:center;padding:4px;cursor:pointer;border-radius:8px">' + a + '</span>'; });
+    h += '</div><div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="saveAvatar()">ذخیره</button></div>';
+    mb.innerHTML = h;
+    var tmp = myAv;
+    document.querySelectorAll('#mavPick span').forEach(function(s){
+        s.onclick = function(){
+            document.querySelectorAll('#mavPick span').forEach(function(x){ x.style.background = ''; });
+            s.style.background = 'rgba(0,229,255,0.3)';
+            tmp = s.getAttribute('data-av');
+        };
+    });
+    window._tmpAv = function(){ return tmp; };
+    document.getElementById('modal').classList.add('show');
+}
+function saveAvatar(){
+    myAv = window._tmpAv();
+    localStorage.setItem('app_av', myAv);
+    if (myId) db.ref('users/' + myId).update({ avatar: myAv });
+    updateAv(); initPresence(); closeModal();
+}
+function changeName(){
+    var mb = document.getElementById('mbox');
+    mb.innerHTML = '<h3>✏️ تغییر نام</h3><input type="text" id="newName" value="' + esc(myName) + '" maxlength="20"><div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="saveName()">ذخیره</button></div>';
+    document.getElementById('modal').classList.add('show');
+}
+function saveName(){
+    var n = document.getElementById('newName').value.trim();
+    if (!n) { alert('اسم رو وارد کن'); return; }
+    myName = n;
+    localStorage.setItem('app_name', n);
+    if (myId) db.ref('users/' + myId).update({ name: myName });
+    updateAv(); initPresence(); closeModal();
+}
+function showAbout(){
+    var mb = document.getElementById('mbox');
+    mb.innerHTML = '<h3>ℹ️ درباره</h3><p style="color:#8696a0;line-height:2;font-size:13px">👨‍💻 محمد علی نیسی<br><br>✨ امکانات:<br>• چت و گروه<br>• 📷 🎤 📎<br>• 🔍 جستجو، ✏️ ویرایش، ↪️ فوروارد<br>• 📌 پین، 🚫 بلاک، 🔒 قفل<br>• 🔕 بی‌صدا، 📦 آرشیو<br>• ⚠️ گزارش تخلف<br>• 🔔 اعلان + Badge<br>• ✓✓ تیک پیام<br>• 📞 تماس صوتی</p><div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+/* Logout */
+document.getElementById('logoutBtn').onclick = async function(){
+    if (confirm('خارج می‌شی؟')) {
+        if (myId) db.ref('online/' + myId).remove();
+        localStorage.removeItem('app_name');
+        localStorage.removeItem('app_id');
+        localStorage.removeItem('app_av');
+        localStorage.removeItem('app_admin');
+        localStorage.removeItem('app_phone');
+        try { await auth.signOut(); } catch(e) {}
+        location.reload();
+    }
+};
+
+/* Search & Browser */
+document.getElementById('searchUser').oninput = function(e){
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('#usersList .citem').forEach(function(it){
+        var n = it.querySelector('h3').textContent.toLowerCase();
+        it.style.display = n.includes(q) ? 'flex' : 'none';
+    });
+};
+document.getElementById('searchChat').oninput = function(e){
+    var q = e.target.value.toLowerCase();
+    document.querySelectorAll('#chatList .citem').forEach(function(it){
+        var n = it.querySelector('h3').textContent.toLowerCase();
+        it.style.display = n.includes(q) ? 'flex' : 'none';
+    });
+};
+function openUrl(url){
+    if (!url.startsWith('http')) url = 'https://' + url;
+    window.open(url, '_blank');
+}
+document.getElementById('goBtn').onclick = function(){
+    var u = document.getElementById('urlInput').value.trim();
+    if (!u) { alert('آدرس رو وارد کن'); return; }
+    openUrl(u);
+};
+document.getElementById('urlInput').onkeypress = function(e){
+    if (e.key === 'Enter') document.getElementById('goBtn').click();
+};
+document.querySelectorAll('.bcard').forEach(function(c){
+    c.onclick = function(){ openUrl(c.getAttribute('data-url')); };
+});
+
+/* ============================================================
+   NOTIFICATION SYSTEM
+============================================================ */
+function playNotifSound() {
+    try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var now = ctx.currentTime;
+        [880, 1320].forEach(function(freq, i) {
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine'; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, now + i * 0.15);
+            gain.gain.linearRampToValueAtTime(0.15, now + i * 0.15 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.20);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.25);
+        });
+        setTimeout(function(){ try { ctx.close(); } catch(e){} }, 800);
+    } catch(e) {}
+}
+function vibrateNotif() {
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+}
+function showBrowserNotif(title, body) {
+    if (!notifPermGranted) return;
+    if (document.visibilityState === 'visible') return;
+    try {
+        var n = new Notification(title, {
+            body: body, icon: '/quran-app/icon-192.png', dir: 'rtl'
+        });
+        n.onclick = function(){ window.focus(); n.close(); };
+        setTimeout(function(){ n.close(); }, 5000);
+    } catch(e) {}
+}
+function showToast(text) {
+    var t = document.getElementById('toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast'; t.className = 'toast';
+        document.body.appendChild(t);
+    }
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(t._to);
+    t._to = setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+function updateBadge(tabId, count) {
+    var btn = document.querySelector('.tbtn[data-tab="' + tabId + '"]');
+    if (!btn) return;
+    var old = btn.querySelector('.badge');
+    if (old) old.remove();
+    if (count > 0) {
+        var b = document.createElement('span');
+        b.className = 'badge';
+        b.textContent = count > 99 ? '99+' : count;
+        btn.appendChild(b);
+    }
+}
+function updateTotalBadge() { updateBadge('pageChats', unreadTotal); }
+function showNotifBanner2(title, text, avatar, onClick) {
+    var b = document.getElementById('notifBanner');
+    if (!b) return;
+    document.getElementById('notifAv').textContent = avatar || '💬';
+    document.getElementById('notifTitle').textContent = title;
+    document.getElementById('notifText').textContent = text;
+    b.classList.add('show');
+    b.onclick = function(){
+        b.classList.remove('show');
+        if (typeof onClick === 'function') onClick();
+    };
+    clearTimeout(b._to);
+    b._to = setTimeout(function(){ b.classList.remove('show'); }, 4000);
+}
+function isCurrentChat(chatKey) {
+    if (!curChat) return false;
+    if (curChat === 'public' && chatKey === 'messages') return true;
+    if (curChat.indexOf('group_') === 0 && chatKey === 'groupmessages/' + curChat.replace('group_','')) return true;
+    if (chatKey.indexOf('private/') === 0) {
+        var cid = chatKey.replace('private/','');
+        var myCid = [myId, curChat].sort().join('_');
+        return cid === myCid;
+    }
+    return false;
+}
+function handleIncomingMessage(m, chatKey) {
+    if (!m) return;
+    if (m.uid === myId || m.sender === myId) return;
+    if (m.name === myName && !m.uid) return;
+
+    if (chatKey.indexOf('private/') === 0) {
+        var _s = getSettings(chatKey);
+        if (_s.blocked) return;
+        if (_s.muted) {
+            unreadCounts[chatKey] = (unreadCounts[chatKey] || 0) + 1;
+            unreadTotal++;
+            updateTotalBadge();
+            return;
+        }
+    }
+
+    var chatOpen = isCurrentChat(chatKey);
+    var pageChatVisible = document.getElementById('pageChat').classList.contains('act') && chatOpen;
+    if (pageChatVisible && document.visibilityState === 'visible') {
+        playNotifSound(); return;
+    }
+    unreadCounts[chatKey] = (unreadCounts[chatKey] || 0) + 1;
+    unreadTotal++;
+    updateTotalBadge();
+    var preview = m.text || '';
+    if (m.photo) preview = '📷 عکس';
+    else if (m.voice) preview = '🎤 پیام صوتی';
+    else if (m.fileData) preview = '📎 ' + (m.fileName || 'فایل');
+    if (!preview) preview = '📨 پیام جدید';
+    var title = m.name || 'کاربر';
+    if (chatKey === 'messages') title = '📢 ' + title;
+    else if (chatKey.indexOf('groupmessages/') === 0) title = '👥 ' + title;
+    playNotifSound(); vibrateNotif();
+    if (document.visibilityState === 'visible') {
+        showNotifBanner2(title, preview, m.avatar, function(){ openChatFromNotif(chatKey); });
+    } else {
+        showBrowserNotif(title, preview);
+    }
+}
+function openChatFromNotif(chatKey) {
+    if (chatKey === 'messages') {
+        var pub = document.getElementById('publicChatItem');
+        if (pub) pub.click();
+    } else if (chatKey.indexOf('groupmessages/') === 0) {
+        var gid = chatKey.replace('groupmessages/','');
+        db.ref('groups/' + gid).once('value', function(s){
+            var g = s.val();
+            if (g) openGroup(gid, g.name);
+        });
+    } else if (chatKey.indexOf('private/') === 0) {
+        var cid = chatKey.replace('private/','');
+        var parts = cid.split('_');
+        var otherId = parts[0] === myId ? parts[1] : parts[0];
+        db.ref('users/' + otherId).once('value', function(s){
+            var u = s.val() || {};
+            openPriv(otherId, u.name || 'کاربر', u.avatar || '👤');
+        });
+    }
+    unreadCounts[chatKey] = 0;
+    updateTotalBadge();
+}
+function listenAllPrivateMessages() {
+    db.ref('private').on('child_added', function(cidSnap){
+        var cid = cidSnap.key;
+        var parts = cid.split('_');
+        if (parts.indexOf(myId) === -1) return;
+        db.ref('private/' + cid).limitToLast(1).on('child_added', function(msgSnap){
+            handleIncomingMessage(msgSnap.val(), 'private/' + cid);
+        });
+    });
+}
+function listenAllGroupMessages() {
+    db.ref('groups').on('child_added', function(gSnap){
+        var gid = gSnap.key;
+        var g = gSnap.val();
+        if (!g.members || !g.members[myId]) return;
+        db.ref('groupmessages/' + gid).limitToLast(1).on('child_added', function(mSnap){
+            handleIncomingMessage(mSnap.val(), 'groupmessages/' + gid);
+        });
+    });
+}
+function listenPublicMessages() {
+    db.ref('messages').limitToLast(1).on('child_added', function(mSnap){
+        handleIncomingMessage(mSnap.val(), 'messages');
+    });
+}
+function markChatAsRead(chatKey) {
+    if (!unreadCounts[chatKey]) return;
+    unreadTotal = Math.max(0, unreadTotal - unreadCounts[chatKey]);
+    unreadCounts[chatKey] = 0;
+    updateTotalBadge();
+}
+function initNotificationSystem() {
+    if ('Notification' in window && Notification.permission === 'granted') notifPermGranted = true;
+    listenPublicMessages();
+    listenAllPrivateMessages();
+    listenAllGroupMessages();
+}
+function showNotifBanner(title, text) { showNotifBanner2(title, text, '💬', null); }
+function listenAllEvents(){
+    db.ref('online').on('child_added', function(snap) {
+        var u = snap.val();
+        if (!u || snap.key === myId) return;
+        var diff = Date.now() - (u.time || 0);
+        if (diff < 10000 && isAdmin) showToast('👤 ' + u.name + ' آنلاین شد');
+    });
+}
+
+/* ============================================================
+   PACK 2: Block / Report / Lock / Mute / Archive / Pin
+============================================================ */
+function saveSettings() {
+    localStorage.setItem('app_chat_settings', JSON.stringify(chatSettings));
+}
+function getSettings(chatKey) {
+    if (!chatSettings[chatKey]) {
+        chatSettings[chatKey] = { muted: false, archived: false, locked: false, pass: '', blocked: false };
+    }
+    return chatSettings[chatKey];
+}
+function savePins() { localStorage.setItem('app_pins', JSON.stringify(pins)); }
+function togglePin() {
+    if (!selMsg || !selKey) return;
+    var chatKey = getChatKey();
+    if (!pins[chatKey]) pins[chatKey] = [];
+    var idx = pins[chatKey].indexOf(selKey);
+    if (idx >= 0) {
+        pins[chatKey].splice(idx, 1);
+        showToast('📌 از پین برداشته شد');
+    } else {
+        pins[chatKey].push(selKey);
+        showToast('📌 پین شد');
+    }
+    savePins();
+    closeMMenu();
+    renderPinnedBar();
+}
+function getChatKey() {
+    if (curChat === 'public') return 'messages';
+    if (curChat.indexOf('group_') === 0) return 'groupmessages/' + curChat.replace('group_','');
+    if (curUser && curUser.id) return 'private/' + [myId, curUser.id].sort().join('_');
+    return '';
+}
+function renderPinnedBar() {
+    var bar = document.getElementById('pinnedBar');
+    if (!bar) return;
+    var chatKey = getChatKey();
+    var list = pins[chatKey] || [];
+    if (list.length === 0) { bar.classList.remove('show'); return; }
+    var lastKey = list[list.length - 1];
+    var target = document.querySelector('#messagesArea .msg[data-key="' + lastKey + '"]');
+    var text = target ? (target.textContent || '').substring(0, 80) : '📌 پیام پین شده';
+    document.getElementById('pinText').textContent = text;
+    document.getElementById('pinCount').textContent = list.length > 1 ? '(' + list.length + ')' : '';
+    bar.classList.add('show');
+    bar.onclick = function(){ openPinsList(); };
+    document.getElementById('pinClose').onclick = function(e){
+        e.stopPropagation();
+        delete pins[chatKey];
+        savePins();
+        renderPinnedBar();
+        showToast('📌 پین‌ها پاک شدن');
+    };
+}
+function openPinsList() {
+    var chatKey = getChatKey();
+    var list = pins[chatKey] || [];
+    if (list.length === 0) { showToast('پیام پین‌شده‌ای نیست'); return; }
+    var mb = document.getElementById('mbox');
+    var h = '<h3>📌 پیام‌های پین‌شده</h3>';
+    list.forEach(function(k){
+        var target = document.querySelector('#messagesArea .msg[data-key="' + k + '"]');
+        var text = target ? (target.textContent || '').substring(0, 120) : 'پیام حذف شده';
+        h += '<div class="pin-item" onclick="scrollToPin(\'' + k + '\')">' +
+                '<div class="pin-name">📌 پیام</div>' +
+                '<div class="pin-msg">' + esc(text) + '</div>' +
+             '</div>';
+    });
+    h += '<div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = h;
+    document.getElementById('modal').classList.add('show');
+}
+function scrollToPin(k) {
+    closeModal();
+    var target = document.querySelector('#messagesArea .msg[data-key="' + k + '"]');
+    if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('highlight');
+        setTimeout(function(){ target.classList.remove('highlight'); }, 2000);
+    }
+}
+function openChatSettings() {
+    if (!curUser || !curUser.id) {
+        showToast('فقط توی چت خصوصی'); return;
+    }
+    var chatKey = 'private/' + [myId, curUser.id].sort().join('_');
+    var s = getSettings(chatKey);
+    var mb = document.getElementById('mbox');
+    var h = '<h3>⚙️ تنظیمات ' + esc(curUser.name) + '</h3>';
+    h += '<div class="chat-settings-list">';
+    h += '<div class="setting-item ' + (s.muted ? 'on' : '') + '" onclick="toggleChatSetting(\'muted\')">' +
+            '<span class="ic">🔕</span><span class="txt">بی‌صدا کردن</span><div class="toggle"></div></div>';
+    h += '<div class="setting-item ' + (s.archived ? 'on' : '') + '" onclick="toggleChatSetting(\'archived\')">' +
+            '<span class="ic">📦</span><span class="txt">آرشیو کردن</span><div class="toggle"></div></div>';
+    h += '<div class="setting-item ' + (s.locked ? 'on' : '') + '" onclick="toggleChatLock()">' +
+            '<span class="ic">🔒</span><span class="txt">قفل با رمز</span><div class="toggle"></div></div>';
+    h += '<div class="setting-item ' + (s.blocked ? 'on' : '') + '" onclick="toggleBlockUser()">' +
+            '<span class="ic">🚫</span><span class="txt">' + (s.blocked ? 'آنبلاک' : 'بلاک') + '</span><div class="toggle"></div></div>';
+    h += '<div class="setting-item" onclick="openReportDialog()">' +
+            '<span class="ic">⚠️</span><span class="txt">گزارش تخلف</span></div>';
+    h += '<div class="setting-item danger" onclick="deleteChat(\'' + chatKey + '\')">' +
+            '<span class="ic">🗑️</span><span class="txt">حذف چت</span></div>';
+    h += '</div>';
+    h += '<div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = h;
+    document.getElementById('modal').classList.add('show');
+}
+function toggleChatSetting(key) {
+    if (!curUser || !curUser.id) return;
+    var chatKey = 'private/' + [myId, curUser.id].sort().join('_');
+    var s = getSettings(chatKey);
+    s[key] = !s[key];
+    saveSettings();
+    showToast(s[key] ? '✅ فعال شد' : '❌ غیرفعال شد');
+    openChatSettings();
+    if (typeof loadChatsList === 'function') loadChatsList();
+}
+function toggleChatLock() {
+    if (!curUser || !curUser.id) return;
+    var chatKey = 'private/' + [myId, curUser.id].sort().join('_');
+    var s = getSettings(chatKey);
+    if (s.locked) {
+        var mb = document.getElementById('mbox');
+        mb.innerHTML = '<h3>🔓 باز کردن قفل</h3>' +
+            '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">رمز فعلی:</p>' +
+            '<input type="password" id="unlockPass" placeholder="رمز ۴ رقمی" maxlength="4" inputmode="numeric">' +
+            '<div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="confirmUnlock()">باز کن</button></div>';
+        document.getElementById('modal').classList.add('show');
+    } else {
+        var mb2 = document.getElementById('mbox');
+        mb2.innerHTML = '<h3>🔒 قفل چت</h3>' +
+            '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">رمز ۴ رقمی:</p>' +
+            '<input type="password" id="newLockPass" placeholder="رمز ۴ رقمی" maxlength="4" inputmode="numeric">' +
+            '<div class="acts"><button class="s" onclick="closeModal()">لغو</button><button class="p" onclick="confirmLock()">ذخیره</button></div>';
+        document.getElementById('modal').classList.add('show');
+    }
+}
+function confirmLock() {
+    var pass = document.getElementById('newLockPass').value.trim();
+    if (!/^\d{4}$/.test(pass)) { alert('رمز باید ۴ رقم عددی باشه'); return; }
+    var chatKey = 'private/' + [myId, curUser.id].sort().join('_');
+    var s = getSettings(chatKey);
+    s.locked = true; s.pass = pass;
+    saveSettings();
+    closeModal();
+    showToast('🔒 قفل شد');
+    if (typeof loadChatsList === 'function') loadChatsList();
+}
+function confirmUnlock() {
+    var pass = document.getElementById('unlockPass').value.trim();
+    var chatKey = 'private/' + [myId, curUser.id].sort().join('_');
+    var s = getSettings(chatKey);
+    if (pass !== s.pass) { alert('❌ رمز اشتباهه'); return; }
+    s.locked = false; s.pass = '';
+    saveSettings();
+    closeModal();
+    showToast('🔓 قفل باز شد');
+    if (typeof loadChatsList === 'function') loadChatsList();
+}
+function showLockScreen(userData, callback) {
+    pendingUnlock = { user: userData, cb: callback };
+    var ls = document.getElementById('lockScreen');
+    document.getElementById('lockUserName').textContent = userData.name;
+    document.getElementById('lockPassInput').value = '';
+    ls.classList.add('show');
+    setTimeout(function(){ document.getElementById('lockPassInput').focus(); }, 100);
+}
+function submitUnlock() {
+    if (!pendingUnlock) return;
+    var pass = document.getElementById('lockPassInput').value.trim();
+    var chatKey = 'private/' + [myId, pendingUnlock.user.id].sort().join('_');
+    var s = getSettings(chatKey);
+    if (pass !== s.pass) {
+        showToast('❌ رمز اشتباهه');
+        document.getElementById('lockPassInput').value = '';
+        return;
+    }
+    document.getElementById('lockScreen').classList.remove('show');
+    var cb = pendingUnlock.cb;
+    pendingUnlock = null;
+    if (cb) cb();
+}
+function cancelUnlock() {
+    document.getElementById('lockScreen').classList.remove('show');
+    pendingUnlock = null;
+}
+function toggleBlockUser() {
+    if (!curUser || !curUser.id) return;
+    var chatKey = 'private/' + [myId, curUser.id].sort().join('_');
+    var s = getSettings(chatKey);
+    if (s.blocked) {
+        if (!confirm('آنبلاک بشه؟')) return;
+        s.blocked = false;
+        showToast('✅ آنبلاک شد');
+    } else {
+        if (!confirm('بلاک بشه؟')) return;
+        s.blocked = true;
+        showToast('🚫 بلاک شد');
+    }
+    saveSettings();
+    closeModal();
+    if (typeof loadChatsList === 'function') loadChatsList();
+}
+function openReportDialog() {
+    if (!curUser || !curUser.id) return;
+    closeModal();
+    var mb = document.getElementById('mbox');
+    mb.innerHTML = '<h3>⚠️ گزارش تخلف</h3>' +
+        '<p style="color:#8696a0;font-size:13px;margin-bottom:12px">دلیل:</p>' +
+        '<div class="report-options">' +
+            '<label><input type="radio" name="rep" value="spam"><span>📨 هرزنامه</span></label>' +
+            '<label><input type="radio" name="rep" value="abuse"><span>😡 آزار</span></label>' +
+            '<label><input type="radio" name="rep" value="scam"><span>🎣 کلاهبرداری</span></label>' +
+            '<label><input type="radio" name="rep" value="fake"><span>👤 جعلی</span></label>' +
+            '<label><input type="radio" name="rep" value="other"><span>❓ سایر</span></label>' +
+        '</div>' +
+        '<input type="text" id="reportNote" placeholder="توضیح (اختیاری)" maxlength="200">' +
+        '<div class="acts"><button class="s" onclick="closeModal()">لغو</button>' +
+        '<button class="p" onclick="submitReport()">📤 ارسال</button></div>';
+    document.getElementById('modal').classList.add('show');
+}
+function submitReport() {
+    var sel = document.querySelector('input[name="rep"]:checked');
+    if (!sel) { alert('دلیل رو انتخاب کن'); return; }
+    var reason = sel.value;
+    var note = document.getElementById('reportNote').value.trim();
+    db.ref('reports').push({
+        reporterId: myId, reporterName: myName,
+        targetId: curUser.id, targetName: curUser.name,
+        reason: reason, note: note, time: Date.now(), status: 'pending'
+    });
+    logEvent('report', myId, myName, myAv, 'گزارش ' + curUser.name);
+    closeModal();
+    showToast('✅ گزارش ارسال شد');
+}
+function showReports() {
+    db.ref('reports').once('value', function(s){
+        var d = s.val() || {};
+        var arr = [];
+        Object.keys(d).forEach(function(k){ arr.push({ id: k, data: d[k] }); });
+        arr.sort(function(a,b){ return (b.data.time||0) - (a.data.time||0); });
+        var mb = document.getElementById('mbox');
+        var h = '<h3>⚠️ گزارش‌ها (' + arr.length + ')</h3>';
+        if (arr.length === 0) {
+            h += '<div style="text-align:center;color:#8696a0;padding:30px">گزارشی نیست ✅</div>';
+        } else {
+            var reasons = { spam: '📨 هرزنامه', abuse: '😡 آزار', scam: '🎣 کلاهبرداری', fake: '👤 جعلی', other: '❓ سایر' };
+            arr.forEach(function(r){
+                h += '<div class="pending-user">';
+                h += '<div class="u-name">👤 ' + esc(r.data.targetName) + '</div>';
+                h += '<div class="u-email">دلیل: ' + (reasons[r.data.reason] || r.data.reason) + '</div>';
+                if (r.data.note) h += '<div class="u-email">📝 ' + esc(r.data.note) + '</div>';
+                h += '<div class="u-time">از: ' + esc(r.data.reporterName) + ' • ' + timeAgo(r.data.time) + '</div>';
+                h += '<div class="acts">';
+                h += '<button class="approve" onclick="dismissReport(\'' + r.id + '\')">🗑️ رد</button>';
+                h += '<button class="reject" onclick="deleteReportedUser(\'' + r.data.targetId + '\',\'' + r.id + '\')">🚫 حذف</button>';
+                h += '</div></div>';
+            });
+        }
+        h += '<div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+        mb.innerHTML = h;
+        document.getElementById('modal').classList.add('show');
+    });
+}
+function dismissReport(id) {
+    db.ref('reports/' + id).remove();
+    showReports();
+}
+function deleteReportedUser(uid, reportId) {
+    if (!confirm('کاربر حذف بشه؟')) return;
+    db.ref('users/' + uid).remove();
+    db.ref('online/' + uid).remove();
+    db.ref('status/' + uid).remove();
+    db.ref('reports/' + reportId).remove();
+    showToast('🚫 حذف شد');
+    showReports();
+}
+function showChatContextMenu(uid, name, avatar, cid){
+    var chatKey = 'private/' + cid;
+    var s = getSettings(chatKey);
+    var mb = document.getElementById('mbox');
+    var h = '<h3>' + avatar + ' ' + esc(name) + '</h3>';
+    h += '<div class="chat-settings-list">';
+    h += '<div class="setting-item ' + (s.muted ? 'on' : '') + '" onclick="quickToggle(\'' + cid + '\',\'muted\')">' +
+            '<span class="ic">🔕</span><span class="txt">بی‌صدا</span><div class="toggle"></div></div>';
+    h += '<div class="setting-item ' + (s.archived ? 'on' : '') + '" onclick="quickToggle(\'' + cid + '\',\'archived\')">' +
+            '<span class="ic">📦</span><span class="txt">آرشیو</span><div class="toggle"></div></div>';
+    h += '<div class="setting-item ' + (s.blocked ? 'on' : '') + '" onclick="quickToggle(\'' + cid + '\',\'blocked\')">' +
+            '<span class="ic">🚫</span><span class="txt">' + (s.blocked ? 'آنبلاک' : 'بلاک') + '</span><div class="toggle"></div></div>';
+    h += '<div class="setting-item danger" onclick="quickDeleteChat(\'' + cid + '\')">' +
+            '<span class="ic">🗑️</span><span class="txt">حذف چت</span></div>';
+    h += '</div>';
+    h += '<div class="acts"><button class="p" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = h;
+    document.getElementById('modal').classList.add('show');
+}
+function quickToggle(cid, key){
+    var chatKey = 'private/' + cid;
+    var s = getSettings(chatKey);
+    s[key] = !s[key];
+    saveSettings();
+    showToast(s[key] ? '✅ فعال شد' : '❌ غیرفعال شد');
+    closeModal();
+    if (typeof loadChatsList === 'function') loadChatsList();
+}
+function quickDeleteChat(cid){
+    closeModal();
+    setTimeout(function(){ deleteChat('private/' + cid); }, 200);
+}
+
+/* Utility */
+function timeAgo(time){
+    if (!time) return 'خیلی وقت پیش';
+    var diff = Math.floor((Date.now() - time) / 1000);
+    if (diff < 60) return 'همین الان';
+    if (diff < 3600) return Math.floor(diff/60) + ' دقیقه پیش';
+    if (diff < 86400) return Math.floor(diff/3600) + ' ساعت پیش';
+    if (diff < 2592000) return Math.floor(diff/86400) + ' روز پیش';
+    if (diff < 31536000) return Math.floor(diff/2592000) + ' ماه پیش';
+    return Math.floor(diff/31536000) + ' سال پیش';
+}
+function timeAgoShort(time){
+    if (!time) return '';
+    var diff = Math.floor((Date.now() - time) / 1000);
+    if (diff < 60) return 'الان';
+    if (diff < 3600) return Math.floor(diff/60) + 'د';
+    if (diff < 86400) return Math.floor(diff/3600) + 'س';
+    if (diff < 604800) return Math.floor(diff/86400) + 'ر';
+    var d = new Date(time);
+    return d.getDate() + '/' + (d.getMonth()+1);
+}
+function cleanupOldMessages(){
+    var cutoff = Date.now() - (365 * 24 * 60 * 60 * 1000);
+    db.ref('messages').once('value', function(snap){
+        var d = snap.val(); if (!d) return;
+        Object.keys(d).forEach(function(k){
+            if (d[k].time && d[k].time < cutoff) db.ref('messages/' + k).remove();
+        });
+    });
+}
+function loadTheme(){
+    var t = localStorage.getItem('app_theme') || 'theme-green';
+    themes.forEach(function(x){ document.body.classList.remove(x); });
+    document.body.classList.add(t);
+}
+function setTheme(t){
+    themes.forEach(function(x){ document.body.classList.remove(x); });
+    document.body.classList.add(t);
+    localStorage.setItem('app_theme', t);
+}
+function showThemePicker(){
+    var mb = document.getElementById('mbox');
+    var names = {'theme-green':'🟢 سبز','theme-blue':'🔵 آبی','theme-purple':'🟣 بنفش','theme-red':'🔴 قرمز'};
+    var h = '<h3>🎨 انتخاب تم</h3>';
+    themes.forEach(function(t){
+        h += '<div onclick="setTheme(\''+t+'\');closeModal()" style="background:rgba(30,40,65,0.7);padding:15px;border-radius:10px;margin-bottom:8px;cursor:pointer">' + names[t] + '</div>';
+    });
+    h += '<div class="acts"><button class="s" onclick="closeModal()">بستن</button></div>';
+    mb.innerHTML = h;
+    document.getElementById('modal').classList.add('show');
+}
+document.getElementById('themeBtn').onclick = showThemePicker;
+function esc(t){
+    if (!t) return '';
+    var d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+}
+
+/* ============================================================
+   WebRTC Voice Call
+============================================================ */
+function startCall(peerId, peerName, peerAvatar) {
+    if (pc) { alert('در حال تماس هستید'); return; }
+    if (!peerId) return;
+    currentCallId = 'call_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+    currentCallPeer = peerId;
+    isCaller = true; isMuted = false;
+    document.getElementById('callScreen').classList.add('show');
+    document.getElementById('callAvatar').textContent = peerAvatar || '👤';
+    document.getElementById('callName').textContent = peerName || 'کاربر';
+    document.getElementById('callStatus').textContent = 'در حال زنگ زدن...';
+    document.getElementById('callActiveButtons').style.display = 'flex';
+    document.getElementById('callIncomingButtons').style.display = 'none';
+    document.getElementById('muteBtn').textContent = '🎤';
+    document.getElementById('muteBtn').classList.remove('active');
+    db.ref('calls/' + currentCallId).set({
+        caller: myId, callerName: myName, callerAvatar: myAv,
+        receiver: peerId, receiverName: peerName,
+        status: 'ringing', time: Date.now()
+    });
+    initWebRTC(true);
+    setCallTimeout(currentCallId);
+}
+function listenIncomingCalls() {
+    db.ref('calls').on('child_added', function(snap) {
+        var call = snap.val();
+        if (!call) return;
+        if (call.receiver !== myId) return;
+        if (call.status !== 'ringing') return;
+        if (pc) return;
+        currentCallId = snap.key;
+        currentCallPeer = call.caller;
+        isCaller = false; isMuted = false;
+        document.getElementById('callScreen').classList.add('show');
+        document.getElementById('callAvatar').textContent = call.callerAvatar || '👤';
+        document.getElementById('callName').textContent = call.callerName || 'ناشناس';
+        document.getElementById('callStatus').textContent = '📞 تماس ورودی...';
+        document.getElementById('callActiveButtons').style.display = 'none';
+        document.getElementById('callIncomingButtons').style.display = 'flex';
+        playRingtone();
+    });
+}
+document.getElementById('acceptCallBtn').onclick = function() {
+    stopRingtone();
+    if (!currentCallId) return;
+    document.getElementById('callIncomingButtons').style.display = 'none';
+    document.getElementById('callActiveButtons').style.display = 'flex';
+    document.getElementById('callStatus').textContent = 'در حال اتصال...';
+    db.ref('calls/' + currentCallId).update({ status: 'accepted' });
+    initWebRTC(false);
+    listenCallEnd();
+};
+document.getElementById('rejectCallBtn').onclick = function() {
+    stopRingtone();
+    if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'rejected' });
+    endCall();
+};
+document.getElementById('endCallBtn').onclick = function() {
+    if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'ended' });
+    endCall();
+};
+function endCall() {
+    stopRingtone();
+    if (callTimeoutHandle) { clearTimeout(callTimeoutHandle); callTimeoutHandle = null; }
+    if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+    if (localStream) { localStream.getTracks().forEach(function(t){ t.stop(); }); localStream = null; }
+    document.getElementById('callScreen').classList.remove('show');
+    document.getElementById('remoteAudio').srcObject = null;
+    if (currentCallId) {
+        db.ref('calls/' + currentCallId + '/status').off();
+        db.ref('calls/' + currentCallId + '/answer').off();
+        db.ref('calls/' + currentCallId + '/offer').off();
+        if (currentCallPeer) db.ref('calls/' + currentCallId + '/ice_' + currentCallPeer).off();
+        db.ref('calls/' + currentCallId + '/ice_' + myId).off();
+    }
+    currentCallId = null; currentCallPeer = null;
+    isCaller = false; isMuted = false;
+}
+function listenCallEnd() {
+    if (!currentCallId) return;
+    db.ref('calls/' + currentCallId + '/status').on('value', function(snap) {
+        var s = snap.val();
+        if (s === 'ended' || s === 'rejected' || s === 'missed') endCall();
+    });
+}
+function setCallTimeout(callId) {
+    callTimeoutHandle = setTimeout(function() {
+        db.ref('calls/' + callId + '/status').once('value', function(snap) {
+            if (snap.val() === 'ringing') {
+                db.ref('calls/' + callId).update({ status: 'missed' });
+                endCall();
+            }
+        });
+    }, 30000);
+}
+async function initWebRTC(caller) {
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        pc = new RTCPeerConnection(rtcConfig);
+        localStream.getTracks().forEach(function(track) { pc.addTrack(track, localStream); });
+        pc.ontrack = function(event) {
+            var audio = document.getElementById('remoteAudio');
+            if (audio.srcObject !== event.streams[0]) {
+                audio.srcObject = event.streams[0];
+                audio.play().catch(function(e){});
+            }
+        };
+        pc.onicecandidate = function(event) {
+            if (event.candidate && currentCallId) {
+                db.ref('calls/' + currentCallId + '/ice_' + myId).push(event.candidate.toJSON());
+            }
+        };
+        pc.onconnectionstatechange = function() {
+            if (!pc) return;
+            if (pc.connectionState === 'connected') {
+                document.getElementById('callStatus').textContent = '⏱️ در حال صحبت...';
+            } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'ended' });
+                endCall();
+            }
+        };
+        if (caller) {
+            var offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            db.ref('calls/' + currentCallId + '/offer').set({ sdp: offer.sdp, type: offer.type });
+            db.ref('calls/' + currentCallId + '/answer').on('value', async function(snap) {
+                var answer = snap.val();
+                if (answer && pc && pc.signalingState !== 'stable') {
+                    try { await pc.setRemoteDescription(new RTCSessionDescription(answer)); } catch(e) {}
+                }
+            });
+        } else {
+            db.ref('calls/' + currentCallId + '/offer').once('value', async function(snap) {
+                var offer = snap.val();
+                if (!offer) return;
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                var answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                db.ref('calls/' + currentCallId + '/answer').set({ sdp: answer.sdp, type: answer.type });
+            });
+        }
+        if (currentCallPeer) {
+            db.ref('calls/' + currentCallId + '/ice_' + currentCallPeer).on('child_added', function(snap) {
+                var candidate = snap.val();
+                if (candidate && pc && pc.remoteDescription) {
+                    pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(function(e){});
+                }
+            });
+        }
+    } catch (err) {
+        console.error('WebRTC Error:', err);
+        alert('❌ دسترسی به میکروفون امکان‌پذیر نیست');
+        if (currentCallId) db.ref('calls/' + currentCallId).update({ status: 'ended' });
+        endCall();
+    }
+}
+document.getElementById('muteBtn').onclick = function() {
+    if (!localStream) return;
+    isMuted = !isMuted;
+    localStream.getAudioTracks().forEach(function(t) { t.enabled = !isMuted; });
+    this.classList.toggle('active', isMuted);
+    this.textContent = isMuted ? '🔇' : '🎤';
+};
+function playRingtone() {
+    try {
+        ringtoneCtx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ringtoneCtx.createOscillator();
+        var gain = ringtoneCtx.createGain();
+        osc.connect(gain); gain.connect(ringtoneCtx.destination);
+        osc.frequency.value = 440; gain.gain.value = 0.15;
+        osc.start(); osc.stop(ringtoneCtx.currentTime + 30);
+    } catch(e) {}
+}
+function stopRingtone() {
+    if (ringtoneCtx) { try { ringtoneCtx.close(); } catch(e) {} ringtoneCtx = null; }
+}
+function addCallButton() {
+    var header = document.getElementById('header');
+    if (!header) return;
+    if (document.getElementById('callBtn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'callBtn';
+    btn.innerHTML = '📞';
+    btn.onclick = function() {
+        if (curChat === 'public' || !curUser || curUser.isGroup) {
+            alert('فقط در چت خصوصی'); return;
+        }
+        startCall(curUser.id, curUser.name, curUser.avatar);
+    };
+    header.appendChild(btn);
+}
