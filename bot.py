@@ -1,5 +1,7 @@
 import requests
 import time
+import sys
+sys.stdout.reconfigure(line_buffering=True)
 
 BOT_TOKEN = "CGEBGB0LVPDQIKJEBKKMKYKDNHEDQYIAXCQLUCEAUBILPNCDNALWUWQZXCTOSSTM"
 BASE_URL = f"https://botapi.rubika.ir/v3/{BOT_TOKEN}"
