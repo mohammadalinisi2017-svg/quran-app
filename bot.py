@@ -1,8 +1,6 @@
-import os
 import requests
 import time
 
-# توکن از متغیر محیطی خوانده می‌شود (امنیت بالا)
 BOT_TOKEN = "CGEBGB0LVPDQIKJEBKKMKYKDNHEDQYIAXCQLUCEAUBILPNCDNALWUWQZXCTOSSTM"
 BASE_URL = f"https://botapi.rubika.ir/v3/{BOT_TOKEN}"
 
@@ -18,7 +16,7 @@ def get_updates(offset_id=0):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print("Error getting updates: " + str(e))
+        print("Error: " + str(e))
         return None
 
 def send_message(chat_id, text):
@@ -29,7 +27,7 @@ def send_message(chat_id, text):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        print("Error sending message: " + str(e))
+        print("Error: " + str(e))
         return None
 
 def main():
@@ -43,13 +41,22 @@ def main():
                 new_message = update.get("new_message")
                 if not new_message:
                     continue
+                
                 chat_id = new_message.get("chat_id")
                 text = new_message.get("text", "").strip()
-                print("Message received: " + text)
+                
+                # بررسی عکس
+                file_info = new_message.get("file")
+                if file_info:
+                    print("Photo received!")
+                    send_message(chat_id, "عکس شما دریافت شد!")
+                    continue
+
+                print("Message: " + text)
                 if text == "/start":
-                    send_message(chat_id, "Hello! I am your bot.")
-                else:
-                    send_message(chat_id, "You said: " + text)
+                    send_message(chat_id, "سلام! یه عکس بفرست تا ببینی چیکار میکنم!")
+                elif text:
+                    send_message(chat_id, "شما گفتید: " + text)
         time.sleep(2)
 
 if __name__ == "__main__":
