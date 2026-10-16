@@ -3,7 +3,7 @@ import requests
 import time
 
 # توکن از متغیر محیطی خوانده می‌شود (امنیت بالا)
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+BOT_TOKEN = "CGEBGB0LVPDQIKJEBKKMKYKDNHEDQYIAXCQLUCEAUBILPNCDNALWUWQZXCTOSSTM"
 BASE_URL = f"https://botapi.rubika.ir/v3/{BOT_TOKEN}"
 
 last_update_id = 0
